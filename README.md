@@ -129,8 +129,25 @@ Para integrar esta API em outras aplicações, consulte:
 
 - **[INTEGRATION.md](INTEGRATION.md)**: Manual completo de integração com exemplos em Python, JavaScript, cURL
 - **[PROMPTS_EXAMPLES.md](PROMPTS_EXAMPLES.md)**: Exemplos de prompts para usar em Cursor, Claude Code, Antigravity e outras ferramentas de IA
+- **[RUN_WITHOUT_AI.md](RUN_WITHOUT_AI.md)**: Como rodar a API apenas com gestão de processos (sem IA/Vertex AI)
 - **Exemplos Práticos**: Veja a pasta `examples/` para código de exemplo
 - **API Docs**: Acesse `/docs` na API para documentação interativa Swagger
+
+## ⚙️ Modo Sem IA (Opcional)
+
+A API pode rodar **sem IA** se você precisar apenas de gestão de processos (CRUD). Configure:
+
+```bash
+# No .env ou variável de ambiente
+ENABLE_AI=false
+```
+
+Com isso, você pode usar:
+- ✅ Criar, listar e recuperar processos
+- ❌ Geração de diagramas (requer IA)
+- ❌ Análise de compliance (requer IA)
+
+Veja [RUN_WITHOUT_AI.md](RUN_WITHOUT_AI.md) para detalhes.
 
 ## Endpoints da API
 

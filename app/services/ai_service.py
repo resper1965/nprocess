@@ -319,11 +319,37 @@ Fluxos:
 # ============================================================================
 
 _ai_service_instance: Optional[AIService] = None
+_ai_service_enabled: Optional[bool] = None
 
 
-def get_ai_service() -> AIService:
-    """Retorna instância singleton do AIService."""
+def is_ai_enabled() -> bool:
+    """Verifica se IA está habilitada via variável de ambiente."""
+    global _ai_service_enabled
+    if _ai_service_enabled is None:
+        # Por padrão, IA está habilitada. Desabilite com ENABLE_AI=false
+        ai_enabled = os.getenv("ENABLE_AI", "true").lower() in ("true", "1", "yes")
+        _ai_service_enabled = ai_enabled
+        logger.info(f"IA {'habilitada' if ai_enabled else 'desabilitada'} via ENABLE_AI={os.getenv('ENABLE_AI', 'true')}")
+    return _ai_service_enabled
+
+
+def get_ai_service() -> Optional[AIService]:
+    """
+    Retorna instância singleton do AIService.
+    
+    Returns:
+        AIService se IA estiver habilitada, None caso contrário.
+    """
     global _ai_service_instance
+    
+    if not is_ai_enabled():
+        return None
+    
     if _ai_service_instance is None:
-        _ai_service_instance = AIService()
+        try:
+            _ai_service_instance = AIService()
+        except Exception as e:
+            logger.warning(f"Falha ao inicializar AIService: {e}. IA não estará disponível.")
+            return None
+    
     return _ai_service_instance

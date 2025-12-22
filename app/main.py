@@ -22,6 +22,7 @@ from app.schemas import (
     ProcessCreateResponse,
 )
 from app.services.ai_service import get_ai_service
+from typing import Optional
 from app.services.db_service import get_db_service
 
 
@@ -48,9 +49,15 @@ async def lifespan(app: FastAPI):
 
     # Inicializa serviços
     try:
-        ai_service = get_ai_service()
+        # Database Service é obrigatório
         db_service = get_db_service()
-        logger.info("✅ Serviços inicializados com sucesso")
+        
+        # AI Service é opcional (pode ser desabilitado com ENABLE_AI=false)
+        ai_service = get_ai_service()
+        if ai_service:
+            logger.info("✅ Serviços inicializados: Database ✅ | AI ✅")
+        else:
+            logger.info("✅ Serviços inicializados: Database ✅ | AI ⚠️ (desabilitada ou não configurada)")
     except Exception as e:
         logger.error(f"❌ Erro ao inicializar serviços: {e}")
         raise
@@ -161,6 +168,12 @@ async def generate_diagram(request: DiagramGenerateRequest):
         logger.info("Recebida requisição para geração de diagrama")
 
         ai_service = get_ai_service()
+        if not ai_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Serviço de IA não está disponível. Configure ENABLE_AI=true e Vertex AI para usar este endpoint."
+            )
+        
         result = await ai_service.generate_diagram(
             description=request.description,
             context=request.context
@@ -346,6 +359,12 @@ async def analyze_compliance(request: ComplianceAnalyzeRequest):
 
         db_service = get_db_service()
         ai_service = get_ai_service()
+        
+        if not ai_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Serviço de IA não está disponível. Configure ENABLE_AI=true e Vertex AI para usar este endpoint."
+            )
 
         # 1. Buscar processo no Firestore
         process_data = await db_service.get_process(request.process_id)
