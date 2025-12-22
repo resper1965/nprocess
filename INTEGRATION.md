@@ -43,6 +43,23 @@ Resposta esperada:
 }
 ```
 
+### 3. Acessar Documentação e Prompts
+
+A API expõe documentação diretamente através de endpoints:
+
+```bash
+# Listar documentação disponível
+curl https://sua-api-url.com/v1/docs
+
+# Obter exemplos de prompts (Cursor, Claude Code, Antigravity)
+curl https://sua-api-url.com/v1/docs/prompts
+
+# Obter manual de integração completo
+curl https://sua-api-url.com/v1/docs/integration
+```
+
+Os prompts e documentação estão disponíveis diretamente na API, facilitando o acesso durante o desenvolvimento!
+
 ### 3. Primeira Integração
 
 ```python

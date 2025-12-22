@@ -8,7 +8,8 @@ from typing import Dict, List
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
+from pathlib import Path
 
 from app.schemas import (
     ComplianceAnalyzeRequest,
@@ -445,6 +446,119 @@ async def get_analysis(analysis_id: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao recuperar análise"
         )
+
+
+# ============================================================================
+# Documentation Endpoints
+# ============================================================================
+
+@app.get(
+    "/v1/docs/prompts",
+    response_class=PlainTextResponse,
+    tags=["Documentation"],
+    summary="Retorna exemplos de prompts para ferramentas de IA",
+    description="""
+    Retorna o conteúdo completo do arquivo PROMPTS_EXAMPLES.md com exemplos de prompts
+    para usar em Cursor, Claude Code, Antigravity e outras ferramentas de IA de desenvolvimento.
+    """
+)
+async def get_prompts():
+    """Retorna exemplos de prompts para ferramentas de IA."""
+    try:
+        # Caminho relativo ao diretório raiz do projeto
+        prompts_path = Path(__file__).parent.parent / "PROMPTS_EXAMPLES.md"
+        
+        if not prompts_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Arquivo de prompts não encontrado"
+            )
+        
+        content = prompts_path.read_text(encoding="utf-8")
+        return PlainTextResponse(content, media_type="text/markdown")
+    
+    except Exception as e:
+        logger.error(f"Erro ao ler arquivo de prompts: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao recuperar prompts"
+        )
+
+
+@app.get(
+    "/v1/docs/integration",
+    response_class=PlainTextResponse,
+    tags=["Documentation"],
+    summary="Retorna manual de integração",
+    description="""
+    Retorna o conteúdo completo do arquivo INTEGRATION.md com guia completo
+    de como integrar a ComplianceEngine API em outras aplicações.
+    """
+)
+async def get_integration_guide():
+    """Retorna manual de integração."""
+    try:
+        integration_path = Path(__file__).parent.parent / "INTEGRATION.md"
+        
+        if not integration_path.exists():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Manual de integração não encontrado"
+            )
+        
+        content = integration_path.read_text(encoding="utf-8")
+        return PlainTextResponse(content, media_type="text/markdown")
+    
+    except Exception as e:
+        logger.error(f"Erro ao ler manual de integração: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao recuperar manual de integração"
+        )
+
+
+@app.get(
+    "/v1/docs",
+    response_model=Dict,
+    tags=["Documentation"],
+    summary="Lista documentação disponível",
+    description="""
+    Retorna lista de documentação disponível na API com links para acessar.
+    """
+)
+async def list_documentation():
+    """Lista documentação disponível."""
+    base_url = "/v1/docs"
+    
+    return {
+        "available_docs": [
+            {
+                "name": "Prompts Examples",
+                "description": "Exemplos de prompts para Cursor, Claude Code, Antigravity",
+                "endpoint": f"{base_url}/prompts",
+                "format": "markdown"
+            },
+            {
+                "name": "Integration Guide",
+                "description": "Manual completo de integração da API",
+                "endpoint": f"{base_url}/integration",
+                "format": "markdown"
+            },
+            {
+                "name": "API Documentation",
+                "description": "Documentação interativa da API (Swagger)",
+                "endpoint": "/docs",
+                "format": "swagger"
+            },
+            {
+                "name": "ReDoc Documentation",
+                "description": "Documentação alternativa da API",
+                "endpoint": "/redoc",
+                "format": "redoc"
+            }
+        ],
+        "note": "Acesse os endpoints acima para obter a documentação completa"
+    }
 
 
 # ============================================================================

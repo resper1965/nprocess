@@ -282,6 +282,20 @@ Analisa um processo contra regulamentações.
 
 **Endpoint**: `GET /v1/compliance/analyses/{analysis_id}`
 
+### 7. Documentação
+
+**Endpoint**: `GET /v1/docs`
+
+Lista toda documentação disponível.
+
+**Endpoint**: `GET /v1/docs/prompts`
+
+Retorna exemplos de prompts para Cursor, Claude Code, Antigravity e outras ferramentas de IA.
+
+**Endpoint**: `GET /v1/docs/integration`
+
+Retorna manual completo de integração da API.
+
 ## Deploy no Google Cloud Run
 
 ### 1. Build e Push da Imagem
