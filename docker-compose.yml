@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # ComplianceEngine API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: compliance-engine-api
+    ports:
+      - "8080:8080"
+    environment:
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-your-project-id}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-your-project-id}
+      - VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION:-us-central1}
+      - APP_ENV=development
+      - LOG_LEVEL=INFO
+      # Para usar credenciais locais, monte o arquivo de credenciais
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+    volumes:
+      # Mount do código para hot reload em desenvolvimento
+      - ./app:/app/app
+      # Mount de credenciais (se necessário)
+      # - ~/.config/gcloud/application_default_credentials.json:/app/credentials.json:ro
+    restart: unless-stopped
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Firestore Emulator (para desenvolvimento local sem GCP)
+  firestore-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
+    container_name: firestore-emulator
+    command: >
+      gcloud emulators firestore start
+      --host-port=0.0.0.0:8081
+    ports:
+      - "8081:8081"
+    environment:
+      - FIRESTORE_PROJECT_ID=test-project
+    networks:
+      - compliance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  compliance-network:
+    driver: bridge
+
+# Volumes para persistência (opcional)
+volumes:
+  firestore-data:
