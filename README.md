@@ -2,9 +2,28 @@
 
 Microsserviço (API REST) para análise de compliance de processos de negócio usando IA Generativa.
 
+## 🎯 Propósito
+
+O **ComplianceEngine API** é um **serviço especializado** projetado para ser **integrado em outras aplicações** que precisam de:
+
+- **Mapeamento de Processos**: Converter descrições textuais de processos de negócio em diagramas BPMN estruturados
+- **Análise de Compliance**: Identificar automaticamente gaps de conformidade regulatória (LGPD, SOX, GDPR, etc.) em processos
+- **Gestão de Processos**: Armazenar e gerenciar processos validados para auditoria e compliance
+
+### Para Quem é Esta API?
+
+Esta API foi desenvolvida para ser consumida por:
+- **Sistemas ERP/CRM**: Adicionar análise de compliance aos processos internos
+- **Plataformas de Gestão de Processos**: Enriquecer processos com análise automática de conformidade
+- **Ferramentas de Auditoria**: Gerar relatórios de compliance automaticamente
+- **Aplicações de Governança**: Monitorar conformidade regulatória em tempo real
+- **Sistemas de Documentação**: Gerar diagramas BPMN a partir de documentação textual
+
+> 📖 **Manual de Integração Completo**: Veja [INTEGRATION.md](INTEGRATION.md) para guias detalhados de integração em Python, JavaScript, cURL e mais.
+
 ## Visão Geral
 
-O **ComplianceEngine** é o "cérebro" de conformidade para aplicações empresariais, oferecendo:
+O **ComplianceEngine** oferece três capacidades principais:
 
 1. **Geração de Diagramas BPMN**: Converte descrições textuais de processos em diagramas Mermaid.js
 2. **Gestão de Processos**: Armazena e gerencia processos validados no Firestore
@@ -42,6 +61,8 @@ ComplianceEngine/
 ### Google Cloud Platform
 
 1. Projeto GCP criado
+   - **Project ID**: `nprocess`
+   - **Project Number**: `273624403528`
 2. APIs habilitadas:
    ```bash
    gcloud services enable aiplatform.googleapis.com
@@ -101,6 +122,15 @@ Acesse:
 - API: http://localhost:8080
 - Documentação Interativa (Swagger): http://localhost:8080/docs
 - Documentação Alternativa (ReDoc): http://localhost:8080/redoc
+
+## 📚 Documentação de Integração
+
+Para integrar esta API em outras aplicações, consulte:
+
+- **[INTEGRATION.md](INTEGRATION.md)**: Manual completo de integração com exemplos em Python, JavaScript, cURL
+- **[PROMPTS_EXAMPLES.md](PROMPTS_EXAMPLES.md)**: Exemplos de prompts para usar em Cursor, Claude Code, Antigravity e outras ferramentas de IA
+- **Exemplos Práticos**: Veja a pasta `examples/` para código de exemplo
+- **API Docs**: Acesse `/docs` na API para documentação interativa Swagger
 
 ## Endpoints da API
 
@@ -258,7 +288,7 @@ Analisa um processo contra regulamentações.
 
 ```bash
 # Configure o projeto
-export PROJECT_ID=your-gcp-project-id
+export PROJECT_ID=nprocess
 export REGION=us-central1
 export SERVICE_NAME=compliance-engine
 
@@ -367,7 +397,7 @@ Atualmente, a recuperação de regulamentos está mockada. Para implementar RAG 
 
    def retrieve_regulations(domain: str, query: str):
        client = discoveryengine.SearchServiceClient()
-       serving_config = f"projects/{PROJECT_ID}/locations/global/..."
+       serving_config = f"projects/nprocess/locations/global/..."
 
        request = discoveryengine.SearchRequest(
            serving_config=serving_config,
