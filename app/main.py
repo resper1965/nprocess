@@ -4,12 +4,12 @@ ComplianceEngine API - Microsserviço de análise de compliance de processos.
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
-from pathlib import Path
 
 from app.schemas import (
     ComplianceAnalyzeRequest,
@@ -22,7 +22,6 @@ from app.schemas import (
     ProcessCreateResponse,
 )
 from app.services.ai_service import get_ai_service
-from typing import Optional
 from app.services.db_service import get_db_service
 
 
