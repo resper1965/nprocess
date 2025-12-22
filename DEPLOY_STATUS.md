@@ -144,5 +144,20 @@ gcloud run services logs read compliance-engine \
 ---
 
 **Última atualização**: 2025-12-22  
-**Status**: Commit ✅ | Deploy ⏳ (Aguardando billing)
+**Status**: Commit ✅ | Deploy ✅ **CONCLUÍDO**
+
+## 🎉 Deploy Realizado com Sucesso!
+
+- **URL da API**: https://compliance-engine-273624403528.us-central1.run.app
+- **Região**: us-central1
+- **Status**: ✅ Online e funcionando
+- **Firestore**: ✅ Criado (us-central1)
+- **APIs**: ✅ Todas habilitadas
+- **Billing**: ✅ Vinculado
+
+### Endpoints Disponíveis:
+- Health: https://compliance-engine-273624403528.us-central1.run.app/health
+- Docs: https://compliance-engine-273624403528.us-central1.run.app/docs
+- Prompts: https://compliance-engine-273624403528.us-central1.run.app/v1/docs/prompts
+- Integration: https://compliance-engine-273624403528.us-central1.run.app/v1/docs/integration
 
