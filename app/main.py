@@ -23,6 +23,10 @@ from app.schemas import (
 )
 from app.services.ai_service import get_ai_service
 from app.services.db_service import get_db_service
+from app.services.webhook_service import get_webhook_service
+from app.middleware.auth import validate_api_key
+from app.schemas_webhooks import WebhookEventType
+from app.routers import webhooks, apikeys
 
 
 # ============================================================================
@@ -120,6 +124,13 @@ async def general_exception_handler(request, exc: Exception):
         ).model_dump()
     )
 
+
+# ============================================================================
+# Include Routers
+# ============================================================================
+
+app.include_router(webhooks.router)
+app.include_router(apikeys.router)
 
 # ============================================================================
 # Health Check Endpoints
@@ -233,6 +244,25 @@ async def create_process(request: ProcessCreateRequest):
         process_id = await db_service.create_process(process_data)
 
         logger.info(f"Processo criado com sucesso: {process_id}")
+
+        # Trigger webhook event (if API key provided)
+        api_key = await validate_api_key()
+        if api_key and api_key.key_id:
+            try:
+                webhook_service = get_webhook_service()
+                await webhook_service.trigger_event(
+                    api_key_id=api_key.key_id,
+                    event_type=WebhookEventType.PROCESS_CREATED,
+                    event_id=process_id,
+                    payload={
+                        "process_id": process_id,
+                        "name": request.name,
+                        "category": request.category,
+                        "created_at": datetime.utcnow().isoformat(),
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Failed to trigger webhook for process.created: {e}")
 
         return ProcessCreateResponse(
             process_id=process_id,
@@ -409,6 +439,26 @@ async def analyze_compliance(request: ComplianceAnalyzeRequest):
         analysis_response.analysis_id = analysis_id
 
         logger.info(f"Análise concluída: {analysis_id}")
+
+        # Trigger webhook event (if API key provided)
+        api_key = await validate_api_key()
+        if api_key and api_key.key_id:
+            try:
+                webhook_service = get_webhook_service()
+                await webhook_service.trigger_event(
+                    api_key_id=api_key.key_id,
+                    event_type=WebhookEventType.ANALYSIS_COMPLETED,
+                    event_id=analysis_id,
+                    payload={
+                        "analysis_id": analysis_id,
+                        "process_id": request.process_id,
+                        "domain": request.domain,
+                        "overall_score": overall_score,
+                        "completed_at": datetime.utcnow().isoformat(),
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Failed to trigger webhook for analysis.completed: {e}")
 
         return analysis_response
 
