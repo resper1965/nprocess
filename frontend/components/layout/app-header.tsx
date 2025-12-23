@@ -12,10 +12,10 @@ interface AppHeaderProps {
 
 export default function AppHeader({ health, loading }: AppHeaderProps) {
   return (
-    <div className="sticky top-0 z-40 flex h-[60px] items-center gap-4 border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm px-4 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-[60px] items-center gap-4 border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm px-4 lg:px-6">
       <div className="flex-1" />
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         {/* API Status */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/50 border border-slate-800/50">
           {loading ? (
@@ -38,7 +38,6 @@ export default function AppHeader({ health, loading }: AppHeaderProps) {
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 }
-

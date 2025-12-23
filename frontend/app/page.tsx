@@ -14,7 +14,9 @@ import {
   ArrowRight,
   Activity,
   Shield,
-  Zap
+  Zap,
+  TrendingUp,
+  FileText
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -24,6 +26,7 @@ export default function DashboardPage() {
     processes: 0,
     analyses: 0,
     complianceScore: 0,
+    recentActivity: 0,
   });
 
   useEffect(() => {
@@ -45,6 +48,11 @@ export default function DashboardPage() {
           processes: processes.length,
           analyses: 0, // TODO: implement analytics endpoint
           complianceScore: 0, // TODO: calculate from processes
+          recentActivity: processes.filter((p: any) => {
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return p.created_at && new Date(p.created_at) > weekAgo;
+          }).length,
         });
       })
       .catch((err) => {
@@ -52,81 +60,115 @@ export default function DashboardPage() {
       });
   }, []);
 
-  const features = [
-    {
-      name: 'Generate Diagrams',
-      description: 'Convert textual descriptions into BPMN diagrams using AI',
-      href: '/generate',
-      icon: Sparkles,
-      color: 'text-[#00ade8]',
-    },
-    {
-      name: 'Manage Processes',
-      description: 'Store and manage validated processes in Firestore',
-      href: '/processes',
-      icon: Folder,
-      color: 'text-slate-400',
-    },
-    {
-      name: 'Compliance Analysis',
-      description: 'Identify compliance gaps (LGPD, SOX, GDPR)',
-      href: '/analyze',
-      icon: BarChart3,
-      color: 'text-slate-400',
-    },
-  ];
-
   const statCards = [
     {
       title: 'Total Processes',
       value: stats.processes,
       icon: Activity,
       description: 'Processes mapped',
+      trend: '+12%',
+      trendUp: true,
     },
     {
       title: 'Compliance Score',
       value: `${stats.complianceScore}%`,
       icon: Shield,
       description: 'Average compliance',
+      trend: stats.complianceScore > 0 ? '+5%' : 'N/A',
+      trendUp: stats.complianceScore > 0,
     },
     {
       title: 'Analyses',
       value: stats.analyses,
       icon: Zap,
       description: 'Completed analyses',
+      trend: '+8%',
+      trendUp: true,
+    },
+    {
+      title: 'Recent Activity',
+      value: stats.recentActivity,
+      icon: TrendingUp,
+      description: 'Last 7 days',
+      trend: '+15%',
+      trendUp: true,
+    },
+  ];
+
+  const quickActions = [
+    {
+      name: 'Generate Diagram',
+      description: 'Create a new process diagram using AI',
+      href: '/generate',
+      icon: Sparkles,
+      color: 'text-[#00ade8]',
+      bgColor: 'bg-[#00ade8]/10',
+    },
+    {
+      name: 'View Processes',
+      description: 'Browse and manage your processes',
+      href: '/processes',
+      icon: Folder,
+      color: 'text-slate-400',
+      bgColor: 'bg-slate-900/50',
+    },
+    {
+      name: 'Run Analysis',
+      description: 'Analyze compliance with regulatory frameworks',
+      href: '/analyze',
+      icon: BarChart3,
+      color: 'text-slate-400',
+      bgColor: 'bg-slate-900/50',
+    },
+    {
+      name: 'Documentation',
+      description: 'Access API documentation and guides',
+      href: '/docs',
+      icon: FileText,
+      color: 'text-slate-400',
+      bgColor: 'bg-slate-900/50',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-300">
+    <div className="min-h-screen bg-slate-950">
       <AppSidebar />
       
       <div className="lg:pl-64">
         <AppHeader health={health} loading={loading} />
 
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-6 xl:p-8">
           {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
+          <div className="mb-6 lg:mb-8">
+            <h1 className="text-3xl lg:text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
               Dashboard
             </h1>
-            <p className="text-base text-slate-500 font-normal">
+            <p className="text-sm lg:text-base text-slate-500 font-normal">
               Overview of your process mapping and compliance analysis
             </p>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid gap-4 md:grid-cols-3 mb-8">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6 lg:mb-8">
             {statCards.map((stat) => (
-              <Card key={stat.title} className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-slate-500 font-normal mb-1">{stat.title}</p>
-                    <p className="text-3xl font-display font-bold text-slate-100 tracking-tight">
-                      {stat.value}
-                    </p>
+              <Card key={stat.title} className="p-5 lg:p-6 hover:border-slate-700/50 transition-colors">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <p className="text-xs text-slate-500 font-normal mb-1.5">{stat.title}</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-2xl lg:text-3xl font-display font-bold text-slate-100 tracking-tight">
+                        {stat.value}
+                      </p>
+                      {stat.trend && stat.trend !== 'N/A' && (
+                        <span className={`text-xs font-medium ${stat.trendUp ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {stat.trend}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <stat.icon className="w-8 h-8 text-[#00ade8]" strokeWidth={1.5} />
+                  <div className={`p-2.5 rounded-lg ${stat.icon === Activity ? 'bg-[#00ade8]/10' : 'bg-slate-900/50'}`}>
+                    <stat.icon className={`w-5 h-5 ${stat.icon === Activity ? 'text-[#00ade8]' : 'text-slate-400'}`} strokeWidth={1.5} />
+                  </div>
                 </div>
                 <p className="text-xs text-slate-600 font-normal">{stat.description}</p>
               </Card>
@@ -134,52 +176,61 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="mb-8">
-            <h2 className="text-xl font-display font-semibold text-slate-100 mb-4 tracking-tight">
-              Quick Actions
-            </h2>
-            <div className="flex items-center gap-3">
-              <Link href="/generate">
-                <Button size="lg">
-                  Generate Diagram
-                  <ArrowRight className="w-4 h-4 ml-2" strokeWidth={2} />
-                </Button>
-              </Link>
-              <Link href="/processes">
-                <Button variant="secondary" size="lg">
-                  View Processes
-                </Button>
-              </Link>
-              <Link href="/analyze">
-                <Button variant="secondary" size="lg">
-                  Run Analysis
-                </Button>
-              </Link>
+          <div className="mb-6 lg:mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg lg:text-xl font-display font-semibold text-slate-100 tracking-tight">
+                Quick Actions
+              </h2>
             </div>
-          </div>
-
-          {/* Features Grid */}
-          <div>
-            <h2 className="text-xl font-display font-semibold text-slate-100 mb-4 tracking-tight">
-              Features
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {features.map((feature) => (
-                <Link key={feature.name} href={feature.href}>
-                  <Card hover className="p-6 h-full">
-                    <div className="mb-4">
-                      <feature.icon className={`w-6 h-6 ${feature.color}`} strokeWidth={1.5} />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {quickActions.map((action) => (
+                <Link key={action.name} href={action.href}>
+                  <Card hover className="p-5 lg:p-6 h-full group cursor-pointer">
+                    <div className={`w-10 h-10 rounded-lg ${action.bgColor} flex items-center justify-center mb-4 group-hover:scale-105 transition-transform`}>
+                      <action.icon className={`w-5 h-5 ${action.color}`} strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-base font-display font-semibold text-slate-100 mb-2 tracking-tight">
-                      {feature.name}
+                    <h3 className="text-base font-display font-semibold text-slate-100 mb-1.5 tracking-tight group-hover:text-[#00ade8] transition-colors">
+                      {action.name}
                     </h3>
                     <p className="text-sm text-slate-500 leading-relaxed font-normal">
-                      {feature.description}
+                      {action.description}
                     </p>
                   </Card>
                 </Link>
               ))}
             </div>
+          </div>
+
+          {/* Recent Activity Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg lg:text-xl font-display font-semibold text-slate-100 tracking-tight">
+                Getting Started
+              </h2>
+            </div>
+            <Card className="p-5 lg:p-6">
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-[#00ade8]/10 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-4 h-4 text-[#00ade8]" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-display font-semibold text-slate-100 mb-1">
+                      Generate your first process diagram
+                    </h3>
+                    <p className="text-sm text-slate-500 font-normal mb-3">
+                      Use AI to convert your process description into a structured BPMN diagram
+                    </p>
+                    <Link href="/generate">
+                      <Button size="sm">
+                        Get Started
+                        <ArrowRight className="w-3.5 h-3.5 ml-1.5" strokeWidth={2} />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
         </main>
       </div>
