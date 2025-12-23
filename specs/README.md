@@ -66,6 +66,49 @@ Especificação completa para Admin Dashboard:
 - `api_requests/` - Logs de requisições para analytics
 - `admin_users/` - Cache de usuários e roles
 
+### [003 - FinOps - Controle de Custos por API Key](./003-finops-cost-tracking-by-api-key/spec.md)
+
+**Status**: 📝 Draft  
+**Data**: 2025-12-23
+
+Especificação para sistema de rastreamento e controle de custos por API key:
+
+- **Rastreamento Granular**: Atribuir custos de Vertex AI, Firestore, Cloud Run a cada API key
+- **Budgets por API Key**: Definir limites de custo mensal/diário
+- **Alertas Automáticos**: Notificar quando custos excedem thresholds (80%, 95%, 100%)
+- **Suspensão Automática**: Opção de suspender API keys que excedem budget
+- **Dashboard Detalhado**: Visualizar custos por API key, consumer, serviço
+- **Integração GCP Billing**: Sincronizar com custos reais do Google Cloud
+
+#### Componentes Principais
+
+1. **Cost Attribution Service**
+   - Rastrear custos por requisição
+   - Atribuir custos por serviço (Vertex AI, Firestore, Cloud Run)
+   - Agregar custos diários/mensais
+
+2. **Budget Management**
+   - Criar/editar budgets por API key
+   - Thresholds configuráveis (warning, critical, exceeded)
+   - Ações automáticas (suspender, notificar)
+
+3. **Dashboard FinOps**
+   - Custos por API key
+   - Custos por consumer
+   - Custos por serviço
+   - Gráficos e tendências
+
+4. **Sistema de Alertas**
+   - Email/Webhook quando thresholds são atingidos
+   - Notificações no dashboard
+   - Relatórios de custos excedidos
+
+#### Estrutura de Dados
+
+- `api_key_costs/` - Custos agregados por API key e período
+- `api_key_budgets/` - Budgets e thresholds por API key
+- `cost_attributions/` - Atribuições de custo por requisição
+
 ## 🔄 Workflow de Specs
 
 1. **Criar spec**: Usar template do Spec-Kit
