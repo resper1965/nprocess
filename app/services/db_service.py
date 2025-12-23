@@ -108,7 +108,8 @@ class DatabaseService:
     async def update_process(
         self,
         process_id: str,
-        updates: Dict[str, Any]
+        updates: Dict[str, Any],
+        create_version: bool = True
     ) -> bool:
         """
         Atualiza um processo existente.
@@ -116,6 +117,7 @@ class DatabaseService:
         Args:
             process_id: ID do processo.
             updates: Campos a serem atualizados.
+            create_version: Whether to create a version snapshot before updating.
 
         Returns:
             True se atualizado com sucesso, False se não encontrado.
@@ -127,6 +129,29 @@ class DatabaseService:
             if not doc_ref.get().exists:
                 logger.warning(f"Processo não encontrado para atualização: {process_id}")
                 return False
+
+            # Create version snapshot before updating (if enabled)
+            if create_version:
+                try:
+                    from app.services.version_service import get_version_service
+                    version_service = get_version_service()
+                    
+                    # Get current process data
+                    current_data = await self.get_process(process_id)
+                    if current_data:
+                        # Remove 'id' field (not part of process_data)
+                        current_data.pop('id', None)
+                        
+                        # Create version automatically
+                        await version_service.create_version(
+                            process_id=process_id,
+                            process_data=current_data,
+                            request=None  # Auto-version, no user notes
+                        )
+                        logger.info(f"Auto-created version for process {process_id} before update")
+                except Exception as e:
+                    # Don't fail the update if versioning fails
+                    logger.warning(f"Failed to create version before update: {e}")
 
             # Adiciona timestamp de atualização
             updates["updated_at"] = firestore.SERVER_TIMESTAMP
