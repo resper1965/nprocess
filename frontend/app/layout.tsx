@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ComplianceEngine - Mapeamento e Análise de Compliance",
-  description: "Plataforma para mapeamento de processos e análise de compliance usando IA",
+  title: "ComplianceEngine - Process Mapping & Compliance Analysis",
+  description: "Transform business process descriptions into structured BPMN diagrams and analyze compliance with regulatory frameworks using AI",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="en">
       <body className="antialiased">
         {children}
       </body>

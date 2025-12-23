@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { apiClient, Process, ComplianceAnalyzeResponse } from '@/lib/api';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import AppSidebar from '@/components/layout/app-sidebar';
+import AppHeader from '@/components/layout/app-header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import DiagramViewer from '@/components/DiagramViewer';
@@ -82,10 +82,10 @@ export default function AnalyzePage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300">
-      <Sidebar />
+      <AppSidebar />
       
       <div className="lg:pl-64">
-        <Header />
+        <AppHeader />
 
         <main className="px-6 py-12 max-w-7xl mx-auto">
           <div className="mb-10">

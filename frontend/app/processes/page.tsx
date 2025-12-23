@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { apiClient, Process } from '@/lib/api';
 import Link from 'next/link';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import AppSidebar from '@/components/layout/app-sidebar';
+import AppHeader from '@/components/layout/app-header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { Plus, Folder, AlertCircle } from 'lucide-react';
@@ -34,10 +34,10 @@ export default function ProcessesPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300">
-      <Sidebar />
+      <AppSidebar />
       
       <div className="lg:pl-64">
-        <Header />
+        <AppHeader />
 
         <main className="px-6 py-12 max-w-7xl mx-auto">
           <div className="mb-10 flex items-center justify-between">
