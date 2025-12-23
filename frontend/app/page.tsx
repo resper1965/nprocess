@@ -134,10 +134,11 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-slate-950">
       <AppSidebar />
       
-      <div className="lg:pl-64">
+      {/* Main content area - starts after sidebar */}
+      <div className="lg:pl-64 min-h-screen flex flex-col">
         <AppHeader health={health} loading={loading} />
 
-        <main className="p-4 lg:p-6 xl:p-8">
+        <main className="flex-1 p-4 lg:p-6 xl:p-8">
           {/* Page Header */}
           <div className="mb-6 lg:mb-8">
             <h1 className="text-3xl lg:text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
