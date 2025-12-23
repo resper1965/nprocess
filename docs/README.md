@@ -75,6 +75,8 @@
 ```
 docs/
 ├── README.md                 # Este arquivo (índice)
+├── PROJECT_OVERVIEW.md       # ⭐ Visão geral completa do projeto
+├── NEXT_STEPS.md             # ⭐ Próximos passos práticos
 ├── AI_INTEGRATION_GUIDE.md   # Guia para IAs de desenvolvimento
 ├── INTEGRATION.md            # Manual de integração
 ├── PROMPTS_EXAMPLES.md       # Exemplos de prompts
@@ -83,7 +85,10 @@ docs/
 ├── QUICK_START.md            # Guia rápido
 ├── RUN_WITHOUT_AI.md         # Modo sem IA
 ├── DEPLOY_STATUS.md          # Status de deploy
-└── FRONTEND_PROPOSAL.md      # Proposta do frontend
+├── FRONTEND_PROPOSAL.md      # Proposta do frontend
+├── FEATURE_ROADMAP.md        # Roadmap de funcionalidades
+├── COST_OPTIMIZATION_ANALYSIS.md  # Análise de custos
+└── SECURITY_ANALYSIS_MCP.md  # Análise de segurança MCP
 ```
 
 ## 🆘 Precisa de Ajuda?
