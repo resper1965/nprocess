@@ -26,7 +26,7 @@ from app.services.db_service import get_db_service
 from app.services.webhook_service import get_webhook_service
 from app.middleware.auth import validate_api_key
 from app.schemas_webhooks import WebhookEventType
-from app.routers import webhooks, apikeys, versions, templates, tags, approvals, search, dashboard
+from app.routers import webhooks, apikeys, versions, templates, tags, approvals, search, dashboard, backup, ai_suggestions, realtime, marketplace
 
 
 # ============================================================================
@@ -137,6 +137,10 @@ app.include_router(tags.router)
 app.include_router(approvals.router)
 app.include_router(search.router)
 app.include_router(dashboard.router)
+app.include_router(backup.router)
+app.include_router(ai_suggestions.router)
+app.include_router(realtime.router)
+app.include_router(marketplace.router)
 
 # ============================================================================
 # Health Check Endpoints
