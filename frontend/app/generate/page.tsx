@@ -5,8 +5,13 @@ import { apiClient, DiagramGenerateResponse } from '@/lib/api';
 import DiagramViewer from '@/components/DiagramViewer';
 import AppSidebar from '@/components/layout/app-sidebar';
 import AppHeader from '@/components/layout/app-header';
-import Card from '@/components/Card';
-import Button from '@/components/Button';
+import { useSidebar } from '@/components/ui/sidebar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles, AlertCircle } from 'lucide-react';
 
 export default function GeneratePage() {
@@ -15,6 +20,7 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DiagramGenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { state } = useSidebar();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,84 +41,88 @@ export default function GeneratePage() {
     }
   };
 
+  const contentPadding = state === 'expanded' ? 'lg:pl-64' : 'lg:pl-16';
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-300">
+    <div className="min-h-screen bg-slate-950">
       <AppSidebar />
-      
-      <div className="lg:pl-64">
+
+      <div className={`${contentPadding} min-h-screen flex flex-col relative z-10 transition-all duration-300`}>
         <AppHeader />
 
-        <main className="px-6 py-12 max-w-7xl mx-auto">
-          <div className="mb-10">
-            <h1 className="text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
+        <main className="flex-1 p-4 lg:p-6 xl:p-8 relative z-10">
+          <div className="mb-6 lg:mb-8">
+            <h1 className="text-3xl lg:text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
               Generate BPMN Diagram
             </h1>
-            <p className="text-base text-slate-500 font-normal">
+            <p className="text-sm lg:text-base text-slate-500 font-normal">
               Describe a business process and receive an AI-generated BPMN diagram
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
             {/* Form */}
             <div className="space-y-6">
-              <Card className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-slate-400 mb-2">
-                      Process Description *
-                    </label>
-                    <textarea
-                      id="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Example: Purchase approval process: employee makes request, manager approves, finance processes payment"
-                      required
-                      minLength={10}
-                      rows={10}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-[#00ade8]/50 focus:ring-1 focus:ring-[#00ade8]/20 transition-all resize-none font-normal text-sm"
-                    />
-                    <p className="text-xs text-slate-600 mt-2 font-normal">
-                      Minimum 10 characters
-                    </p>
-                  </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Process Description</CardTitle>
+                  <CardDescription>
+                    Provide a detailed description of your business process
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="description">
+                        Process Description *
+                      </Label>
+                      <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Example: Purchase approval process: employee makes request, manager approves, finance processes payment"
+                        required
+                        minLength={10}
+                        rows={10}
+                      />
+                      <p className="text-xs text-slate-600 font-normal">
+                        Minimum 10 characters
+                      </p>
+                    </div>
 
-                  <div>
-                    <label htmlFor="context" className="block text-sm font-medium text-slate-400 mb-2">
-                      Additional Context (optional)
-                    </label>
-                    <textarea
-                      id="context"
-                      value={context}
-                      onChange={(e) => setContext(e.target.value)}
-                      placeholder="Example: Purchasing department, up to $10,000"
-                      rows={4}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-[#00ade8]/50 focus:ring-1 focus:ring-[#00ade8]/20 transition-all resize-none font-normal text-sm"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="context">
+                        Additional Context (optional)
+                      </Label>
+                      <Textarea
+                        id="context"
+                        value={context}
+                        onChange={(e) => setContext(e.target.value)}
+                        placeholder="Example: Purchasing department, up to $10,000"
+                        rows={4}
+                      />
+                    </div>
 
-                  <Button
-                    type="submit"
-                    disabled={loading || !description.trim()}
-                    loading={loading}
-                    size="lg"
-                    className="w-full"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" strokeWidth={2} />
-                    Generate Diagram
-                  </Button>
-                </form>
+                    <Button
+                      type="submit"
+                      disabled={loading || !description.trim()}
+                      loading={loading}
+                      size="lg"
+                      className="w-full"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" strokeWidth={2} />
+                      Generate Diagram
+                    </Button>
+                  </form>
+                </CardContent>
               </Card>
 
               {error && (
-                <Card className="p-4 border-red-500/20 bg-red-500/10">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
-                    <div>
-                      <p className="font-medium text-red-400 text-sm">Error</p>
-                      <p className="text-xs text-red-400/80 mt-1 font-normal">{error}</p>
-                    </div>
-                  </div>
-                </Card>
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
             </div>
 
@@ -120,62 +130,73 @@ export default function GeneratePage() {
             <div className="space-y-6">
               {result ? (
                 <>
-                  <div>
-                    <h2 className="text-2xl font-display font-semibold text-slate-100 mb-4 tracking-tight">
-                      Generated Diagram
-                    </h2>
-                    <DiagramViewer mermaidCode={result.mermaid_code} />
-                  </div>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Generated Diagram</CardTitle>
+                      <CardDescription>
+                        Your BPMN diagram visualization
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <DiagramViewer mermaidCode={result.mermaid_code} />
+                    </CardContent>
+                  </Card>
 
-                  <Card className="p-6">
-                    <h3 className="text-base font-display font-semibold text-slate-100 mb-3 tracking-tight">
-                      Normalized Text
-                    </h3>
-                    <p className="text-sm text-slate-500 leading-relaxed whitespace-pre-wrap font-normal">
-                      {result.normalized_text}
-                    </p>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Normalized Text</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-slate-500 leading-relaxed whitespace-pre-wrap font-normal">
+                        {result.normalized_text}
+                      </p>
+                    </CardContent>
                   </Card>
 
                   {result.metadata && (
-                    <Card className="p-6">
-                      <h3 className="text-base font-display font-semibold text-slate-100 mb-4 tracking-tight">
-                        Metadata
-                      </h3>
-                      <div className="space-y-3 text-sm">
-                        {result.metadata.actors && (
-                          <div>
-                            <span className="text-slate-600 font-normal">Actors: </span>
-                            <span className="text-slate-400 font-normal">
-                              {result.metadata.actors.join(', ')}
-                            </span>
-                          </div>
-                        )}
-                        {result.metadata.activities_count !== undefined && (
-                          <div>
-                            <span className="text-slate-600 font-normal">Activities: </span>
-                            <span className="text-slate-400 font-normal">
-                              {result.metadata.activities_count}
-                            </span>
-                          </div>
-                        )}
-                        {result.metadata.decision_points !== undefined && (
-                          <div>
-                            <span className="text-slate-600 font-normal">Decision Points: </span>
-                            <span className="text-slate-400 font-normal">
-                              {result.metadata.decision_points}
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Metadata</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3 text-sm">
+                          {result.metadata.actors && (
+                            <div>
+                              <span className="text-slate-600 font-normal">Actors: </span>
+                              <span className="text-slate-400 font-normal">
+                                {result.metadata.actors.join(', ')}
+                              </span>
+                            </div>
+                          )}
+                          {result.metadata.activities_count !== undefined && (
+                            <div>
+                              <span className="text-slate-600 font-normal">Activities: </span>
+                              <span className="text-slate-400 font-normal">
+                                {result.metadata.activities_count}
+                              </span>
+                            </div>
+                          )}
+                          {result.metadata.decision_points !== undefined && (
+                            <div>
+                              <span className="text-slate-600 font-normal">Decision Points: </span>
+                              <span className="text-slate-400 font-normal">
+                                {result.metadata.decision_points}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
                     </Card>
                   )}
                 </>
               ) : (
-                <Card className="p-12 text-center">
-                  <Sparkles className="w-10 h-10 text-slate-700 mx-auto mb-4" strokeWidth={1.5} />
-                  <p className="text-slate-600 font-normal text-sm">
-                    The diagram will appear here after generation
-                  </p>
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Sparkles className="w-10 h-10 text-slate-700 mx-auto mb-4" strokeWidth={1.5} />
+                    <p className="text-slate-600 font-normal text-sm">
+                      The diagram will appear here after generation
+                    </p>
+                  </CardContent>
                 </Card>
               )}
             </div>
