@@ -85,3 +85,34 @@ async def require_api_key(
     
     return result
 
+
+async def verify_admin_token(
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+) -> str:
+    """
+    Verify admin authentication token.
+
+    In production, this should verify JWT token from admin dashboard.
+    For now, we'll use a simple bearer token check.
+
+    Args:
+        credentials: HTTP Authorization credentials
+
+    Returns:
+        User ID if valid
+
+    Raises:
+        HTTPException: If token is invalid
+    """
+    token = credentials.credentials
+
+    # TODO: Implement proper JWT verification
+    # For now, accept any token starting with "admin_"
+    if not token.startswith("admin_"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token"
+        )
+
+    return "admin_user"  # Return user ID
+
