@@ -15,7 +15,7 @@ export default function AppHeader({ health, loading }: AppHeaderProps) {
   const { open, setOpen } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-40 flex h-[60px] flex-shrink-0 items-center gap-4 border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm px-4 lg:px-6">
+    <header className="sticky top-0 z-10 flex h-[60px] flex-shrink-0 items-center gap-4 border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm px-4 lg:px-6">
       {/* Mobile menu button */}
       <button
         onClick={() => setOpen(!open)}
