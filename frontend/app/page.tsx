@@ -7,6 +7,7 @@ import AppSidebar from '@/components/layout/app-sidebar';
 import AppHeader from '@/components/layout/app-header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
+import { useSidebar } from '@/components/ui/sidebar';
 import { 
   Sparkles, 
   Folder, 
@@ -22,6 +23,7 @@ import {
 export default function DashboardPage() {
   const [health, setHealth] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { state } = useSidebar();
   const [stats, setStats] = useState({
     processes: 0,
     analyses: 0,
@@ -130,12 +132,15 @@ export default function DashboardPage() {
     },
   ];
 
+  // Adjust padding based on sidebar state
+  const contentPadding = state === 'expanded' ? 'lg:pl-64' : 'lg:pl-16';
+
   return (
     <div className="min-h-screen bg-slate-950">
       <AppSidebar />
       
-      {/* Main content area - starts after sidebar with relative positioning */}
-      <div className="lg:pl-64 min-h-screen flex flex-col relative z-10">
+      {/* Main content area - adapts to sidebar state */}
+      <div className={`${contentPadding} min-h-screen flex flex-col relative z-10 transition-all duration-300`}>
         <AppHeader health={health} loading={loading} />
 
         <main className="flex-1 p-4 lg:p-6 xl:p-8 relative z-10">

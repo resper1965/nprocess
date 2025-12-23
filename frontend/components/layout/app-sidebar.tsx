@@ -8,11 +8,20 @@ import {
   Folder, 
   BarChart3,
   FileText,
-  Menu,
-  X
+  X,
 } from 'lucide-react';
-import { useState } from 'react';
 import Logo from './logo';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/ui/sidebar';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -22,107 +31,78 @@ const navigation = [
   { name: 'Documentation', href: '/docs', icon: FileText },
 ];
 
-export default function AppSidebar() {
+function AppSidebarContent() {
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { state, setOpen } = useSidebar();
+
+  return (
+    <>
+      <SidebarHeader>
+        <div className="flex items-center justify-between w-full">
+          <Logo />
+          <button
+            onClick={() => setOpen(false)}
+            className="lg:hidden p-2 rounded-lg hover:bg-slate-900/50 text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            <X className="w-4 h-4" strokeWidth={1.5} />
+          </button>
+        </div>
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarMenu>
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                  >
+                    <Link href={item.href} onClick={() => setOpen(false)}>
+                      <item.icon className="w-4 h-4" strokeWidth={1.5} />
+                      <span className={state === 'collapsed' ? 'lg:hidden' : ''}>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <p className={`text-xs text-slate-600 font-normal tracking-wide px-2 ${state === 'collapsed' ? 'lg:hidden' : ''}`}>
+          Process Mapping & Compliance
+        </p>
+      </SidebarFooter>
+    </>
+  );
+}
+
+export default function AppSidebar() {
+  const { open, setOpen } = useSidebar();
 
   return (
     <>
       {/* Mobile sidebar */}
-      <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div 
-          className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm" 
-          onClick={() => setSidebarOpen(false)} 
-        />
-        <div className="fixed inset-y-0 left-0 w-64 bg-slate-950/95 backdrop-blur-sm border-r border-slate-800/50">
-          <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800/50 h-[60px]">
-            <Logo />
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-2 rounded-lg hover:bg-slate-900/50 text-slate-400 hover:text-slate-200 transition-colors"
-            >
-              <X className="w-5 h-5" strokeWidth={1.5} />
-            </button>
-          </div>
-          <nav className="flex-1 px-3 py-8 space-y-2 overflow-y-auto">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`
-                    flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-normal transition-all
-                    ${
-                      isActive
-                        ? 'bg-slate-900/50 text-slate-100'
-                        : 'text-slate-500 hover:text-slate-200 hover:bg-slate-900/30'
-                    }
-                  `}
-                >
-                  <item.icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="px-6 py-6 border-t border-slate-800/50">
-            <p className="text-xs text-slate-600 font-normal tracking-wide">
-              Process Mapping & Compliance
-            </p>
-          </div>
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-30">
+          <div
+            className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <aside className="fixed inset-y-0 left-0 w-64 bg-slate-950/95 backdrop-blur-sm border-r border-slate-800/50 flex flex-col z-40">
+            <AppSidebarContent />
+          </aside>
         </div>
-      </div>
+      )}
 
-      {/* Desktop sidebar - fixed position with lower z-index */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-1 min-h-0 border-r border-slate-800/50 bg-slate-950/95 backdrop-blur-sm">
-          <div className="flex items-center px-6 py-3 border-b border-slate-800/50 h-[60px] flex-shrink-0">
-            <Logo />
-          </div>
-
-          <nav className="flex-1 px-3 py-8 space-y-2 overflow-y-auto">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`
-                    flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-normal transition-all
-                    ${
-                      isActive
-                        ? 'bg-slate-900/50 text-slate-100'
-                        : 'text-slate-500 hover:text-slate-200 hover:bg-slate-900/30'
-                    }
-                  `}
-                >
-                  <item.icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="px-6 py-6 border-t border-slate-800/50 flex-shrink-0">
-            <p className="text-xs text-slate-600 font-normal tracking-wide">
-              Process Mapping & Compliance
-            </p>
-          </div>
-        </div>
-      </aside>
-
-      {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded-lg bg-slate-900/80 backdrop-blur-sm border border-slate-800/50 text-slate-400 hover:text-slate-200 hover:border-slate-700/50 transition-all"
-          aria-label="Toggle menu"
-        >
-          <Menu className="w-5 h-5" strokeWidth={1.5} />
-        </button>
-      </div>
+      {/* Desktop sidebar */}
+      <Sidebar>
+        <AppSidebarContent />
+      </Sidebar>
     </>
   );
 }

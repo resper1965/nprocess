@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export const metadata: Metadata = {
   title: "ComplianceEngine - Process Mapping & Compliance Analysis",
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        {children}
+        <SidebarProvider defaultOpen={true}>
+          {children}
+        </SidebarProvider>
       </body>
     </html>
   );
