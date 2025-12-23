@@ -3,7 +3,7 @@ Tag and categorization service for ComplianceEngine.
 """
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from google.cloud import firestore
 
