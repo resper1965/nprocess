@@ -26,6 +26,8 @@ from app.services.db_service import get_db_service
 from app.services.webhook_service import get_webhook_service
 from app.middleware.auth import validate_api_key
 from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.logging import StructuredLoggingMiddleware
+from app.middleware.tracing import TracingMiddleware
 from app.schemas_webhooks import WebhookEventType
 from app.routers import webhooks, apikeys, apikeys_user, versions, templates, tags, approvals, search, dashboard, backup, ai_suggestions, realtime, marketplace
 import os
@@ -98,6 +100,12 @@ app.add_middleware(
 # Rate Limiting Middleware
 redis_url = os.getenv("REDIS_URL", None)
 app.add_middleware(RateLimitMiddleware, redis_url=redis_url)
+
+# Structured Logging Middleware
+app.add_middleware(StructuredLoggingMiddleware)
+
+# Tracing Middleware (must be added before other middleware)
+app.add_middleware(TracingMiddleware)
 
 
 # ============================================================================
