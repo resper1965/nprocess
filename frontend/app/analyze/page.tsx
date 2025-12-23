@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import DiagramViewer from '@/components/DiagramViewer';
-import { ChartBarIcon, ExclamationCircleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { BarChart3, AlertCircle } from 'lucide-react';
 
 export default function AnalyzePage() {
   const [processes, setProcesses] = useState<Process[]>([]);
@@ -88,11 +88,11 @@ export default function AnalyzePage() {
         <Header />
 
         <main className="px-6 py-12 max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-display font-bold text-slate-100 mb-2">
+          <div className="mb-10">
+            <h1 className="text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
               Compliance Analysis
             </h1>
-            <p className="text-lg text-slate-400">
+            <p className="text-base text-slate-500 font-normal">
               Analyze processes against regulatory frameworks (LGPD, SOX, GDPR)
             </p>
           </div>
@@ -103,15 +103,15 @@ export default function AnalyzePage() {
               <Card className="p-6">
                 <form onSubmit={handleAnalyze} className="space-y-6">
                   <div>
-                    <label htmlFor="process" className="block text-sm font-medium text-slate-300 mb-2">
+                    <label htmlFor="process" className="block text-sm font-medium text-slate-400 mb-2">
                       Process *
                     </label>
                     {loadingProcesses ? (
-                      <div className="px-4 py-3 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-500">
+                      <div className="px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-600 text-sm font-normal">
                         Loading processes...
                       </div>
                     ) : processes.length === 0 ? (
-                      <div className="px-4 py-3 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-500">
+                      <div className="px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-600 text-sm font-normal">
                         No processes available. <a href="/generate" className="text-[#00ade8] hover:underline">Create process</a>
                       </div>
                     ) : (
@@ -120,7 +120,7 @@ export default function AnalyzePage() {
                         value={selectedProcessId}
                         onChange={(e) => setSelectedProcessId(e.target.value)}
                         required
-                        className="w-full px-4 py-3 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-300 focus:outline-none focus:border-[#00ade8] focus:ring-1 focus:ring-[#00ade8] transition-all"
+                        className="w-full px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-300 focus:outline-none focus:border-[#00ade8]/50 focus:ring-1 focus:ring-[#00ade8]/20 transition-all text-sm font-normal"
                       >
                         {processes.map((p) => (
                           <option key={p.process_id} value={p.process_id}>
@@ -132,7 +132,7 @@ export default function AnalyzePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="domain" className="block text-sm font-medium text-slate-300 mb-2">
+                    <label htmlFor="domain" className="block text-sm font-medium text-slate-400 mb-2">
                       Compliance Domain *
                     </label>
                     <select
@@ -140,7 +140,7 @@ export default function AnalyzePage() {
                       value={domain}
                       onChange={(e) => setDomain(e.target.value)}
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-300 focus:outline-none focus:border-[#00ade8] focus:ring-1 focus:ring-[#00ade8] transition-all"
+                      className="w-full px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-300 focus:outline-none focus:border-[#00ade8]/50 focus:ring-1 focus:ring-[#00ade8]/20 transition-all text-sm font-normal"
                     >
                       <option value="LGPD">LGPD - General Data Protection Law</option>
                       <option value="SOX">SOX - Sarbanes-Oxley Act</option>
@@ -149,7 +149,7 @@ export default function AnalyzePage() {
                   </div>
 
                   <div>
-                    <label htmlFor="context" className="block text-sm font-medium text-slate-300 mb-2">
+                    <label htmlFor="context" className="block text-sm font-medium text-slate-400 mb-2">
                       Additional Context (optional)
                     </label>
                     <textarea
@@ -158,7 +158,7 @@ export default function AnalyzePage() {
                       onChange={(e) => setContext(e.target.value)}
                       placeholder="Example: Process handles customer personal data"
                       rows={4}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-[#00ade8] focus:ring-1 focus:ring-[#00ade8] transition-all resize-none"
+                      className="w-full px-4 py-3 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-[#00ade8]/50 focus:ring-1 focus:ring-[#00ade8]/20 transition-all resize-none font-normal text-sm"
                     />
                   </div>
 
@@ -169,7 +169,7 @@ export default function AnalyzePage() {
                     size="lg"
                     className="w-full"
                   >
-                    <ChartBarIcon className="w-5 h-5 mr-2" />
+                    <BarChart3 className="w-4 h-4 mr-2" strokeWidth={2} />
                     Analyze Compliance
                   </Button>
                 </form>
@@ -178,10 +178,10 @@ export default function AnalyzePage() {
               {error && (
                 <Card className="p-4 border-red-500/20 bg-red-500/10">
                   <div className="flex items-start gap-3">
-                    <ExclamationCircleIcon className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
                     <div>
-                      <p className="font-medium text-red-400">Error</p>
-                      <p className="text-sm text-red-400/80 mt-1">{error}</p>
+                      <p className="font-medium text-red-400 text-sm">Error</p>
+                      <p className="text-xs text-red-400/80 mt-1 font-normal">{error}</p>
                     </div>
                   </div>
                 </Card>
@@ -189,8 +189,8 @@ export default function AnalyzePage() {
 
               {selectedProcess && (
                 <Card className="p-6">
-                  <h3 className="text-sm font-medium text-slate-300 mb-3">Selected Process</h3>
-                  <p className="text-sm text-slate-400 mb-4">{selectedProcess.name}</p>
+                  <h3 className="text-sm font-medium text-slate-400 mb-3">Selected Process</h3>
+                  <p className="text-sm text-slate-500 mb-4 font-normal">{selectedProcess.name}</p>
                   {selectedProcess.mermaid_code && (
                     <div className="mt-4">
                       <DiagramViewer mermaidCode={selectedProcess.mermaid_code} className="max-h-64" />
@@ -205,18 +205,18 @@ export default function AnalyzePage() {
               {result ? (
                 <>
                   <Card className="p-6">
-                    <h2 className="text-2xl font-display font-semibold text-slate-100 mb-6">
+                    <h2 className="text-2xl font-display font-semibold text-slate-100 mb-6 tracking-tight">
                       Analysis Results
                     </h2>
                     
                     <div className="mb-6">
                       <div className="flex items-center gap-4 mb-3">
-                        <span className="text-sm text-slate-500">Overall Score:</span>
+                        <span className="text-sm text-slate-600 font-normal">Overall Score:</span>
                         <span className={`text-4xl font-bold ${getScoreColor(result.overall_score)}`}>
                           {result.overall_score.toFixed(1)}/100
                         </span>
                       </div>
-                      <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-slate-800/50 rounded-full overflow-hidden">
                         <div
                           className={`h-full ${getScoreBgColor(result.overall_score)} transition-all`}
                           style={{ width: `${result.overall_score}%` }}
@@ -225,8 +225,8 @@ export default function AnalyzePage() {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-display font-semibold text-slate-100 mb-3">Summary</h3>
-                      <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">
+                      <h3 className="text-base font-display font-semibold text-slate-100 mb-3 tracking-tight">Summary</h3>
+                      <p className="text-sm text-slate-500 leading-relaxed whitespace-pre-wrap font-normal">
                         {result.summary}
                       </p>
                     </div>
@@ -234,7 +234,7 @@ export default function AnalyzePage() {
 
                   {result.gaps.length > 0 && (
                     <Card className="p-6">
-                      <h3 className="text-lg font-display font-semibold text-slate-100 mb-4">
+                      <h3 className="text-base font-display font-semibold text-slate-100 mb-4 tracking-tight">
                         Identified Gaps ({result.gaps.length})
                       </h3>
                       <div className="space-y-3">
@@ -255,14 +255,14 @@ export default function AnalyzePage() {
                               }`}>
                                 {gap.severity.toUpperCase()}
                               </span>
-                              <span className="text-xs text-slate-500">
+                              <span className="text-xs text-slate-600 font-normal">
                                 {gap.regulation} {gap.article && `- ${gap.article}`}
                               </span>
                             </div>
-                            <p className="text-sm text-slate-300 mb-2 leading-relaxed">
+                            <p className="text-sm text-slate-300 mb-2 leading-relaxed font-normal">
                               {gap.description}
                             </p>
-                            <p className="text-xs text-[#00ade8] mt-2">
+                            <p className="text-xs text-[#00ade8] mt-2 font-normal">
                               💡 {gap.recommendation}
                             </p>
                           </div>
@@ -273,14 +273,14 @@ export default function AnalyzePage() {
 
                   {result.suggestions.length > 0 && (
                     <Card className="p-6">
-                      <h3 className="text-lg font-display font-semibold text-slate-100 mb-4">
+                      <h3 className="text-base font-display font-semibold text-slate-100 mb-4 tracking-tight">
                         Improvement Suggestions ({result.suggestions.length})
                       </h3>
                       <div className="space-y-3">
                         {result.suggestions.map((suggestion) => (
-                          <div key={suggestion.suggestion_id} className="p-4 rounded-lg border border-slate-800 bg-slate-900/30">
+                          <div key={suggestion.suggestion_id} className="p-4 rounded-lg border border-slate-800/50 bg-slate-900/30">
                             <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-sm font-medium text-slate-200">{suggestion.title}</h4>
+                              <h4 className="text-sm font-medium text-slate-200 font-normal">{suggestion.title}</h4>
                               <span className={`text-xs px-2 py-1 rounded ${
                                 suggestion.priority === 'high' ? 'bg-red-500/20 text-red-400' :
                                 suggestion.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -289,11 +289,11 @@ export default function AnalyzePage() {
                                 {suggestion.priority}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-400 leading-relaxed">
+                            <p className="text-xs text-slate-500 leading-relaxed font-normal">
                               {suggestion.description}
                             </p>
                             {suggestion.estimated_effort && (
-                              <p className="text-xs text-slate-500 mt-2">
+                              <p className="text-xs text-slate-600 mt-2 font-normal">
                                 Effort: {suggestion.estimated_effort}
                               </p>
                             )}
@@ -305,8 +305,8 @@ export default function AnalyzePage() {
                 </>
               ) : (
                 <Card className="p-12 text-center">
-                  <ChartBarIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <p className="text-slate-500">
+                  <BarChart3 className="w-10 h-10 text-slate-700 mx-auto mb-4" strokeWidth={1.5} />
+                  <p className="text-slate-600 font-normal text-sm">
                     Analysis results will appear here
                   </p>
                 </Card>

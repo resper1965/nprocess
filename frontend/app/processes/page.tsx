@@ -7,7 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
-import { PlusIcon, FolderIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
+import { Plus, Folder, AlertCircle } from 'lucide-react';
 
 export default function ProcessesPage() {
   const [processes, setProcesses] = useState<Process[]>([]);
@@ -40,18 +40,18 @@ export default function ProcessesPage() {
         <Header />
 
         <main className="px-6 py-12 max-w-7xl mx-auto">
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-10 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-display font-bold text-slate-100 mb-2">
+              <h1 className="text-4xl font-display font-bold text-slate-100 mb-2 tracking-tight">
                 Processes
               </h1>
-              <p className="text-lg text-slate-400">
+              <p className="text-base text-slate-500 font-normal">
                 Manage your business processes
               </p>
             </div>
             <Link href="/generate">
               <Button size="lg">
-                <PlusIcon className="w-5 h-5 mr-2" />
+                <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
                 New Process
               </Button>
             </Link>
@@ -62,7 +62,7 @@ export default function ProcessesPage() {
             <select
               value={domainFilter}
               onChange={(e) => setDomainFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-300 focus:outline-none focus:border-[#00ade8] focus:ring-1 focus:ring-[#00ade8] transition-all"
+              className="px-4 py-2 rounded-lg border border-slate-800/50 bg-slate-900/30 text-slate-300 focus:outline-none focus:border-[#00ade8]/50 focus:ring-1 focus:ring-[#00ade8]/20 transition-all text-sm font-normal"
             >
               <option value="">All Domains</option>
               <option value="LGPD">LGPD</option>
@@ -75,9 +75,9 @@ export default function ProcessesPage() {
           {/* Loading */}
           {loading && (
             <Card className="p-12 text-center">
-              <div className="flex items-center justify-center gap-3 text-slate-500">
-                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                Loading processes...
+              <div className="flex items-center justify-center gap-3 text-slate-600">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm font-normal">Loading processes...</span>
               </div>
             </Card>
           )}
@@ -86,10 +86,10 @@ export default function ProcessesPage() {
           {error && (
             <Card className="p-4 border-red-500/20 bg-red-500/10 mb-6">
               <div className="flex items-start gap-3">
-                <ExclamationCircleIcon className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
                 <div>
-                  <p className="font-medium text-red-400">Error</p>
-                  <p className="text-sm text-red-400/80 mt-1">{error}</p>
+                  <p className="font-medium text-red-400 text-sm">Error</p>
+                  <p className="text-xs text-red-400/80 mt-1 font-normal">{error}</p>
                 </div>
               </div>
             </Card>
@@ -98,8 +98,8 @@ export default function ProcessesPage() {
           {/* Empty State */}
           {!loading && !error && processes.length === 0 && (
             <Card className="p-12 text-center">
-              <FolderIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400 mb-4">No processes found</p>
+              <Folder className="w-10 h-10 text-slate-700 mx-auto mb-4" strokeWidth={1.5} />
+              <p className="text-slate-500 mb-4 font-normal text-sm">No processes found</p>
               <Link href="/generate">
                 <Button variant="secondary">
                   Create First Process
@@ -119,17 +119,17 @@ export default function ProcessesPage() {
                   <Card hover className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-xl font-display font-semibold text-slate-100 mb-2">
+                        <h3 className="text-lg font-display font-semibold text-slate-100 mb-2 tracking-tight">
                           {process.name}
                         </h3>
-                        <p className="text-sm text-slate-400 mb-4 line-clamp-2 leading-relaxed">
+                        <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed font-normal">
                           {process.description}
                         </p>
                         <div className="flex items-center gap-4 text-xs">
                           <span className="px-2 py-1 rounded bg-[#00ade8]/20 text-[#00ade8] font-medium">
                             {process.domain}
                           </span>
-                          <span className="text-slate-500">
+                          <span className="text-slate-600 font-normal">
                             {new Date(process.created_at).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'short',
@@ -137,13 +137,13 @@ export default function ProcessesPage() {
                             })}
                           </span>
                           {process.nodes && (
-                            <span className="text-slate-500">
+                            <span className="text-slate-600 font-normal">
                               {process.nodes.length} nodes
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="text-slate-600 ml-4">→</div>
+                      <div className="text-slate-700 ml-4">→</div>
                     </div>
                   </Card>
                 </Link>
