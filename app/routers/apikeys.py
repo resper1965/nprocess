@@ -275,7 +275,7 @@ async def revoke_api_key(
     description="Validate an API key (used internally by MCP Gateway and other services)"
 )
 async def validate_api_key(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
     api_key_header: Optional[str] = Header(None, alias="X-API-Key")
 ):
     """
