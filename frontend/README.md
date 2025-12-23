@@ -1,89 +1,66 @@
-# ComplianceEngine Frontend
+# ComplianceEngine - Frontend Demo
 
-Interface web para a ComplianceEngine API construída com Next.js e design system ness.
+⚠️ **IMPORTANTE**: Este frontend é apenas uma **interface de demonstração e teste** da ComplianceEngine API.
 
-## 🎨 Design System
+## 🎯 Propósito
 
-Este frontend segue o design system **ness**:
-- **Cores**: Paleta de cinzas profundos (slate-950 a slate-100) + azul primário #00ade8
-- **Tipografia**: Inter (corpo) + Montserrat (títulos)
-- **Filosofia**: "Invisível quando funciona, Presente quando importa"
+Este frontend NÃO é uma aplicação final para usuários. É apenas uma interface visual para:
 
-## 🚀 Início Rápido
+- **Testar** os endpoints da API
+- **Demonstrar** as funcionalidades disponíveis
+- **Acessar** documentação e exemplos
 
-### Instalar Dependências
+## ✅ Uso Real da API
+
+A **ComplianceEngine API** deve ser **consumida diretamente** por outras aplicações via chamadas HTTP:
+
+```python
+# Exemplo: Integração em Python
+import httpx
+
+response = httpx.post(
+    "https://compliance-engine-5wqihg7s7a-uc.a.run.app/v1/diagrams/generate",
+    headers={"Authorization": "Bearer ce_live_<sua-api-key>"},
+    json={"description": "Processo de aprovação de compras..."}
+)
+```
+
+## 📖 Documentação Completa
+
+- **Manual de Integração**: `/v1/docs/integration`
+- **Exemplos de Prompts**: `/v1/docs/prompts`
+- **Swagger UI**: `https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs`
+- **ReDoc**: `https://compliance-engine-5wqihg7s7a-uc.a.run.app/redoc`
+
+## 🚀 Como Usar Este Frontend (Demo)
+
+### Desenvolvimento Local
 
 ```bash
 npm install
-```
-
-### Configurar Variáveis de Ambiente
-
-Crie um arquivo `.env.local`:
-
-```bash
-NEXT_PUBLIC_API_URL=https://compliance-engine-273624403528.us-central1.run.app
-```
-
-Para desenvolvimento local:
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
-
-### Rodar em Desenvolvimento
-
-```bash
 npm run dev
 ```
 
 Acesse: http://localhost:3000
 
-### Build para Produção
+### Produção
 
-```bash
-npm run build
-npm start
-```
+URL: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
 
-## 📦 Estrutura
+**Nota**: Use apenas para testes. Para produção, integre a API diretamente na sua aplicação.
 
-```
-frontend/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Layout principal
-│   ├── page.tsx           # Dashboard
-│   ├── generate/           # Gerar diagrama
-│   ├── processes/          # Lista de processos
-│   ├── analyze/            # Análise de compliance
-│   └── docs/               # Documentação
-├── components/
-│   └── DiagramViewer.tsx   # Renderiza diagramas Mermaid
-├── lib/
-│   └── api.ts              # Cliente da API
-└── app/globals.css         # Estilos globais (design system ness)
-```
+## 🔑 Autenticação
 
-## 🎯 Funcionalidades
+Este frontend usa a API sem autenticação para demonstração. Em produção, você deve:
 
-- ✅ **Dashboard**: Visão geral e status da API
-- ✅ **Gerar Diagrama**: Converte texto em diagrama BPMN
-- ✅ **Processos**: Lista e gerencia processos
-- ✅ **Análise de Compliance**: Analisa processos contra regulamentações
-- ✅ **Documentação**: Acesso a prompts e manual de integração
+1. Obter uma API Key via Admin Dashboard
+2. Incluir no header: `Authorization: Bearer ce_live_<sua-chave>`
 
-## 🔧 Tecnologias
+## 📚 Para Desenvolvedores
 
-- **Next.js 16**: Framework React
-- **TypeScript**: Tipagem estática
-- **Tailwind CSS**: Estilização
-- **Mermaid.js**: Renderização de diagramas
-- **Axios**: Cliente HTTP
+Se você está desenvolvendo uma aplicação que precisa de:
+- Geração de diagramas BPMN
+- Análise de compliance
+- Gestão de processos
 
-## 📝 Próximos Passos
-
-- [ ] Página de detalhes do processo
-- [ ] Edição de processos
-- [ ] Exportação de relatórios
-- [ ] Autenticação (quando implementada na API)
-- [ ] Deploy no Vercel ou Cloud Run
+**Consuma a API diretamente** - veja [docs/INTEGRATION.md](../docs/INTEGRATION.md)
