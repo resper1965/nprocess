@@ -97,18 +97,23 @@ class TemplateService:
         Returns:
             Instantiated data with variables substituted
         """
-        import json
+        def substitute_value(value: Any) -> Any:
+            """Recursively substitute variables in nested structures."""
+            if isinstance(value, str):
+                # Substitute all {{variable}} patterns
+                result = value
+                for var_name, var_value in variables.items():
+                    pattern = f'{{{{{var_name}}}}}'
+                    result = result.replace(pattern, str(var_value))
+                return result
+            elif isinstance(value, dict):
+                return {k: substitute_value(v) for k, v in value.items()}
+            elif isinstance(value, list):
+                return [substitute_value(item) for item in value]
+            else:
+                return value
         
-        # Convert to JSON string for easy substitution
-        json_str = json.dumps(template_data)
-        
-        # Substitute all variables
-        for var_name, var_value in variables.items():
-            pattern = f'{{{{{{var_name}}}}}}'
-            json_str = json_str.replace(pattern, str(var_value))
-        
-        # Convert back to dict
-        return json.loads(json_str)
+        return substitute_value(template_data)
     
     async def create_template(
         self,
