@@ -75,8 +75,8 @@ export default function AppSidebar() {
         </div>
       </div>
 
-      {/* Desktop sidebar - fixed position */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col">
+      {/* Desktop sidebar - fixed position with lower z-index */}
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-1 min-h-0 border-r border-slate-800/50 bg-slate-950/95 backdrop-blur-sm">
           <div className="flex items-center px-6 py-3 border-b border-slate-800/50 h-[60px] flex-shrink-0">
             <Logo />

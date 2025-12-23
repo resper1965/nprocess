@@ -12,7 +12,7 @@ interface AppHeaderProps {
 
 export default function AppHeader({ health, loading }: AppHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-[60px] flex-shrink-0 items-center gap-4 border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm px-4 lg:px-6">
+    <header className="sticky top-0 z-40 flex h-[60px] flex-shrink-0 items-center gap-4 border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm px-4 lg:px-6">
       <div className="flex-1" />
 
       <div className="flex items-center gap-3">
