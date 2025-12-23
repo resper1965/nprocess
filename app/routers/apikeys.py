@@ -5,7 +5,8 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Header, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, Security
+from fastapi import Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.schemas_apikeys import (
     APIKeyCreate,

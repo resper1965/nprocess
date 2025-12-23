@@ -4,8 +4,8 @@ Authentication middleware for API endpoints.
 import logging
 from typing import Optional
 
-from fastapi import HTTPException, Header, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, Security
+from fastapi import HTTPException, Header, status, Depends, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.services.apikey_service import get_apikey_service
 from app.schemas_apikeys import APIKeyValidationResult
