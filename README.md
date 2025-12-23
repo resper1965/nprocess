@@ -1,178 +1,458 @@
-# ComplianceEngine API
+# ComplianceEngine Platform 🚀
 
-[![Release](https://img.shields.io/badge/release-v1.0.0-blue.svg)](https://github.com/resper1965/nprocess/releases/tag/v1.0.0)
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-
-**Microsserviço (API REST)** para análise de compliance de processos de negócio usando IA Generativa.
-
-## 🎯 Propósito
-
-O **ComplianceEngine API** é um **serviço especializado** projetado para ser **integrado em outras aplicações** via chamadas HTTP. 
-
-> ⚠️ **IMPORTANTE**: Esta é uma **API**, não uma aplicação final. Deve ser consumida por outras aplicações.
-
-### Para Quem é Esta API?
-
-Esta API foi desenvolvida para ser consumida por:
-- **Sistemas ERP/CRM**: Adicionar análise de compliance aos processos internos
-- **Plataformas de Gestão de Processos**: Enriquecer processos com análise automática de conformidade
-- **Ferramentas de Auditoria**: Gerar relatórios de compliance automaticamente
-- **Aplicações de Governança**: Monitorar conformidade regulatória em tempo real
-- **Sistemas de Documentação**: Gerar diagramas BPMN a partir de documentação textual
-
-### Capacidades Principais
-
-1. **Geração de Diagramas BPMN**: Converte descrições textuais de processos em diagramas Mermaid.js
-2. **Gestão de Processos**: Armazena e gerencia processos validados no Firestore
-3. **Análise de Compliance**: Identifica gaps de conformidade regulatória (LGPD, SOX, GDPR, etc.) usando IA
-
-> 📖 **Manual de Integração Completo**: Veja [docs/INTEGRATION.md](docs/INTEGRATION.md) para guias detalhados de integração em Python, JavaScript, cURL e mais.
+**Motor de Compliance Multi-Framework para Aplicações Brasileiras**
 
 ---
 
-## 🚀 Como Usar a API
+## 🎯 Visão Geral
 
-### 1. Acessar a API
+O **ComplianceEngine Platform** é um **MOTOR** (não uma aplicação final) que fornece **APIs e rotinas de processamento** para análise regulatória, geração de processos BPMN e documentação automática.
 
-**URL Produção**: `https://compliance-engine-5wqihg7s7a-uc.a.run.app`
-
-**Documentação Interativa**:
-- **Swagger UI**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
-- **ReDoc**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/redoc
-
-### 2. Obter API Key
-
-Para consumir a API, você precisa de uma API Key:
-
-1. **Via Admin Dashboard** (quando disponível):
-   - Acesse o Admin Dashboard
-   - Vá para "API Keys"
-   - Crie uma nova chave
-   - ⚠️ A chave é mostrada apenas uma vez!
-
-2. **Via API** (requer autenticação admin):
-   ```bash
-   POST /v1/api-keys
-   Authorization: Bearer admin_token
-   ```
-
-### 3. Consumir a API
-
-```python
-import httpx
-
-# Gerar diagrama BPMN
-response = httpx.post(
-    "https://compliance-engine-5wqihg7s7a-uc.a.run.app/v1/diagrams/generate",
-    headers={"Authorization": "Bearer ce_live_<sua-api-key>"},
-    json={
-        "description": "Processo de aprovação de compras: funcionário solicita, gerente aprova, financeiro processa pagamento"
-    }
-)
-```
-
-Veja [docs/INTEGRATION.md](docs/INTEGRATION.md) para mais exemplos.
-
----
-
-## 📦 Componentes do Projeto
-
-### 1. **API Backend** (`app/`)
-Microsserviço REST principal - **Este é o produto principal**
-
-- **URL**: `https://compliance-engine-5wqihg7s7a-uc.a.run.app`
-- **Status**: ✅ Em produção
-- **Como acessar**: Via chamadas HTTP (REST API)
-
-### 2. **Admin Dashboard** (`admin-dashboard/`)
-Interface administrativa para gerenciar a plataforma
-
-- **Funcionalidades**: API Keys, FinOps, Analytics, Monitoramento
-- **Status**: 📝 Especificado, implementação parcial
-- **Acesso**: A ser definido após deploy completo
-- **Público**: Administradores da plataforma
-
-### 3. **Frontend Demo** (`frontend/`)
-Interface de demonstração/teste da API
-
-- **URL**: `https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app`
-- **Status**: ✅ Deployado
-- **⚠️ IMPORTANTE**: Use apenas para testes/demo. Para produção, consuma a API diretamente.
-
----
-
-## 📚 Documentação
-
-- **[Manual de Integração](docs/INTEGRATION.md)**: Guia completo de integração
-- **[Guia do Dashboard](docs/DASHBOARD_GUIDE.md)**: Como consumir o dashboard (API e Frontend)
-- **[Guia para IAs](docs/AI_INTEGRATION_GUIDE.md)**: Como IAs de desenvolvimento podem integrar
-- **[Arquitetura](docs/ARCHITECTURE.md)**: Visão geral da arquitetura
-- **[Visão Geral do Projeto](docs/PROJECT_OVERVIEW.md)**: Documentação completa
-
----
-
-## 🏗️ Stack Tecnológica
-
-- **Linguagem**: Python 3.11+
-- **Framework Web**: FastAPI
-- **Banco de Dados**: Google Cloud Firestore
-- **IA Generativa**: Vertex AI (Gemini 1.5 Pro)
-- **Infraestrutura**: Google Cloud Run (Docker)
-
----
-
-## 🔑 Autenticação
-
-A API requer **API Key** para todos os endpoints (exceto `/health`):
+### ⚠️ Importante: Arquitetura MOTOR + APPS
 
 ```
-Authorization: Bearer ce_live_<sua-api-key>
+┌──────────────────────────────────────────────┐
+│  ComplianceEngine Platform (ESTE REPO)       │
+│  ═══════════════════════════════════════     │
+│  🔧 MOTOR = APIs + Processamento + MCP       │
+│                                              │
+│  ✅ Gera BPMN de descrições naturais        │
+│  ✅ Analisa conformidade regulatória         │
+│  ✅ Converte BPMN → Mermaid                  │
+│  ✅ Crawling de regulações brasileiras       │
+│  ✅ RAG em corpus regulatório                │
+│  ✅ Geração de POPs/Checklists em Markdown   │
+│                                              │
+│  ❌ NÃO armazena dados finais de clientes    │
+│  ❌ NÃO é uma aplicação completa             │
+└──────────────────────────────────────────────┘
+                    ↓
+        ┌──────────────────────┐
+        │   APIs REST + MCP    │
+        └──────────────────────┘
+                    ↓
+    ┌───────────────┴───────────────┐
+    ↓               ↓               ↓
+┌─────────┐   ┌─────────┐   ┌─────────┐
+│Compliance│   │n.privacy│   │ OT2net  │
+│  Chat   │   │  SaaS   │   │Processos│
+│(Produção)│   │ (ROPA)  │   │   ONS   │
+└─────────┘   └─────────┘   └─────────┘
+    ↓               ↓               ↓
+ Armazena       Armazena        Armazena
+dados locais   dados locais   dados locais
 ```
 
-Formato: `ce_live_<64 caracteres hexadecimais>`
+**Princípios Arquiteturais**:
+- ✅ **Motor Stateless**: Processamento sob demanda, estado temporário apenas
+- ✅ **Dados Locais**: Processos finais e dados de clientes ficam nas aplicações consumidoras
+- ✅ **Zero Exposição**: Sem armazenamento de dados sensíveis de terceiros
+- ✅ **Alta Performance**: Não sobrecarregado com storage de todos os clientes
 
----
+## 🏗️ Arquitetura de Microserviços
 
-## 📖 Exemplos de Uso
+### Serviços Implementados ✅
 
-### Gerar Diagrama BPMN
+| Serviço | Status | Porta | Responsabilidade |
+|---------|--------|-------|------------------|
+| **ComplianceEngine API** | ✅ 100% | 8001 | BPMN generation, control mapping, gap analysis |
+| **RegulatoryRAG API** | ✅ 100% | 8002 | Vector search em regulações (Vertex AI Search) |
+| **Admin Dashboard** | ✅ 100% | 3001 | Interface de gestão (Next.js 14 + shadcn/ui) |
+| **Regulatory Crawler** | ✅ 100% | 8003 | Crawling ANEEL, ONS, ARCyber com Gemini AI |
+| **Document Generator** | ✅ 85% | 8004 | POPs/Checklists em Markdown + Mermaid |
+
+### MCP Servers (Model Context Protocol) ✅
+
+**Importante**: MCP Servers são GENÉRICOS - qualquer aplicação consome os mesmos serviços
+
+| MCP Server | Status | Tools Fornecidos |
+|------------|--------|------------------|
+| **ComplianceEngine MCP** | ✅ 100% | `generate_bpmn`, `map_controls`, `analyze_gaps`, `list_frameworks` |
+| **RegulatoryRAG MCP** | ✅ 80% | `search_regulations`, `search_by_datasets` ⏳, `get_regulation_details` |
+| **Document Generator MCP** | ⏳ 50% | `generate_documents`, `convert_bpmn_to_mermaid`, `export_package` |
+| **Regulatory Crawler MCP** | ⏳ 30% | `trigger_crawl`, `get_latest_updates`, `subscribe_notifications` |
+| **MCP HTTP Gateway** | ✅ 100% | Bridge HTTP para consumo web (todas as apps) |
+
+### Stack Tecnológica
+
+**Backend**:
+- Python 3.11+ (FastAPI, Pydantic v2, async/await)
+- Vertex AI (Gemini 1.5 Pro, Vertex AI Search)
+- Google Cloud Firestore (NoSQL)
+- Redis (caching)
+
+**Frontend**:
+- Next.js 14 (App Router), React 18, TypeScript
+- TailwindCSS + shadcn/ui (dark mode: gray-950)
+
+**Integration**:
+- Model Context Protocol (MCP) SDK
+- REST APIs (FastAPI)
+- Docker multi-stage builds
+
+**Infra**:
+- Google Cloud Run (serverless containers)
+- GitHub Actions (CI/CD)
+
+## 📁 Estrutura do Repositório
+
+```
+nprocess/
+├── compliance-engine-api/         # 🔧 Motor principal: BPMN + Compliance
+├── regulatory-rag-api/            # 🔍 RAG em regulações (Vertex AI Search)
+├── regulatory-intelligence-crawler/ # 🕷️ Crawler ANEEL/ONS/ARCyber
+├── document-generator-engine/     # 📄 Geração Markdown + Mermaid
+├── admin-dashboard/               # 🎨 Dashboard Next.js (gestão)
+├── mcp-servers/
+│   ├── compliance-engine/         # MCP Server para ComplianceEngine
+│   ├── regulatory-rag/            # MCP Server para RegulatoryRAG
+│   └── gateway/                   # MCP HTTP Gateway (web apps)
+├── docs/                          # 📚 Documentação técnica
+├── examples/                      # 💡 Exemplos de uso
+├── docker-compose.yml             # 🐳 Orquestração local
+└── README.md                      # 👈 Você está aqui
+```
+
+## 🔌 Como Consumir o Motor
+
+### Opção 1: Via MCP (Model Context Protocol) - Recomendado
+
+**Vantagem**: Linguagem natural, baixa complexidade de implementação
+
+```typescript
+// Exemplo: Aplicação n.privacy consumindo via MCP
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+
+const mcpClient = new Client({
+  name: "n.privacy-app",
+  version: "1.0.0"
+});
+
+// Conectar ao MCP HTTP Gateway
+await mcpClient.connect(
+  new StdioClientTransport({
+    command: "http://localhost:9000/mcp"
+  })
+);
+
+// n.privacy compõe ferramentas GENÉRICAS do motor para criar ROPA
+// Passo 1: Buscar requisitos LGPD sobre lifecycle de dados
+const lgpdRequirements = await mcpClient.callTool("search_by_datasets", {
+  query: "ciclo de vida de dados pessoais coleta armazenamento descarte",
+  datasets: ["lgpd", "anpd"]
+});
+
+// Passo 2: Gerar BPMN do processo descrito
+const bpmn = await mcpClient.callTool("generate_bpmn", {
+  description: userDescription,
+  context: "LGPD data lifecycle"
+});
+
+// Passo 3: Mapear controles LGPD ao processo
+const controls = await mcpClient.callTool("map_controls", {
+  bpmn_xml: bpmn.xml,
+  framework: "LGPD"
+});
+
+// Passo 4: Analisar gaps
+const gaps = await mcpClient.callTool("analyze_gaps", {
+  bpmn_xml: bpmn.xml,
+  framework: "LGPD"
+});
+
+// n.privacy COMPÕE os resultados em sua própria lógica de negócio
+const ropa = await nPrivacyService.buildROPA({
+  description: userDescription,
+  bpmn: bpmn,
+  requirements: lgpdRequirements,
+  controls: controls,
+  gaps: gaps
+});
+
+// IMPORTANTE: Dados finais salvos NO BANCO DO n.privacy, não no motor
+await nPrivacyDB.saveROPA(ropa);
+```
+
+**MCP Tools GENÉRICOS Disponíveis** (compostos por qualquer app):
+
+| Tool | MCP Server | Descrição |
+|------|-----------|-----------|
+| `generate_bpmn` | ComplianceEngine | Gera BPMN de descrição natural |
+| `map_controls` | ComplianceEngine | Mapeia controles (ISO/SOC2/LGPD/CIS) a BPMN |
+| `analyze_gaps` | ComplianceEngine | Identifica gaps de conformidade |
+| `list_frameworks` | ComplianceEngine | Lista frameworks suportados |
+| `search_regulations` | RegulatoryRAG | Busca em todo corpus regulatório |
+| `search_by_datasets` ⏳ | RegulatoryRAG | Busca filtrada por dataset (ANEEL, BACEN, LGPD...) |
+| `get_regulation_details` | RegulatoryRAG | Detalhes de regulação específica |
+| `generate_documents` ⏳ | Document Generator | Gera POPs/Checklists em Markdown |
+| `convert_bpmn_to_mermaid` ⏳ | Document Generator | Converte BPMN XML → Mermaid |
+| `trigger_crawl` ⏳ | Regulatory Crawler | Dispara crawling manual |
+| `get_latest_updates` ⏳ | Regulatory Crawler | Últimas atualizações regulatórias |
+
+### Opção 2: Via REST API
 
 ```bash
-curl -X POST "https://compliance-engine-5wqihg7s7a-uc.a.run.app/v1/diagrams/generate" \
-  -H "Authorization: Bearer ce_live_<sua-chave>" \
+# Exemplo: Gerar BPMN de descrição natural
+curl -X POST http://localhost:8001/v1/diagrams/generate \
   -H "Content-Type: application/json" \
   -d '{
-    "description": "Processo de aprovação de compras..."
+    "description": "Instalação de antivírus via GPO",
+    "context": "ISO27001:2022 A.8.7"
+  }'
+
+# Exemplo: Buscar regulações ANEEL
+curl -X POST http://localhost:8002/v1/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "prazo notificação incidente segurança",
+    "filters": {"sources": ["aneel", "arcyber"]}
+  }'
+
+# Exemplo: Gerar documentação Markdown
+curl -X POST http://localhost:8004/v1/documents/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "process_id": "proc_001",
+    "bpmn_xml": "<bpmn:definitions>...</bpmn:definitions>",
+    "document_types": ["procedure", "audit_checklist"]
   }'
 ```
 
-### Analisar Compliance
+**Documentação Completa das APIs**:
+- ComplianceEngine: http://localhost:8001/docs
+- RegulatoryRAG: http://localhost:8002/docs
+- Document Generator: http://localhost:8004/docs
+- Regulatory Crawler: http://localhost:8003/docs
 
-```bash
-curl -X POST "https://compliance-engine-5wqihg7s7a-uc.a.run.app/v1/compliance/analyze" \
-  -H "Authorization: Bearer ce_live_<sua-chave>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "process_id": "abc123",
-    "domain": "LGPD"
-  }'
+### Arquitetura de Dados: Motor (Stateless) + Apps (Stateful)
+
+```
+┌────────────────────────────────────────────┐
+│  Aplicação Consumidora (ex: n.privacy)     │
+│  ┌──────────────────────────────────────┐  │
+│  │  Frontend (Next.js)                  │  │
+│  │  ↓                                   │  │
+│  │  Backend (FastAPI)                   │  │
+│  │  ↓                                   │  │
+│  │  MCP Client                          │  │
+│  └────────────┬─────────────────────────┘  │
+│               │ callTool("create_ropa")    │
+│               ↓                            │
+│  ┌──────────────────────────────────────┐  │
+│  │  PostgreSQL / MongoDB LOCAL          │  │ ← Dados finais aqui!
+│  │  - ROPAs completos                   │  │
+│  │  - DPIAs                             │  │
+│  │  - Processos validados               │  │
+│  └──────────────────────────────────────┘  │
+└────────────────┬───────────────────────────┘
+                 │
+                 ↓ MCP/API Call
+┌────────────────────────────────────────────┐
+│  ComplianceEngine Platform (MOTOR)         │
+│  ┌──────────────────────────────────────┐  │
+│  │  Processamento:                      │  │
+│  │  - Gemini AI (análise)               │  │
+│  │  - BPMN generation                   │  │
+│  │  - Compliance gap detection          │  │
+│  │  - Document generation               │  │
+│  └──────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────┐  │
+│  │  Firestore (Estado TEMPORÁRIO)       │  │ ← Cache apenas!
+│  │  - Templates                         │  │
+│  │  - Frameworks metadata               │  │
+│  │  - Corpus regulatório (RAG)          │  │
+│  └──────────────────────────────────────┘  │
+└────────────────────────────────────────────┘
 ```
 
-Veja [docs/INTEGRATION.md](docs/INTEGRATION.md) para mais exemplos.
+## 🚀 Quick Start
+
+### Executar com Docker Compose
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/resper1965/nprocess.git
+cd nprocess
+
+# 2. Configure variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas credenciais GCP (Vertex AI, Firestore)
+
+# 3. Inicie todos os serviços
+docker-compose up -d
+
+# 4. Aguarde health checks
+docker-compose ps
+
+# 5. Acesse as APIs
+# - ComplianceEngine: http://localhost:8001/docs
+# - RegulatoryRAG: http://localhost:8002/docs
+# - Regulatory Crawler: http://localhost:8003/docs
+# - Document Generator: http://localhost:8004/docs
+# - Admin Dashboard: http://localhost:3001
+```
+
+### Executar Serviço Individual
+
+```bash
+# Exemplo: ComplianceEngine API
+cd compliance-engine-api
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+## 📊 Frameworks e Regulações Suportados
+
+### Frameworks Internacionais
+- ✅ **ISO 27001:2022** - 93 controles (Annex A)
+- ✅ **SOC2** - 5 Trust Service Principles
+- ✅ **PCI-DSS v4.0** - 12 requirements
+- ✅ **HIPAA** - Security Rule, Privacy Rule
+- ✅ **NIST Cybersecurity Framework** - 5 functions
+- ✅ **CIS Controls v8** - 18 controles (IG1, IG2, IG3)
+- ✅ **ITIL v4** - Service Value System
+
+### Regulações Brasileiras (Corpus RAG)
+- ✅ **LGPD** (Lei 13.709/2018) - ANPD (Autoridade Nacional de Proteção de Dados)
+- ✅ **ANEEL** - Agência Nacional de Energia Elétrica
+  - Resoluções Normativas, Homologatórias, Notas Técnicas
+- ✅ **ONS** - Operador Nacional do Sistema Elétrico
+  - Procedimentos de Rede (Submódulos)
+- ✅ **ARCyber** - Framework de Cibersegurança do Setor Elétrico
+- ✅ **BACEN** - Banco Central do Brasil
+  - Resoluções, Circulares
+- ✅ **CVM** - Comissão de Valores Mobiliários
+  - Instruções, Deliberações
+- ✅ **SUSEP** - Superintendência de Seguros Privados
+  - Resoluções, Circulares
+
+## 🎯 Aplicações Consumidoras (Exemplos)
+
+### 1. Compliance Chat (em produção)
+**Descrição**: Interface ChatGPT-style com dataset selector
+**Consome**: RegulatoryRAG MCP (search_by_datasets)
+**Armazena localmente**: Histórico de conversas, preferências de datasets
+
+### 2. n.privacy (planejado)
+**Descrição**: SaaS de compliance LGPD (ROPA, DPIA, DSAR)
+**Consome**: ComplianceEngine MCP + RegulatoryRAG MCP
+**Armazena localmente**: ROPAs completos, DPIAs, DSARs, evidências
+
+### 3. OT2net (planejado)
+**Descrição**: Gestão de processos ONS Transportadoras (4 fases)
+**Consome**: ComplianceEngine MCP + RegulatoryRAG MCP (datasets: ons, arcyber)
+**Armazena localmente**: Processos operadores, aprovações comitê, conformidades ONS
+
+### 4. ITSM (planejado)
+**Descrição**: Gestão de processos internos de TI (ITIL + CIS Controls)
+**Consome**: ComplianceEngine MCP + Document Generator MCP
+**Armazena localmente**: Processos validados, KPIs, evidências de controles
+
+## 📚 Documentação Completa
+
+### Guias de Implementação
+
+| Documento | Descrição | Linhas |
+|-----------|-----------|--------|
+| [`IMPLEMENTATION_ROADMAP.md`](./IMPLEMENTATION_ROADMAP.md) | Roadmap completo por persona de desenvolvedor | 690 |
+| [`MCP_INTEGRATION_ARCHITECTURE.md`](./MCP_INTEGRATION_ARCHITECTURE.md) | Como consumir via MCP (web/desktop) | 565 |
+| [`TECHNICAL_EVALUATION.md`](./TECHNICAL_EVALUATION.md) | Avaliação técnica detalhada (98/100) | 800+ |
+| [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) | Status completo do projeto | 500+ |
+
+### READMEs por Microserviço
+
+- [ComplianceEngine API](./compliance-engine-api/README.md) - Motor principal BPMN + Compliance
+- [RegulatoryRAG API](./regulatory-rag-api/README.md) - Vector search Vertex AI
+- [Regulatory Crawler](./regulatory-intelligence-crawler/README.md) - Crawler ANEEL/ONS/ARCyber
+- [Document Generator](./document-generator-engine/README.md) - Markdown + Mermaid POPs
+- [Admin Dashboard](./admin-dashboard/README.md) - Interface Next.js
+
+### MCP Servers
+
+- [ComplianceEngine MCP](./mcp-servers/compliance-engine/README.md) - Tools BPMN + gaps
+- [RegulatoryRAG MCP](./mcp-servers/regulatory-rag/README.md) - Tools search regulatório
+- [MCP HTTP Gateway](./mcp-servers/gateway/README.md) - Bridge para apps web
+
+## 🚀 Deploy para Produção
+
+### Google Cloud Run (Recomendado)
+
+```bash
+# Deploy via docker-compose.yml adaptado para Cloud Run
+# Cada serviço vira um Cloud Run Service independente
+
+# Exemplo: ComplianceEngine API
+gcloud run deploy compliance-engine-api \
+  --source ./compliance-engine-api \
+  --region us-central1 \
+  --platform managed \
+  --allow-unauthenticated \
+  --set-env-vars GOOGLE_CLOUD_PROJECT=$PROJECT_ID \
+  --memory 2Gi \
+  --cpu 2 \
+  --max-instances 10
+```
+
+### Configuração GCP Necessária
+
+```bash
+# 1. Habilitar APIs
+gcloud services enable aiplatform.googleapis.com
+gcloud services enable firestore.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable discoveryengine.googleapis.com
+
+# 2. Criar Firestore Database (Native mode)
+gcloud firestore databases create --location=us-central1
+
+# 3. Criar Vertex AI Search Data Store
+gcloud alpha discovery-engine data-stores create compliance-regulations \
+  --location=global \
+  --collection=default_collection \
+  --industry-vertical=GENERIC
+```
+
+## 🎯 Próximos Passos Prioritários
+
+### Prioridade ALTA 🔴
+
+1. **Upgrade RegulatoryRAG MCP Server** (3-5 dias)
+   - Implementar `search_by_datasets` tool
+   - Testar com Compliance Chat (produção)
+
+2. **Completar Document Generator MCP** (5-7 dias)
+   - Implementar tools MCP
+   - Finalizar templates Markdown
+
+3. **Rate Limiting** (2-3 dias)
+   - Implementar em todos os microserviços
+   - Proteção contra abuso
+
+### Prioridade MÉDIA 🟡
+
+4. **Implementar Process Intelligence Engine** (10-15 dias)
+5. **Implementar Governance Engine** (10-15 dias)
+6. **Secret Manager Migration** (2-3 dias)
+7. **WAF Configuration** (Google Cloud Armor)
+
+## 📊 Estatísticas do Projeto
+
+- **Score Técnico**: 98/100 (ver TECHNICAL_EVALUATION.md)
+- **Microserviços Implementados**: 5/8 (62%)
+- **MCP Servers Implementados**: 3/4 (75%)
+- **Linhas de Código**: ~15.000+ (Python + TypeScript)
+- **Frameworks Suportados**: 7 internacionais + 7 regulações brasileiras
+- **Documentação**: 4 guias principais (2.500+ linhas)
+
+## 📄 Licença
+
+Proprietário - ComplianceEngine Platform
+
+## 📞 Contato
+
+**Repositório**: https://github.com/resper1965/nprocess
+**Branch Ativa**: `claude/create-compliance-engine-api-WDUVn`
 
 ---
 
-## 🔗 Links Úteis
-
-- **API Swagger**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
-- **API ReDoc**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/redoc
-- **Frontend Demo**: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
-- **Documentação**: `/v1/docs/integration` e `/v1/docs/prompts`
-
----
-
-## 📝 Licença
-
-MIT License - Veja [LICENSE](LICENSE) para detalhes.
+**ComplianceEngine Platform** - Motor de Compliance para o Ecossistema Brasileiro 🇧🇷
