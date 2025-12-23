@@ -6,6 +6,12 @@
 
 ### Para Desenvolvedores
 
+- **[DASHBOARD_GUIDE.md](DASHBOARD_GUIDE.md)** - 🆕 Guia completo de consumo do dashboard
+  - Como acessar dashboard via API (endpoints REST)
+  - Como acessar dashboard no frontend (interface web)
+  - Exemplos de código (Python, JavaScript, cURL)
+  - Autenticação e URLs
+
 - **[INTEGRATION.md](INTEGRATION.md)** - Manual completo de integração
   - Exemplos em Python, JavaScript, TypeScript, Go, cURL
   - Padrões de autenticação
@@ -75,6 +81,7 @@
 ```
 docs/
 ├── README.md                 # Este arquivo (índice)
+├── DASHBOARD_GUIDE.md        # 🆕 Guia de consumo do dashboard
 ├── PROJECT_OVERVIEW.md       # ⭐ Visão geral completa do projeto
 ├── NEXT_STEPS.md             # ⭐ Próximos passos práticos
 ├── AI_INTEGRATION_GUIDE.md   # Guia para IAs de desenvolvimento
