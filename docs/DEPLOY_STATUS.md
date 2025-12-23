@@ -1,6 +1,6 @@
 # Status de Deploy - ComplianceEngine API
 
-**Última Atualização**: 2025-12-23 15:14 UTC  
+**Última Atualização**: 2025-12-23 16:28 UTC  
 **Status**: ✅ **DEPLOYED E FUNCIONANDO**
 
 ---
@@ -25,9 +25,9 @@
 - **Região**: `us-central1`
 - **Plataforma**: Managed
 - **Status**: ✅ Ready
-- **Último Deploy**: 2025-12-23T15:14:31.704936Z
-- **Revisão Atual**: `compliance-engine-00003-2f7`
-- **Commit SHA**: `337d2ebc72a04e5490542cd67465aa9829d84126`
+- **Último Deploy**: 2025-12-23T16:28:00Z
+- **Revisão Atual**: `compliance-engine-0000X-xxx` (verificar com gcloud)
+- **Commit SHA**: `ab04f0ba99e86d996087441dc70c991b730013ce`
 
 ### Configuração de Recursos
 
@@ -42,7 +42,7 @@
 ### Imagem Docker
 
 - **Registry**: Google Container Registry (GCR)
-- **Imagem**: `gcr.io/nprocess/compliance-engine:337d2ebc72a04e5490542cd67465aa9829d84126`
+- **Imagem**: `gcr.io/nprocess/compliance-engine:ab04f0ba99e86d996087441dc70c991b730013ce`
 - **Tag Latest**: `gcr.io/nprocess/compliance-engine:latest`
 
 ---
@@ -56,6 +56,8 @@ curl https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
 ```
 
 **Status Esperado**: `200 OK`
+
+**Status Atual**: ✅ **FUNCIONANDO** (verificado em 2025-12-23 16:28 UTC)
 
 ### Endpoints Disponíveis
 
