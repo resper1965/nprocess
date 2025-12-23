@@ -5,7 +5,7 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Header, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, Security
 
 from app.schemas_apikeys import (
     APIKeyCreate,
@@ -271,23 +271,42 @@ async def revoke_api_key(
 @router.post(
     "/validate",
     summary="Validate API key",
-    description="Validate an API key (used internally)"
+    description="Validate an API key (used internally by MCP Gateway and other services)"
 )
 async def validate_api_key(
-    api_key: str = Header(..., alias="X-API-Key")
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False),
+    api_key_header: Optional[str] = Header(None, alias="X-API-Key")
 ):
     """
     Validate an API key.
 
     This endpoint is used internally by the API gateway or middleware.
+    Accepts API key via:
+    - Authorization: Bearer <api_key> (preferred)
+    - X-API-Key header (legacy)
 
     Args:
-        api_key: API key to validate
+        credentials: Bearer token from Authorization header
+        api_key_header: API key from X-API-Key header (legacy)
 
     Returns:
-        Validation result
+        Validation result with key_id, permissions, etc.
     """
     try:
+        # Extract API key from Bearer token or header
+        api_key = None
+        
+        if credentials:
+            api_key = credentials.credentials
+        elif api_key_header:
+            api_key = api_key_header
+        
+        if not api_key:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing API key. Provide via Authorization: Bearer <key> or X-API-Key header"
+            )
+
         apikey_service = get_apikey_service()
 
         result = await apikey_service.validate_api_key(api_key)
@@ -300,8 +319,10 @@ async def validate_api_key(
 
         return {
             "valid": True,
+            "key_id": result.key_id,
             "consumer_app_id": result.consumer_app_id,
-            "permissions": result.permissions,
+            "consumer_app_name": result.consumer_app_name,
+            "permissions": result.permissions or [],
             "rate_limit_remaining": result.rate_limit_remaining
         }
 

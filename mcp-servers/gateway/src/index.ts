@@ -9,6 +9,12 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import axios from "axios";
 
+// Import security middlewares
+import { validateApiKey } from "./middleware/validate-api-key.js";
+import { checkPermissions } from "./middleware/check-permissions.js";
+import { rateLimit } from "./middleware/rate-limit.js";
+import { getCacheStats } from "./middleware/cache-validation.js";
+
 const app = express();
 const PORT = process.env.PORT || 3100;
 
@@ -19,7 +25,6 @@ const PORT = process.env.PORT || 3100;
 const COMPLIANCE_API_URL =
   process.env.COMPLIANCE_API_URL || "http://localhost:8000";
 const RAG_API_URL = process.env.RAG_API_URL || "http://localhost:8001";
-const API_KEY = process.env.API_KEY || "";
 
 // ============================================================================
 // Middleware
@@ -28,33 +33,18 @@ const API_KEY = process.env.API_KEY || "";
 app.use(cors());
 app.use(express.json());
 
-// API Key validation middleware
-const validateApiKey = (req: Request, res: Response, next: Function) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      error: "Missing or invalid authorization header",
-    });
-  }
-
-  // In production, validate against your API key service
-  // For now, just check if it's not empty
-  const token = authHeader.substring(7);
-  if (!token) {
-    return res.status(401).json({
-      error: "Invalid API key",
-    });
-  }
-
-  next();
-};
+// Security middleware chain:
+// 1. Validate API key against backend
+// 2. Check permissions for endpoint
+// 3. Apply rate limiting
+const securityMiddleware = [validateApiKey, checkPermissions, rateLimit];
 
 // ============================================================================
 // Health Check
 // ============================================================================
 
 app.get("/health", (req, res) => {
+  const cacheStats = getCacheStats();
   res.json({
     status: "healthy",
     service: "mcp-gateway",
@@ -63,6 +53,10 @@ app.get("/health", (req, res) => {
       compliance_engine: COMPLIANCE_API_URL,
       regulatory_rag: RAG_API_URL,
     },
+    cache: {
+      hit_rate: cacheStats.hitRate,
+      size: cacheStats.size,
+    },
   });
 });
 
@@ -70,7 +64,7 @@ app.get("/health", (req, res) => {
 // MCP Tool Discovery
 // ============================================================================
 
-app.get("/v1/tools", validateApiKey, async (req, res) => {
+app.get("/v1/tools", ...securityMiddleware, async (req, res) => {
   try {
     const tools = {
       compliance_engine: [
@@ -168,18 +162,19 @@ app.get("/v1/tools", validateApiKey, async (req, res) => {
 
 app.post(
   "/v1/tools/compliance/generate_bpmn_diagram",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const { description, context } = req.body;
 
+      // Forward the user's API key to backend
       const response = await axios.post(
         `${COMPLIANCE_API_URL}/v1/diagrams/generate`,
         { description, context },
         {
-          headers: API_KEY
-            ? { Authorization: `Bearer ${API_KEY}` }
-            : undefined,
+          headers: {
+            Authorization: req.headers.authorization || "",
+          },
         }
       );
 
@@ -195,16 +190,16 @@ app.post(
 
 app.post(
   "/v1/tools/compliance/create_process",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const response = await axios.post(
         `${COMPLIANCE_API_URL}/v1/processes`,
         req.body,
         {
-          headers: API_KEY
-            ? { Authorization: `Bearer ${API_KEY}` }
-            : undefined,
+          headers: {
+            Authorization: req.headers.authorization || "",
+          },
         }
       );
 
@@ -220,11 +215,13 @@ app.post(
 
 app.get(
   "/v1/tools/compliance/list_processes",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const response = await axios.get(`${COMPLIANCE_API_URL}/v1/processes`, {
-        headers: API_KEY ? { Authorization: `Bearer ${API_KEY}` } : undefined,
+        headers: {
+          Authorization: req.headers.authorization || "",
+        },
       });
 
       res.json(response.data);
@@ -239,7 +236,7 @@ app.get(
 
 app.post(
   "/v1/tools/compliance/get_process",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const { process_id } = req.body;
@@ -247,9 +244,9 @@ app.post(
       const response = await axios.get(
         `${COMPLIANCE_API_URL}/v1/processes/${process_id}`,
         {
-          headers: API_KEY
-            ? { Authorization: `Bearer ${API_KEY}` }
-            : undefined,
+          headers: {
+            Authorization: req.headers.authorization || "",
+          },
         }
       );
 
@@ -265,7 +262,7 @@ app.post(
 
 app.post(
   "/v1/tools/compliance/analyze_compliance",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const { process_id, regulation_domains } = req.body;
@@ -274,9 +271,9 @@ app.post(
         `${COMPLIANCE_API_URL}/v1/compliance/analyze`,
         { process_id, regulation_domains },
         {
-          headers: API_KEY
-            ? { Authorization: `Bearer ${API_KEY}` }
-            : undefined,
+          headers: {
+            Authorization: req.headers.authorization || "",
+          },
         }
       );
 
@@ -296,7 +293,7 @@ app.post(
 
 app.post(
   "/v1/tools/rag/search_regulations",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const { query, domain, top_k, min_quality_score } = req.body;
@@ -310,9 +307,9 @@ app.post(
           min_quality_score: min_quality_score || 0.7,
         },
         {
-          headers: API_KEY
-            ? { Authorization: `Bearer ${API_KEY}` }
-            : undefined,
+          headers: {
+            Authorization: req.headers.authorization || "",
+          },
         }
       );
 
@@ -328,15 +325,15 @@ app.post(
 
 app.get(
   "/v1/tools/rag/list_regulation_domains",
-  validateApiKey,
+  ...securityMiddleware,
   async (req, res) => {
     try {
       const response = await axios.get(
         `${RAG_API_URL}/v1/regulations/domains`,
         {
-          headers: API_KEY
-            ? { Authorization: `Bearer ${API_KEY}` }
-            : undefined,
+          headers: {
+            Authorization: req.headers.authorization || "",
+          },
         }
       );
 
@@ -350,14 +347,16 @@ app.get(
   }
 );
 
-app.post("/v1/tools/rag/get_regulation", validateApiKey, async (req, res) => {
+app.post("/v1/tools/rag/get_regulation", ...securityMiddleware, async (req, res) => {
   try {
     const { regulation_id } = req.body;
 
     const response = await axios.get(
       `${RAG_API_URL}/v1/regulations/${regulation_id}`,
       {
-        headers: API_KEY ? { Authorization: `Bearer ${API_KEY}` } : undefined,
+        headers: {
+          Authorization: req.headers.authorization || "",
+        },
       }
     );
 

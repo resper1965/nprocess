@@ -22,7 +22,30 @@ import { z } from "zod";
 // ============================================================================
 
 const API_BASE_URL = process.env.COMPLIANCE_API_URL || "http://localhost:8000";
-const API_KEY = process.env.API_KEY || "";
+const API_KEY = process.env.API_KEY;
+
+// ============================================================================
+// API Key Validation
+// ============================================================================
+
+if (!API_KEY) {
+  console.error('❌ ERROR: API_KEY environment variable is required!');
+  console.error('Set API_KEY=ce_live_... or ce_test_... before starting the MCP server.');
+  console.error('');
+  console.error('Example:');
+  console.error('  export API_KEY=ce_live_1234567890abcdef...');
+  console.error('  node src/index.ts');
+  process.exit(1);
+}
+
+// Validate format
+if (!API_KEY.startsWith('ce_live_') && !API_KEY.startsWith('ce_test_')) {
+  console.error('❌ ERROR: Invalid API key format!');
+  console.error('API key must start with "ce_live_" or "ce_test_"');
+  console.error('');
+  console.error(`Received: ${API_KEY.substring(0, 20)}...`);
+  process.exit(1);
+}
 
 // ============================================================================
 // API Client
