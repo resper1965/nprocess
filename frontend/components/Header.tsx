@@ -12,8 +12,8 @@ interface HeaderProps {
 
 export default function Header({ health, loading }: HeaderProps) {
   return (
-    <header className="border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm">
-      <div className="px-6 py-3">
+    <header className="border-b border-slate-800/50 bg-slate-900/30 backdrop-blur-sm h-[60px] flex items-center">
+      <div className="px-6 w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-display font-medium text-slate-100 tracking-tight">

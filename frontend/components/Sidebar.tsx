@@ -59,8 +59,8 @@ export default function Sidebar() {
         `}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="px-6 py-8 border-b border-slate-800/50">
+          {/* Logo - mesma altura do Header */}
+          <div className="px-6 py-3 border-b border-slate-800/50 h-[60px] flex items-center">
             <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsOpen(false)}>
               <span className="text-2xl font-display font-medium text-slate-100 tracking-tight">
                 ness<span className="text-[#00ade8]">.</span>
@@ -69,8 +69,8 @@ export default function Sidebar() {
             </Link>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-6 space-y-0.5">
+          {/* Navigation - espaçamentos verticais aumentados */}
+          <nav className="flex-1 px-3 py-8 space-y-2 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -79,7 +79,7 @@ export default function Sidebar() {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={`
-                    flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-normal transition-all
+                    flex items-center gap-3 px-4 py-3.5 rounded-lg text-sm font-normal transition-all
                     ${
                       isActive
                         ? 'bg-slate-900/50 text-slate-100'
@@ -87,15 +87,15 @@ export default function Sidebar() {
                     }
                   `}
                 >
-                  <item.icon className="w-4 h-4" strokeWidth={1.5} />
-                  {item.name}
+                  <item.icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.5} />
+                  <span>{item.name}</span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Footer */}
-          <div className="px-6 py-5 border-t border-slate-800/50">
+          {/* Footer - espaçamento aumentado */}
+          <div className="px-6 py-6 border-t border-slate-800/50">
             <p className="text-xs text-slate-600 font-normal tracking-wide">
               Process Mapping & Compliance
             </p>
