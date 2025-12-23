@@ -14,6 +14,7 @@ from app.schemas_apikeys import APIKeyValidationResult
 logger = logging.getLogger(__name__)
 
 security = HTTPBearer(auto_error=False)
+admin_security = HTTPBearer()
 
 
 async def validate_api_key(
