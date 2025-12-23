@@ -190,8 +190,9 @@ class AIService:
                 user_prompt += f"\n\nContexto Adicional:\n{context}"
 
             # Cria o modelo com system instruction
+            # Usa gemini-1.5-pro-latest para garantir compatibilidade
             model = GenerativeModel(
-                model_name="gemini-1.5-pro",
+                model_name="gemini-1.5-pro-latest",
                 system_instruction=[PROCESS_ANALYST_SYSTEM_PROMPT],
                 generation_config=self.generation_config,
                 safety_settings=self.safety_settings
@@ -273,8 +274,9 @@ Fluxos:
                 user_prompt += f"\n\nCONTEXTO ADICIONAL:\n{additional_context}"
 
             # Cria o modelo com system instruction
+            # Usa gemini-1.5-pro-latest para garantir compatibilidade
             model = GenerativeModel(
-                model_name="gemini-1.5-pro",
+                model_name="gemini-1.5-pro-latest",
                 system_instruction=[COMPLIANCE_AUDITOR_SYSTEM_PROMPT],
                 generation_config=self.generation_config,
                 safety_settings=self.safety_settings
