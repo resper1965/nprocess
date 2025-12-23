@@ -1,0 +1,244 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+      - claude/create-compliance-engine-api-WDUVn
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  PROJECT_ID: nprocess
+  REGION: us-central1
+
+jobs:
+  # ============================================================================
+  # Deploy ComplianceEngine API
+  # ============================================================================
+  deploy-compliance-api:
+    name: Deploy ComplianceEngine API
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy ComplianceEngine API to Cloud Run
+        run: |
+          gcloud run deploy compliance-engine-api \
+            --source . \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300 \
+            --concurrency 80 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --set-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }}" \
+            --set-env-vars "FIRESTORE_DATABASE=(default)" \
+            --set-env-vars "VERTEX_AI_LOCATION=us-central1" \
+            --set-env-vars "VERTEX_AI_MODEL=gemini-1.5-pro-002" \
+            --quiet
+
+      - name: Get service URL
+        id: compliance-url
+        run: |
+          URL=$(gcloud run services describe compliance-engine-api \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ ComplianceEngine API deployed: $URL"
+
+    outputs:
+      compliance_url: ${{ steps.compliance-url.outputs.url }}
+
+  # ============================================================================
+  # Deploy RegulatoryRAG API
+  # ============================================================================
+  deploy-rag-api:
+    name: Deploy RegulatoryRAG API
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy RegulatoryRAG API to Cloud Run
+        run: |
+          cd regulatory-rag-api
+          gcloud run deploy regulatory-rag-api \
+            --source . \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300 \
+            --concurrency 80 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --set-env-vars "GCP_PROJECT_ID=${{ env.PROJECT_ID }}" \
+            --set-env-vars "VERTEX_AI_SEARCH_LOCATION=global" \
+            --set-env-vars "VERTEX_AI_DATA_STORE_ID=regulations-datastore" \
+            --set-env-vars "CACHE_ENABLED=true" \
+            --quiet
+
+      - name: Get service URL
+        id: rag-url
+        run: |
+          URL=$(gcloud run services describe regulatory-rag-api \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ RegulatoryRAG API deployed: $URL"
+
+    outputs:
+      rag_url: ${{ steps.rag-url.outputs.url }}
+
+  # ============================================================================
+  # Deploy Admin Dashboard
+  # ============================================================================
+  deploy-dashboard:
+    name: Deploy Admin Dashboard
+    runs-on: ubuntu-latest
+    needs: [deploy-compliance-api, deploy-rag-api]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy Admin Dashboard to Cloud Run
+        env:
+          COMPLIANCE_URL: ${{ needs.deploy-compliance-api.outputs.compliance_url }}
+          RAG_URL: ${{ needs.deploy-rag-api.outputs.rag_url }}
+        run: |
+          cd admin-dashboard
+
+          # Generate NextAuth secret if not set
+          NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}"
+          if [ -z "$NEXTAUTH_SECRET" ]; then
+            NEXTAUTH_SECRET=$(openssl rand -base64 32)
+          fi
+
+          gcloud run deploy compliance-admin-dashboard \
+            --source . \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 512Mi \
+            --cpu 1 \
+            --timeout 60 \
+            --concurrency 80 \
+            --min-instances 0 \
+            --max-instances 5 \
+            --set-env-vars "NEXT_PUBLIC_COMPLIANCE_API_URL=$COMPLIANCE_URL" \
+            --set-env-vars "NEXT_PUBLIC_RAG_API_URL=$RAG_URL" \
+            --set-env-vars "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" \
+            --quiet
+
+      - name: Get service URL
+        id: dashboard-url
+        run: |
+          URL=$(gcloud run services describe compliance-admin-dashboard \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ Admin Dashboard deployed: $URL"
+
+      - name: Update NEXTAUTH_URL
+        env:
+          DASHBOARD_URL: ${{ steps.dashboard-url.outputs.url }}
+        run: |
+          gcloud run services update compliance-admin-dashboard \
+            --region ${{ env.REGION }} \
+            --set-env-vars "NEXTAUTH_URL=$DASHBOARD_URL" \
+            --quiet
+
+    outputs:
+      dashboard_url: ${{ steps.dashboard-url.outputs.url }}
+
+  # ============================================================================
+  # Deployment Summary
+  # ============================================================================
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-compliance-api, deploy-rag-api, deploy-dashboard]
+    if: always()
+
+    steps:
+      - name: Print Deployment Summary
+        run: |
+          echo "========================================="
+          echo "🚀 Deployment Complete!"
+          echo "========================================="
+          echo ""
+          echo "📊 Service URLs:"
+          echo "  - ComplianceEngine API: ${{ needs.deploy-compliance-api.outputs.compliance_url }}"
+          echo "  - RegulatoryRAG API: ${{ needs.deploy-rag-api.outputs.rag_url }}"
+          echo "  - Admin Dashboard: ${{ needs.deploy-dashboard.outputs.dashboard_url }}"
+          echo ""
+          echo "🧪 Test the services:"
+          echo "  curl ${{ needs.deploy-compliance-api.outputs.compliance_url }}/health"
+          echo "  curl ${{ needs.deploy-rag-api.outputs.rag_url }}/health"
+          echo ""
+          echo "🎯 Access the dashboard:"
+          echo "  ${{ needs.deploy-dashboard.outputs.dashboard_url }}"
+          echo ""
+          echo "========================================="
+
+      - name: Create deployment status comment
+        uses: actions/github-script@v7
+        if: github.event_name == 'push'
+        with:
+          script: |
+            const { data: commits } = await github.rest.repos.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              per_page: 1
+            });
+
+            const commit = commits[0];
+
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: `## 🚀 Deployment Complete!\n\n### Service URLs:\n- **ComplianceEngine API**: ${{ needs.deploy-compliance-api.outputs.compliance_url }}\n- **RegulatoryRAG API**: ${{ needs.deploy-rag-api.outputs.rag_url }}\n- **Admin Dashboard**: ${{ needs.deploy-dashboard.outputs.dashboard_url }}\n\n### Quick Test:\n\`\`\`bash\ncurl ${{ needs.deploy-compliance-api.outputs.compliance_url }}/health\n\`\`\``
+            });

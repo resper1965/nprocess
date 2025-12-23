@@ -1,0 +1,37 @@
+{
+  "name": "@compliance-platform/mcp-regulatory-rag",
+  "version": "1.0.0",
+  "description": "MCP Server for RegulatoryRAG API - Semantic search over regulatory documents",
+  "type": "module",
+  "main": "build/index.js",
+  "bin": {
+    "regulatory-rag-mcp": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node build/index.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "regulatory",
+    "rag",
+    "vertex-ai-search"
+  ],
+  "author": "ComplianceEngine Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "axios": "^1.6.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
