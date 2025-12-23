@@ -176,3 +176,4 @@ Usuários podem analisar um processo salvo contra regulamentações específicas
 
 Este é o baseline do projeto já implementado. Futuras features devem seguir o processo de especificação do spec-kit, criando novas specs em `specs/###-feature-name/`.
 
+

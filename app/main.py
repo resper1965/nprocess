@@ -484,7 +484,7 @@ async def get_prompts():
     """Retorna exemplos de prompts para ferramentas de IA."""
     try:
         # Caminho relativo ao diretório raiz do projeto
-        prompts_path = Path(__file__).parent.parent / "PROMPTS_EXAMPLES.md"
+        prompts_path = Path(__file__).parent.parent / "docs" / "PROMPTS_EXAMPLES.md"
         
         if not prompts_path.exists():
             raise HTTPException(
@@ -516,7 +516,7 @@ async def get_prompts():
 async def get_integration_guide():
     """Retorna manual de integração."""
     try:
-        integration_path = Path(__file__).parent.parent / "INTEGRATION.md"
+        integration_path = Path(__file__).parent.parent / "docs" / "INTEGRATION.md"
         
         if not integration_path.exists():
             raise HTTPException(

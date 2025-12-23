@@ -1,0 +1,39 @@
+# CODEOWNERS - Define responsáveis por áreas do código
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Proprietários padrão para todo o repositório
+* @resper1965
+
+# Backend API (FastAPI)
+/app/ @resper1965
+/requirements.txt @resper1965
+/Dockerfile @resper1965
+/cloudbuild.yaml @resper1965
+
+# Frontend Next.js
+/frontend/ @resper1965
+
+# Admin Dashboard
+/admin-dashboard/ @resper1965
+
+# RegulatoryRAG API
+/regulatory-rag-api/ @resper1965
+
+# MCP Servers
+/mcp-servers/ @resper1965
+
+# Documentação
+/docs/ @resper1965
+README.md @resper1965
+
+# CI/CD
+/.github/workflows/ @resper1965
+/.github/SETUP.md @resper1965
+
+# Exemplos
+/examples/ @resper1965
+
+# Testes
+/tests/ @resper1965
+test_api.py @resper1965
+

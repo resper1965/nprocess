@@ -1,5 +1,10 @@
 # ComplianceEngine API
 
+[![Release](https://img.shields.io/badge/release-v1.0.0-blue.svg)](https://github.com/resper1965/nprocess/releases/tag/v1.0.0)
+[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Microsserviço (API REST) para análise de compliance de processos de negócio usando IA Generativa.
 
 ## 🎯 Propósito
@@ -19,7 +24,7 @@ Esta API foi desenvolvida para ser consumida por:
 - **Aplicações de Governança**: Monitorar conformidade regulatória em tempo real
 - **Sistemas de Documentação**: Gerar diagramas BPMN a partir de documentação textual
 
-> 📖 **Manual de Integração Completo**: Veja [INTEGRATION.md](INTEGRATION.md) para guias detalhados de integração em Python, JavaScript, cURL e mais.
+> 📖 **Manual de Integração Completo**: Veja [docs/INTEGRATION.md](docs/INTEGRATION.md) para guias detalhados de integração em Python, JavaScript, cURL e mais.
 
 ## Visão Geral
 
@@ -123,13 +128,17 @@ Acesse:
 - Documentação Interativa (Swagger): http://localhost:8080/docs
 - Documentação Alternativa (ReDoc): http://localhost:8080/redoc
 
-## 📚 Documentação de Integração
+## 📚 Documentação
+
+### Documentação de Integração
 
 Para integrar esta API em outras aplicações, consulte:
 
-- **[INTEGRATION.md](INTEGRATION.md)**: Manual completo de integração com exemplos em Python, JavaScript, cURL
-- **[PROMPTS_EXAMPLES.md](PROMPTS_EXAMPLES.md)**: Exemplos de prompts para usar em Cursor, Claude Code, Antigravity e outras ferramentas de IA
-- **[RUN_WITHOUT_AI.md](RUN_WITHOUT_AI.md)**: Como rodar a API apenas com gestão de processos (sem IA/Vertex AI)
+- **[docs/INTEGRATION.md](docs/INTEGRATION.md)**: Manual completo de integração com exemplos em Python, JavaScript, cURL
+- **[docs/PROMPTS_EXAMPLES.md](docs/PROMPTS_EXAMPLES.md)**: Exemplos de prompts para usar em Cursor, Claude Code, Antigravity e outras ferramentas de IA
+- **[docs/RUN_WITHOUT_AI.md](docs/RUN_WITHOUT_AI.md)**: Como rodar a API apenas com gestão de processos (sem IA/Vertex AI)
+- **[docs/QUICK_START.md](docs/QUICK_START.md)**: Guia rápido de instalação e configuração
+- **[docs/AUTHENTICATION.md](docs/AUTHENTICATION.md)**: Guia de autenticação e segurança
 - **Exemplos Práticos**: Veja a pasta `examples/` para código de exemplo
 - **API Docs**: Acesse `/docs` na API para documentação interativa Swagger
 
@@ -147,7 +156,7 @@ Com isso, você pode usar:
 - ❌ Geração de diagramas (requer IA)
 - ❌ Análise de compliance (requer IA)
 
-Veja [RUN_WITHOUT_AI.md](RUN_WITHOUT_AI.md) para detalhes.
+Veja [docs/RUN_WITHOUT_AI.md](docs/RUN_WITHOUT_AI.md) para detalhes.
 
 ## Endpoints da API
 
