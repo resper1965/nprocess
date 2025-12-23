@@ -13,11 +13,11 @@ from app.schemas_apikeys import APIKeyValidationResult
 
 logger = logging.getLogger(__name__)
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def validate_api_key(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
     x_api_key: Optional[str] = Header(None, alias="X-API-Key")
 ) -> Optional[APIKeyValidationResult]:
     """
@@ -58,7 +58,7 @@ async def validate_api_key(
 
 
 async def require_api_key(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
     x_api_key: Optional[str] = Header(None, alias="X-API-Key")
 ) -> APIKeyValidationResult:
     """

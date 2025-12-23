@@ -35,7 +35,7 @@ security = HTTPBearer()
 # ============================================================================
 
 async def get_api_key_from_request(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False),
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security),
     x_api_key: Optional[str] = Header(None, alias="X-API-Key")
 ) -> APIKeyValidationResult:
     """
