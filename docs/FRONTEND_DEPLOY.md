@@ -7,8 +7,10 @@
 
 ## 🌐 URL do Frontend
 
-- **URL Principal**: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
-- **URL Alternativa**: https://compliance-engine-frontend-273624403528.us-central1.run.app
+- **URL Principal**: https://compliance-engine-frontend-273624403528.us-central1.run.app
+- **URL Alternativa**: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
+
+**Status**: ✅ **FUNCIONANDO** (verificado em 2025-12-23 16:45 UTC)
 
 ---
 
