@@ -39,7 +39,7 @@ RUN npm ci --only=production && \
 # Copy built application from builder
 COPY --chown=appuser:appgroup --from=builder /app/.next ./.next
 COPY --chown=appuser:appgroup --from=builder /app/public ./public
-COPY --chown=appuser:appgroup --from=builder /app/next.config.js ./
+COPY --chown=appuser:appgroup --from=builder /app/next.config.* ./
 
 # Set environment variables
 ENV NODE_ENV=production \
