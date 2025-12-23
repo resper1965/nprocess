@@ -106,6 +106,7 @@ Interface de demonstração/teste da API
 ## 📚 Documentação
 
 - **[Manual de Integração](docs/INTEGRATION.md)**: Guia completo de integração
+- **[Guia do Dashboard](docs/DASHBOARD_GUIDE.md)**: Como consumir o dashboard (API e Frontend)
 - **[Guia para IAs](docs/AI_INTEGRATION_GUIDE.md)**: Como IAs de desenvolvimento podem integrar
 - **[Arquitetura](docs/ARCHITECTURE.md)**: Visão geral da arquitetura
 - **[Visão Geral do Projeto](docs/PROJECT_OVERVIEW.md)**: Documentação completa
