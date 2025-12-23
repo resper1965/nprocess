@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import { apiClient, Process } from '@/lib/api';
 import Link from 'next/link';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
+import Card from '@/components/Card';
+import Button from '@/components/Button';
+import { PlusIcon, FolderIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 
 export default function ProcessesPage() {
   const [processes, setProcesses] = useState<Process[]>([]);
@@ -21,122 +26,132 @@ export default function ProcessesPage() {
       const data = await apiClient.listProcesses(100, domainFilter || undefined);
       setProcesses(data);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Erro ao carregar processos');
+      setError(err.response?.data?.detail || err.message || 'Error loading processes');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <header className="border-b border-[var(--border)] bg-[var(--background-secondary)]">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <h1 className="text-2xl font-display font-semibold">
-                ness<span className="text-[var(--primary-500)]">.</span>
+    <div className="min-h-screen bg-slate-950 text-slate-300">
+      <Sidebar />
+      
+      <div className="lg:pl-64">
+        <Header />
+
+        <main className="px-6 py-12 max-w-7xl mx-auto">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-display font-bold text-slate-100 mb-2">
+                Processes
               </h1>
-              <span className="text-sm text-[var(--foreground-muted)]">ComplianceEngine</span>
+              <p className="text-lg text-slate-400">
+                Manage your business processes
+              </p>
+            </div>
+            <Link href="/generate">
+              <Button size="lg">
+                <PlusIcon className="w-5 h-5 mr-2" />
+                New Process
+              </Button>
             </Link>
-            <Link href="/" className="text-sm text-[var(--foreground-secondary)] hover:text-[var(--primary-400)] transition-colors">
-              ← Voltar
-            </Link>
           </div>
-        </div>
-      </header>
 
-      <main className="container mx-auto px-6 py-12 max-w-6xl">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-display font-bold mb-2">Processos</h1>
-            <p className="text-[var(--foreground-secondary)]">
-              Gerencie seus processos de negócio
-            </p>
-          </div>
-          <Link
-            href="/generate"
-            className="px-6 py-3 rounded-lg bg-[var(--primary-500)] text-white font-medium hover:bg-[var(--primary-600)] transition-colors"
-          >
-            + Novo Processo
-          </Link>
-        </div>
-
-        {/* Filtros */}
-        <div className="mb-6">
-          <select
-            value={domainFilter}
-            onChange={(e) => setDomainFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-[var(--border)] bg-[var(--background-secondary)] text-[var(--foreground)] focus:outline-none focus:border-[var(--primary-500)] transition-colors"
-          >
-            <option value="">Todos os domínios</option>
-            <option value="LGPD">LGPD</option>
-            <option value="SOX">SOX</option>
-            <option value="GDPR">GDPR</option>
-            <option value="financeiro">Financeiro</option>
-          </select>
-        </div>
-
-        {/* Lista de Processos */}
-        {loading && (
-          <div className="text-center py-12 text-[var(--foreground-muted)]">
-            Carregando processos...
-          </div>
-        )}
-
-        {error && (
-          <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 mb-6">
-            <p className="font-medium">Erro</p>
-            <p className="text-sm mt-1">{error}</p>
-          </div>
-        )}
-
-        {!loading && !error && processes.length === 0 && (
-          <div className="text-center py-12 border border-[var(--border)] rounded-lg bg-[var(--background-secondary)]">
-            <p className="text-[var(--foreground-muted)] mb-4">Nenhum processo encontrado</p>
-            <Link
-              href="/generate"
-              className="text-[var(--primary-400)] hover:text-[var(--primary-500)] transition-colors"
+          {/* Filters */}
+          <div className="mb-6">
+            <select
+              value={domainFilter}
+              onChange={(e) => setDomainFilter(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-slate-800 bg-slate-900/50 text-slate-300 focus:outline-none focus:border-[#00ade8] focus:ring-1 focus:ring-[#00ade8] transition-all"
             >
-              Criar primeiro processo →
-            </Link>
+              <option value="">All Domains</option>
+              <option value="LGPD">LGPD</option>
+              <option value="SOX">SOX</option>
+              <option value="GDPR">GDPR</option>
+              <option value="financeiro">Financial</option>
+            </select>
           </div>
-        )}
 
-        {!loading && !error && processes.length > 0 && (
-          <div className="grid gap-4">
-            {processes.map((process) => (
-              <Link
-                key={process.process_id}
-                href={`/processes/${process.process_id}`}
-                className="block p-6 rounded-lg border border-[var(--border)] bg-[var(--background-secondary)] hover:border-[var(--primary-500)] transition-all"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-display font-semibold mb-2">{process.name}</h3>
-                    <p className="text-sm text-[var(--foreground-secondary)] mb-4 line-clamp-2">
-                      {process.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-[var(--foreground-muted)]">
-                      <span className="px-2 py-1 rounded bg-[var(--primary-500)]/20 text-[var(--primary-400)]">
-                        {process.domain}
-                      </span>
-                      <span>
-                        {new Date(process.created_at).toLocaleDateString('pt-BR')}
-                      </span>
-                      {process.nodes && (
-                        <span>{process.nodes.length} nós</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-[var(--foreground-muted)]">→</div>
+          {/* Loading */}
+          {loading && (
+            <Card className="p-12 text-center">
+              <div className="flex items-center justify-center gap-3 text-slate-500">
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Loading processes...
+              </div>
+            </Card>
+          )}
+
+          {/* Error */}
+          {error && (
+            <Card className="p-4 border-red-500/20 bg-red-500/10 mb-6">
+              <div className="flex items-start gap-3">
+                <ExclamationCircleIcon className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-red-400">Error</p>
+                  <p className="text-sm text-red-400/80 mt-1">{error}</p>
                 </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && processes.length === 0 && (
+            <Card className="p-12 text-center">
+              <FolderIcon className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+              <p className="text-slate-400 mb-4">No processes found</p>
+              <Link href="/generate">
+                <Button variant="secondary">
+                  Create First Process
+                </Button>
               </Link>
-            ))}
-          </div>
-        )}
-      </main>
+            </Card>
+          )}
+
+          {/* Process List */}
+          {!loading && !error && processes.length > 0 && (
+            <div className="grid gap-4">
+              {processes.map((process) => (
+                <Link
+                  key={process.process_id}
+                  href={`/processes/${process.process_id}`}
+                >
+                  <Card hover className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-display font-semibold text-slate-100 mb-2">
+                          {process.name}
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4 line-clamp-2 leading-relaxed">
+                          {process.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className="px-2 py-1 rounded bg-[#00ade8]/20 text-[#00ade8] font-medium">
+                            {process.domain}
+                          </span>
+                          <span className="text-slate-500">
+                            {new Date(process.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                          {process.nodes && (
+                            <span className="text-slate-500">
+                              {process.nodes.length} nodes
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-slate-600 ml-4">→</div>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
-
-
