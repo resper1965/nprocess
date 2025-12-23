@@ -26,7 +26,7 @@ from app.services.db_service import get_db_service
 from app.services.webhook_service import get_webhook_service
 from app.middleware.auth import validate_api_key
 from app.schemas_webhooks import WebhookEventType
-from app.routers import webhooks, apikeys, versions, templates, tags, approvals, search, dashboard, backup, ai_suggestions, realtime, marketplace
+from app.routers import webhooks, apikeys, apikeys_user, versions, templates, tags, approvals, search, dashboard, backup, ai_suggestions, realtime, marketplace
 
 
 # ============================================================================
@@ -131,6 +131,7 @@ async def general_exception_handler(request, exc: Exception):
 
 app.include_router(webhooks.router)
 app.include_router(apikeys.router)
+app.include_router(apikeys_user.router)
 app.include_router(versions.router)
 app.include_router(templates.router)
 app.include_router(tags.router)

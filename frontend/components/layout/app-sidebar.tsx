@@ -8,6 +8,7 @@ import {
   Folder, 
   BarChart3,
   FileText,
+  Key,
   X,
 } from 'lucide-react';
 import Logo from './logo';
@@ -28,6 +29,7 @@ const navigation = [
   { name: 'Generate', href: '/generate', icon: Sparkles },
   { name: 'Processes', href: '/processes', icon: Folder },
   { name: 'Analysis', href: '/analyze', icon: BarChart3 },
+  { name: 'API Keys', href: '/api-keys', icon: Key },
   { name: 'Documentation', href: '/docs', icon: FileText },
 ];
 

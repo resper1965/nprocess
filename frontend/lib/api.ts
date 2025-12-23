@@ -103,6 +103,78 @@ export interface ComplianceAnalyzeResponse {
   suggestions: ComplianceSuggestion[];
 }
 
+// API Key Types
+export interface APIKeyCreate {
+  name: string;
+  description?: string;
+  consumer_app_id?: string;
+  quotas?: {
+    requests_per_minute?: number;
+    requests_per_day?: number;
+    requests_per_month?: number;
+  };
+  permissions?: string[];
+  expires_at?: string;
+}
+
+export interface APIKeyInfo {
+  key_id: string;
+  name: string;
+  description?: string;
+  consumer_app_id: string;
+  consumer_app_name?: string;
+  key_prefix: string;
+  status: 'active' | 'revoked' | 'expired';
+  created_at: string;
+  expires_at?: string;
+  last_used_at?: string;
+  permissions: string[];
+  quotas: {
+    requests_per_minute: number;
+    requests_per_day: number;
+    requests_per_month: number;
+  };
+  usage?: {
+    requests_today: number;
+    requests_this_month: number;
+    last_request_at?: string;
+    total_requests: number;
+  };
+}
+
+export interface APIKeyResponse {
+  key_id: string;
+  api_key: string;
+  name: string;
+  consumer_app_id: string;
+  created_at: string;
+  expires_at?: string;
+  permissions: string[];
+  quotas: {
+    requests_per_minute: number;
+    requests_per_day: number;
+    requests_per_month: number;
+  };
+  warning: string;
+}
+
+export interface APIKeyUsage {
+  key_id: string;
+  usage: {
+    requests_today: number;
+    requests_this_month: number;
+    total_requests: number;
+    last_request_at?: string;
+  };
+  quotas: {
+    requests_per_minute: number;
+    requests_per_day: number;
+    requests_per_month: number;
+  };
+  status: string;
+  expires_at?: string;
+}
+
 // Funções da API
 export const apiClient = {
   // Health check
@@ -148,6 +220,40 @@ export const apiClient = {
     const response = await api.get<ComplianceAnalyzeResponse>(`/v1/compliance/analyses/${analysisId}`);
     return response.data;
   },
+
+  // API Key Management (Self-Service)
+  async createAPIKey(data: APIKeyCreate, apiKey?: string): Promise<APIKeyResponse> {
+    const headers: any = {};
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    const response = await api.post<APIKeyResponse>('/v1/my/api-keys', data, { headers });
+    return response.data;
+  },
+
+  async listMyAPIKeys(apiKey?: string): Promise<APIKeyInfo[]> {
+    const headers: any = {};
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    const response = await api.get<{ api_keys: APIKeyInfo[] }>('/v1/my/api-keys', { headers });
+    return response.data.api_keys;
+  },
+
+  async getAPIKeyUsage(keyId: string, apiKey?: string): Promise<APIKeyUsage> {
+    const headers: any = {};
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    const response = await api.get<APIKeyUsage>(`/v1/my/api-keys/${keyId}/usage`, { headers });
+    return response.data;
+  },
+
+  async revokeAPIKey(keyId: string, reason?: string, apiKey?: string): Promise<void> {
+    const headers: any = {};
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+    await api.post(`/v1/my/api-keys/${keyId}/revoke`, { reason }, { headers });
+  },
 };
-
-
