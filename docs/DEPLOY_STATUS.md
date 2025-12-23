@@ -1,163 +1,255 @@
-# Status do Deploy - ComplianceEngine API
+# Status de Deploy - ComplianceEngine API
 
-## ✅ Concluído
-
-### 1. Commit e Push para GitHub
-- **Commit**: `8e3a57e` - "docs: Adicionar manual de integração, exemplos de prompts e spec-kit"
-- **Branch**: `main`
-- **Repositório**: `https://github.com/resper1965/nprocess.git`
-- **Arquivos commitados**:
-  - `.gitignore` (atualizado)
-  - `README.md` (atualizado)
-  - `docker-compose.yml` (atualizado)
-  - `.specify/` (GitHub Spec-Kit completo)
-  - `INTEGRATION.md` (Manual de integração)
-  - `PROMPTS_EXAMPLES.md` (Exemplos de prompts)
-  - `specs/` (Especificação baseline)
-
-### 2. Configuração GCP
-- **Projeto configurado**: `nprocess`
-- **Project Number**: `273624403528`
-
-## ⚠️ Pendente - Deploy no GCP
-
-### Requisito: Billing Habilitado
-
-O projeto GCP `nprocess` precisa ter **billing habilitado** para ativar as APIs necessárias:
-
-```bash
-# APIs que precisam ser habilitadas:
-- aiplatform.googleapis.com (Vertex AI)
-- firestore.googleapis.com (Firestore)
-- run.googleapis.com (Cloud Run)
-- cloudbuild.googleapis.com (Cloud Build)
-- artifactregistry.googleapis.com (Artifact Registry)
-```
-
-### Como Habilitar Billing
-
-1. Acesse o [Console do GCP](https://console.cloud.google.com/)
-2. Vá em **Billing** → **Link a billing account**
-3. Selecione ou crie uma conta de billing
-4. Associe ao projeto `nprocess`
-
-### Após Habilitar Billing
-
-Execute os seguintes comandos:
-
-```bash
-# 1. Habilitar APIs
-gcloud services enable \
-    aiplatform.googleapis.com \
-    firestore.googleapis.com \
-    run.googleapis.com \
-    cloudbuild.googleapis.com \
-    artifactregistry.googleapis.com \
-    --project=nprocess
-
-# 2. Deploy usando Cloud Build
-gcloud builds submit --config cloudbuild.yaml --project=nprocess
-
-# OU usar o script de deploy
-./deploy.sh dev
-```
-
-## 📋 Opções de Deploy
-
-### Opção 1: Cloud Build (Recomendado)
-
-```bash
-gcloud builds submit --config cloudbuild.yaml --project=nprocess
-```
-
-Este comando:
-- Builda a imagem Docker
-- Faz push para Container Registry
-- Faz deploy no Cloud Run automaticamente
-
-### Opção 2: Script de Deploy
-
-```bash
-./deploy.sh dev    # Ambiente de desenvolvimento
-./deploy.sh staging # Ambiente de staging
-./deploy.sh prod    # Ambiente de produção
-```
-
-### Opção 3: Deploy Manual
-
-```bash
-# 1. Build e push da imagem
-gcloud builds submit --tag gcr.io/nprocess/compliance-engine:latest
-
-# 2. Deploy no Cloud Run
-gcloud run deploy compliance-engine \
-    --image gcr.io/nprocess/compliance-engine:latest \
-    --platform managed \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --set-env-vars GOOGLE_CLOUD_PROJECT=nprocess \
-    --memory 2Gi \
-    --cpu 2 \
-    --timeout 300 \
-    --max-instances 10 \
-    --project=nprocess
-```
-
-## 🔍 Verificar Status
-
-Após o deploy, verifique:
-
-```bash
-# Listar serviços Cloud Run
-gcloud run services list --project=nprocess --region=us-central1
-
-# Obter URL do serviço
-gcloud run services describe compliance-engine \
-    --project=nprocess \
-    --region=us-central1 \
-    --format='value(status.url)'
-
-# Ver logs
-gcloud run services logs read compliance-engine \
-    --project=nprocess \
-    --region=us-central1
-```
-
-## 📝 Próximos Passos
-
-1. ✅ **Habilitar billing** no projeto GCP
-2. ✅ **Habilitar APIs** necessárias
-3. ✅ **Criar Firestore Database** (Native mode)
-4. ✅ **Configurar Application Default Credentials**
-5. ✅ **Fazer deploy** usando Cloud Build ou script
-6. ✅ **Testar API** após deploy
-7. ✅ **Configurar domínio customizado** (opcional)
-
-## 🚨 Notas Importantes
-
-- O projeto está configurado para usar `nprocess` como Project ID
-- Todas as configurações estão prontas no código
-- O Dockerfile está configurado corretamente
-- O cloudbuild.yaml está pronto para uso
-- Apenas falta habilitar billing para prosseguir
+**Última Atualização**: 2025-12-23 15:14 UTC  
+**Status**: ✅ **DEPLOYED E FUNCIONANDO**
 
 ---
 
-**Última atualização**: 2025-12-22  
-**Status**: Commit ✅ | Deploy ✅ **CONCLUÍDO**
+## 🌐 URLs do Serviço
 
-## 🎉 Deploy Realizado com Sucesso!
+### Produção
 
-- **URL da API**: https://compliance-engine-273624403528.us-central1.run.app
-- **Região**: us-central1
-- **Status**: ✅ Online e funcionando
-- **Firestore**: ✅ Criado (us-central1)
-- **APIs**: ✅ Todas habilitadas
-- **Billing**: ✅ Vinculado
+- **URL Principal**: https://compliance-engine-5wqihg7s7a-uc.a.run.app
+- **URL Alternativa**: https://compliance-engine-273624403528.us-central1.run.app
+- **Health Check**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
+- **API Docs (Swagger)**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
+- **API Docs (ReDoc)**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/redoc
 
-### Endpoints Disponíveis:
-- Health: https://compliance-engine-273624403528.us-central1.run.app/health
-- Docs: https://compliance-engine-273624403528.us-central1.run.app/docs
-- Prompts: https://compliance-engine-273624403528.us-central1.run.app/v1/docs/prompts
-- Integration: https://compliance-engine-273624403528.us-central1.run.app/v1/docs/integration
+---
 
+## 📊 Informações do Deploy
+
+### Serviço Cloud Run
+
+- **Nome**: `compliance-engine`
+- **Região**: `us-central1`
+- **Plataforma**: Managed
+- **Status**: ✅ Ready
+- **Último Deploy**: 2025-12-23T15:14:31.704936Z
+- **Revisão Atual**: `compliance-engine-00003-2f7`
+- **Commit SHA**: `337d2ebc72a04e5490542cd67465aa9829d84126`
+
+### Configuração de Recursos
+
+- **Memória**: 2Gi
+- **CPU**: 2
+- **Timeout**: 300s
+- **Concorrência**: 80
+- **Max Instances**: 10
+- **Min Instances**: 0 (scale to zero)
+- **Autenticação**: Pública (allow-unauthenticated)
+
+### Imagem Docker
+
+- **Registry**: Google Container Registry (GCR)
+- **Imagem**: `gcr.io/nprocess/compliance-engine:337d2ebc72a04e5490542cd67465aa9829d84126`
+- **Tag Latest**: `gcr.io/nprocess/compliance-engine:latest`
+
+---
+
+## ✅ Verificação de Saúde
+
+### Health Check
+
+```bash
+curl https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
+```
+
+**Status Esperado**: `200 OK`
+
+### Endpoints Disponíveis
+
+- ✅ `GET /` - Health check básico
+- ✅ `GET /health` - Health check detalhado
+- ✅ `GET /docs` - Documentação Swagger
+- ✅ `GET /redoc` - Documentação ReDoc
+- ✅ `GET /openapi.json` - OpenAPI schema
+
+---
+
+## 🔧 Comandos Úteis
+
+### Ver Logs
+
+```bash
+# Ver logs recentes
+gcloud run services logs read compliance-engine --region us-central1
+
+# Stream logs em tempo real
+gcloud run services logs tail compliance-engine --region us-central1
+
+# Logs das últimas 24 horas
+gcloud run services logs read compliance-engine --region us-central1 --limit 100
+```
+
+### Informações do Serviço
+
+```bash
+# Descrever serviço
+gcloud run services describe compliance-engine --region us-central1
+
+# Listar serviços
+gcloud run services list --region us-central1
+
+# Ver métricas
+gcloud run services describe compliance-engine --region us-central1 --format="value(status)"
+```
+
+### Atualizar Deploy
+
+```bash
+# Deploy usando Cloud Build
+cd /home/resper/nProcess/nprocess
+COMMIT_SHA=$(git rev-parse HEAD)
+SHORT_SHA=$(git rev-parse --short HEAD)
+gcloud builds submit --config cloudbuild.yaml \
+  --substitutions=COMMIT_SHA=$COMMIT_SHA,SHORT_SHA=$SHORT_SHA
+```
+
+### Rollback
+
+```bash
+# Listar revisões
+gcloud run revisions list --service compliance-engine --region us-central1
+
+# Fazer rollback para revisão anterior
+gcloud run services update-traffic compliance-engine \
+  --region us-central1 \
+  --to-revisions compliance-engine-00002-xxx=100
+```
+
+---
+
+## 🔐 Variáveis de Ambiente
+
+O serviço está configurado com as seguintes variáveis de ambiente:
+
+- `GOOGLE_CLOUD_PROJECT=nprocess`
+- `GCP_PROJECT_ID=nprocess` (implícito)
+- `PORT=8080` (padrão Cloud Run)
+- `PYTHONUNBUFFERED=1`
+- `PYTHONDONTWRITEBYTECODE=1`
+
+### Variáveis Opcionais
+
+Para habilitar/desabilitar funcionalidades:
+
+- `ENABLE_AI=true` (padrão) - Habilita Vertex AI
+- `LOG_LEVEL=INFO` - Nível de log
+- `VERTEX_AI_LOCATION=us-central1` - Região do Vertex AI
+
+---
+
+## 📈 Métricas e Monitoramento
+
+### Cloud Monitoring
+
+Acesse o dashboard de métricas:
+
+```bash
+# Abrir console do GCP
+gcloud run services describe compliance-engine --region us-central1 --format="value(status.url)"
+```
+
+Ou acesse diretamente:
+- **Console GCP**: https://console.cloud.google.com/run/detail/us-central1/compliance-engine/metrics?project=nprocess
+
+### Métricas Disponíveis
+
+- **Request Count**: Número de requisições
+- **Request Latency**: Latência das requisições
+- **Error Rate**: Taxa de erro
+- **CPU Utilization**: Uso de CPU
+- **Memory Utilization**: Uso de memória
+- **Instance Count**: Número de instâncias ativas
+
+---
+
+## 🚨 Troubleshooting
+
+### Serviço não responde
+
+1. Verificar logs:
+   ```bash
+   gcloud run services logs read compliance-engine --region us-central1 --limit 50
+   ```
+
+2. Verificar status:
+   ```bash
+   gcloud run services describe compliance-engine --region us-central1
+   ```
+
+3. Verificar health check:
+   ```bash
+   curl https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
+   ```
+
+### Erros de autenticação
+
+- Verificar se API key está sendo enviada corretamente
+- Verificar permissões da API key no Firestore
+- Verificar logs para detalhes do erro
+
+### Erros de Vertex AI
+
+- Verificar se `ENABLE_AI=true` está configurado
+- Verificar se Vertex AI API está habilitada
+- Verificar Application Default Credentials
+
+### Erros de Firestore
+
+- Verificar se Firestore está habilitado
+- Verificar se database foi criado (Native mode)
+- Verificar Application Default Credentials
+
+---
+
+## 🔄 CI/CD
+
+### Cloud Build
+
+O deploy é feito automaticamente via Cloud Build usando `cloudbuild.yaml`.
+
+**Build ID do último deploy**: `c6eb3e29-3bf7-430e-8fdc-b5b0c92b34c2`
+
+**Ver build**:
+```bash
+gcloud builds describe c6eb3e29-3bf7-430e-8fdc-b5b0c92b34c2
+```
+
+### Deploy Manual
+
+```bash
+cd /home/resper/nProcess/nprocess
+COMMIT_SHA=$(git rev-parse HEAD)
+SHORT_SHA=$(git rev-parse --short HEAD)
+gcloud builds submit --config cloudbuild.yaml \
+  --substitutions=COMMIT_SHA=$COMMIT_SHA,SHORT_SHA=$SHORT_SHA
+```
+
+### Deploy Automático (GitHub Actions)
+
+Para configurar deploy automático via GitHub Actions, veja `.github/workflows/` (se existir).
+
+---
+
+## 📝 Histórico de Deploys
+
+| Data | Commit SHA | Revisão | Status |
+|------|------------|---------|--------|
+| 2025-12-23 15:14 | 337d2eb | compliance-engine-00003-2f7 | ✅ Sucesso |
+| ... | ... | ... | ... |
+
+---
+
+## 🔗 Links Úteis
+
+- **Console Cloud Run**: https://console.cloud.google.com/run/detail/us-central1/compliance-engine?project=nprocess
+- **Cloud Build History**: https://console.cloud.google.com/cloud-build/builds?project=nprocess
+- **Cloud Logging**: https://console.cloud.google.com/logs/query?project=nprocess
+- **Cloud Monitoring**: https://console.cloud.google.com/monitoring?project=nprocess
+
+---
+
+**Última Verificação**: 2025-12-23 15:15 UTC  
+**Status**: ✅ Operacional
