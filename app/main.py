@@ -469,6 +469,13 @@ async def analyze_compliance(request: ComplianceAnalyzeRequest):
                 )
             except Exception as e:
                 logger.warning(f"Failed to trigger webhook for analysis.completed: {e}")
+        
+        # Atualizar score em tempo real
+        try:
+            realtime_service = get_realtime_score_service()
+            background_tasks.add_task(realtime_service.update_score, request.process_id, request.domain, overall_score, "analysis")
+        except Exception as e:
+            logger.warning(f"Failed to update real-time score: {e}")
 
         return analysis_response
 
