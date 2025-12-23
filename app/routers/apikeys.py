@@ -21,7 +21,7 @@ from app.services.apikey_service import get_apikey_service
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1/api-keys", tags=["API Keys"])
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 # ============================================================================
