@@ -1,0 +1,147 @@
+# {{ document_code }} - {{ title }}
+
+**Framework**: {{ framework }}
+**Controle**: {{ control_id }} - {{ control_name }}
+**Versão**: {{ version }}
+**Data de Vigência**: {{ effective_date or 'Após aprovação' }}
+**Próxima Revisão**: {{ review_date or 'Anual' }}
+
+---
+
+## 1. Objetivo
+
+Este procedimento estabelece {{ objective }}
+
+**Controle Atendido**: {{ framework }} {{ control_id }} - {{ control_name }}
+
+---
+
+## 2. Escopo
+
+{{ scope }}
+
+---
+
+## 3. Responsabilidades
+
+{% for role, responsibilities in roles.items() %}
+### {{ role }}
+
+{% for resp in responsibilities %}
+- {{ resp }}
+{% endfor %}
+
+{% endfor %}
+
+---
+
+## 4. Procedimento Detalhado
+
+{{ procedure_description }}
+
+### 4.1 Fluxo do Processo
+
+{{ bpmn_mermaid }}
+
+### 4.2 Passos Detalhados
+
+{% for step in detailed_steps %}
+#### Passo {{ loop.index }}: {{ step.name }}
+
+{{ step.description }}
+
+{% if step.substeps %}
+{% for substep in step.substeps %}
+{{ loop.index }}. {{ substep }}
+{% endfor %}
+{% endif %}
+
+{% if step.evidence_generated %}
+**Evidência Gerada**: {{ step.evidence_generated }}
+{% endif %}
+
+---
+
+{% endfor %}
+
+## 5. Evidências e Registros
+
+Este procedimento gera as seguintes evidências necessárias para auditoria:
+
+{% for evidence in evidences %}
+### {{ evidence.type | title }}
+
+- **Descrição**: {{ evidence.description }}
+- **Local de Armazenamento**: {{ evidence.storage_location }}
+- **Retenção**: {{ evidence.retention }}
+- **Formato**: {{ evidence.format }}
+{% if evidence.frequency %}
+- **Frequência**: {{ evidence.frequency }}
+{% endif %}
+
+{% endfor %}
+
+---
+
+## 6. Monitoramento e Indicadores
+
+{% if monitoring %}
+{{ monitoring }}
+{% else %}
+Este procedimento deve ser monitorado através de:
+
+- Logs de execução
+- Relatórios periódicos
+- Alertas automáticos
+{% endif %}
+
+---
+
+## 7. Controle de Versão
+
+| Versão | Data | Autor | Mudanças |
+|--------|------|-------|----------|
+| {{ version }} | {{ today }} | ComplianceEngine | Versão inicial gerada automaticamente do processo BPMN {{ process_id }} |
+
+**Próxima Revisão**: {{ review_frequency }}
+
+---
+
+## 8. Referências
+
+- {{ framework }} {{ control_id }} - {{ control_name }}
+{% for ref in additional_references %}
+- {{ ref }}
+{% endfor %}
+- Processo BPMN: `{{ process_id }}`
+
+---
+
+## 9. Anexos
+
+{% if attachments %}
+{% for attachment in attachments %}
+- Anexo {{ loop.index }}: {{ attachment }}
+{% endfor %}
+{% else %}
+- Anexo A: Diagrama BPMN Completo
+- Anexo B: Checklist de Auditoria
+- Anexo C: Template de Evidências
+{% endif %}
+
+---
+
+## 10. Aprovações
+
+**Elaborado por**: ComplianceEngine (baseado em BPMN {{ process_id }})
+**Revisado por**: {{ process_owner }} - [PENDENTE]
+**Aprovado por**: {{ approver }} - [PENDENTE]
+
+**Data de Aprovação**: [PENDENTE]
+**Data de Vigência**: [PENDENTE]
+**Próxima Revisão**: [PENDENTE]
+
+---
+
+*Documento gerado automaticamente pelo ComplianceEngine Platform*
+*Geração: {{ generated_at }}*

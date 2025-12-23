@@ -1,0 +1,89 @@
+# {{ document_code }} - {{ title }}
+
+**Tipo**: Instrução de Trabalho (Work Instruction)
+**Processo Relacionado**: {{ related_procedure }}
+**Versão**: {{ version }}
+
+---
+
+## Objetivo
+
+{{ objective }}
+
+---
+
+## Pré-requisitos
+
+{% for prereq in prerequisites %}
+- {{ prereq }}
+{% endfor %}
+
+---
+
+## Ferramentas Necessárias
+
+{% for tool in tools %}
+- {{ tool }}
+{% endfor %}
+
+---
+
+## Procedimento Passo-a-Passo
+
+{% for step in steps %}
+### Passo {{ loop.index }}: {{ step.title }}
+
+{{ step.description }}
+
+{% if step.command %}
+```{{ step.command_type or 'bash' }}
+{{ step.command }}
+```
+{% endif %}
+
+{% if step.screenshot_path %}
+![{{ step.title }}]({{ step.screenshot_path }})
+{% endif %}
+
+{% if step.validation %}
+**✅ Validação**: {{ step.validation }}
+{% endif %}
+
+{% if step.warning %}
+> **⚠️ Atenção**: {{ step.warning }}
+{% endif %}
+
+---
+
+{% endfor %}
+
+## Validação Final
+
+{% for validation in final_validations %}
+- [ ] {{ validation }}
+{% endfor %}
+
+---
+
+## Troubleshooting
+
+{% for problem, solution in troubleshooting.items() %}
+### {{ problem }}
+
+{{ solution }}
+
+{% endfor %}
+
+---
+
+## Referências
+
+- {{ related_procedure }}
+{% for ref in references %}
+- {{ ref }}
+{% endfor %}
+
+---
+
+*Instrução de Trabalho gerada automaticamente pelo ComplianceEngine Platform*
+*Geração: {{ generated_at }}*
