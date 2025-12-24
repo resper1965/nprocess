@@ -7,9 +7,6 @@ substitutions:
   _MEMORY: 1Gi
   _CPU: '1'
   _MAX_INSTANCES: '5'
-  _NEXTAUTH_SECRET: 'temp-secret-change-in-production'
-  _GOOGLE_CLIENT_ID: ''
-  _GOOGLE_CLIENT_SECRET: ''
 
 steps:
   # Build Docker image
@@ -57,10 +54,7 @@ steps:
       - '--max-instances=${_MAX_INSTANCES}'
       - '--port=8080'
       - '--set-env-vars=NEXT_PUBLIC_API_URL=https://compliance-engine-5wqihg7s7a-uc.a.run.app'
-      - '--set-env-vars=NEXTAUTH_URL=https://${_SERVICE_NAME}-$SHORT_SHA-uc.a.run.app'
       - '--set-secrets=NEXTAUTH_SECRET=nextauth-secret:latest'
-      - '--set-secrets=GOOGLE_CLIENT_ID=google-client-id:latest'
-      - '--set-secrets=GOOGLE_CLIENT_SECRET=google-client-secret:latest'
       - '--labels=app=compliance-engine-admin-dashboard,version=$SHORT_SHA,managed-by=cloud-build'
       - '--ingress=all'
       - '--cpu-boost'
