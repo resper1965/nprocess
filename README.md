@@ -70,7 +70,7 @@ dados locais   dados locais   dados locais
 | **ComplianceEngine MCP** | ✅ 100% | `generate_bpmn`, `map_controls`, `analyze_gaps`, `list_frameworks` |
 | **RegulatoryRAG MCP** | ✅ 100% | `search_regulations`, `search_by_datasets`, `get_regulation_details` |
 | **Document Generator MCP** | ✅ 100% | `generate_documents`, `convert_bpmn_to_mermaid`, `export_package`, `list_templates` |
-| **Regulatory Crawler MCP** | ⏳ 30% | `trigger_crawl`, `get_latest_updates`, `subscribe_notifications` |
+| **Regulatory Crawler MCP** | ✅ 100% | `trigger_crawl`, `get_crawler_status`, `list_updates`, `get_update_details`, `analyze_impact`, `subscribe_notifications` |
 | **MCP HTTP Gateway** | ✅ 100% | Bridge HTTP para consumo web (todas as apps) |
 
 ### Stack Tecnológica

@@ -56,6 +56,11 @@ npm run build
 cd ../document-generator
 npm install
 npm run build
+
+# Install Regulatory Crawler MCP Server
+cd ../regulatory-crawler
+npm install
+npm run build
 ```
 
 #### 2. Configure Claude Desktop
@@ -86,6 +91,14 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
       "args": ["/absolute/path/to/mcp-servers/document-generator/build/index.js"],
       "env": {
         "DOC_GEN_API_URL": "https://document-generator-xxx.run.app",
+        "API_KEY": "ce_live_..."
+      }
+    },
+    "regulatory-crawler": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-servers/regulatory-crawler/build/index.js"],
+      "env": {
+        "CRAWLER_API_URL": "https://regulatory-crawler-xxx.run.app",
         "API_KEY": "ce_live_..."
       }
     }
