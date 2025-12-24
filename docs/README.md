@@ -1,108 +1,81 @@
-# Documentação ComplianceEngine API
+# ComplianceEngine Documentation
 
-Índice completo da documentação do projeto.
+Welcome to the ComplianceEngine documentation. This directory contains comprehensive guides and references for using and developing the platform.
 
-## 📚 Guias Principais
+## 📚 Table of Contents
 
-### Para Desenvolvedores
+### Getting Started
+- [Quick Start Guide](QUICK_START.md) - Get up and running quickly
+- [Authentication](AUTHENTICATION.md) - Authentication methods
+- [Integration Guide](INTEGRATION.md) - How to integrate the API
 
-- **[DASHBOARD_GUIDE.md](DASHBOARD_GUIDE.md)** - 🆕 Guia completo de consumo do dashboard
-  - Como acessar dashboard via API (endpoints REST)
-  - Como acessar dashboard no frontend (interface web)
-  - Exemplos de código (Python, JavaScript, cURL)
-  - Autenticação e URLs
+### Architecture & Design
+- [Architecture Overview](ARCHITECTURE.md) - System architecture
+- [Project Overview](PROJECT_OVERVIEW.md) - High-level project overview
+- [MCP Integration Architecture](../MCP_INTEGRATION_ARCHITECTURE.md) - MCP protocol integration
 
-- **[INTEGRATION.md](INTEGRATION.md)** - Manual completo de integração
-  - Exemplos em Python, JavaScript, TypeScript, Go, cURL
-  - Padrões de autenticação
-  - Tratamento de erros
-  - Boas práticas
+### Development
+- [AI Integration Guide](AI_INTEGRATION_GUIDE.md) - Guide for AI development tools
+- [Running Without AI](RUN_WITHOUT_AI.md) - Using the platform without AI features
+- [Feature Roadmap](FEATURE_ROADMAP.md) - Planned features
 
-- **[QUICK_START.md](QUICK_START.md)** - Guia rápido de instalação
-  - Setup local em 5 minutos
-  - Configuração do GCP
-  - Primeiros passos
+### Deployment
+- [Deployment Status](DEPLOY_STATUS.md) - Current deployment status
+- [Deployment Summary](DEPLOY_SUMMARY.md) - Deployment overview
+- [Frontend Deploy](FRONTEND_DEPLOY.md) - Frontend deployment guide
+- [Domain Setup](DOMAIN_SETUP.md) - Custom domain configuration
+- [DNS Instructions](DNS_INSTRUCTIONS.md) - DNS configuration guide
 
-- **[AUTHENTICATION.md](AUTHENTICATION.md)** - Guia de autenticação
-  - Application Default Credentials (ADC)
-  - Service Account Keys
-  - Futuras integrações JWT/OAuth2
+### Operations
+- [Dashboard Guide](DASHBOARD_GUIDE.md) - Using the admin dashboard
+- [Google OAuth Setup](GOOGLE_OAUTH_SETUP.md) - OAuth configuration
+- [Google OAuth Quick Start](GOOGLE_OAUTH_QUICK_START.md) - Quick OAuth setup
+- [Admin Dashboard Access](ADMIN_DASHBOARD_ACCESS.md) - Access configuration
+- [Admin Dashboard Deploy](ADMIN_DASHBOARD_DEPLOY.md) - Deployment guide
+- [Admin Dashboard Status](ADMIN_DASHBOARD_STATUS.md) - Current status
 
-- **[SECURITY.md](SECURITY.md)** - Segurança e autenticação
-  - Sistema de API Keys
-  - Proteção de endpoints
-  - Segurança do MCP
-  - Rate limiting
-  - Boas práticas de segurança
+### Security
+- [Security Overview](SECURITY.md) - Security practices
+- [Security Analysis MCP](SECURITY_ANALYSIS_MCP.md) - MCP security analysis
+- [Security Implementation Status](SECURITY_IMPLEMENTATION_STATUS.md) - Implementation status
 
-### Para IAs de Desenvolvimento
+### Troubleshooting
+- [Troubleshooting Domain](TROUBLESHOOTING_DOMAIN.md) - Domain issues
+- [403 Error Resolution](403_ERROR_RESOLUTION.md) - Fixing 403 errors
+- [Favicon 403 Fix](FAVICON_403_FIX.md) - Favicon issues
+- [Domain Status](DOMAIN_STATUS.md) - Domain configuration status
 
-- **[AI_INTEGRATION_GUIDE.md](AI_INTEGRATION_GUIDE.md)** - Guia de integração para IAs
-  - Documento específico para Cursor, Claude Code, Antigravity, etc.
-  - Como integrar ComplianceEngine em aplicações
-  - Exemplos de código completos
-  - Segurança e API keys
-  - Checklist de integração
+### Analysis & Planning
+- [Cost Optimization Analysis](COST_OPTIMIZATION_ANALYSIS.md) - Cost optimization
+- [Next Steps](NEXT_STEPS.md) - Future development
+- [App Status](APP_STATUS.md) - Application status
 
-- **[PROMPTS_EXAMPLES.md](PROMPTS_EXAMPLES.md)** - Exemplos de prompts
-  - Prompts para Cursor
-  - Prompts para Claude Code
-  - Prompts para Antigravity
-  - Dicas de prompting eficaz
+### Legacy Documents
+- [Frontend Proposal](FRONTEND_PROPOSAL.md) - Frontend proposal (archived)
+- [Prompts Examples](PROMPTS_EXAMPLES.md) - Example prompts
 
-### Configuração e Deploy
+## 📖 Additional Resources
 
-- **[RUN_WITHOUT_AI.md](RUN_WITHOUT_AI.md)** - Rodar sem IA
-  - Configuração para modo sem IA
-  - Endpoints disponíveis
-  - Casos de uso
+### Specifications
+- [Specifications](../specs/README.md) - Technical specifications
 
-- **[DEPLOY_STATUS.md](DEPLOY_STATUS.md)** - Status de deploy
-  - Informações sobre deploy atual
-  - URLs dos serviços
-  - Status de saúde
+### Project Documents
+- [Session Summary](../SESSION_SUMMARY.md) - Development session summary
+- [SaaS Proposal](../SAAS_PROPOSAL.md) - SaaS transformation proposal
+- [Admin Dashboard Analysis](../ADMIN_DASHBOARD_ANALYSIS.md) - Dashboard analysis
+- [Integration Prompt](../INTEGRATION_PROMPT.md) - Integration guide for AI tools
 
-### Propostas e Planejamento
+## 🔍 Quick Links
 
-- **[FRONTEND_PROPOSAL.md](FRONTEND_PROPOSAL.md)** - Proposta do frontend
-  - Arquitetura proposta
-  - Design system ness
-  - Roadmap de implementação
+- **API Documentation**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
+- **Admin Dashboard**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
+- **GitHub Repository**: https://github.com/resper1965/nprocess
 
-## 🔗 Links Úteis
+## 📝 Contributing to Documentation
 
-- **API Swagger**: `/docs` (quando API estiver rodando)
-- **API ReDoc**: `/redoc` (quando API estiver rodando)
-- **Repositório**: [GitHub](https://github.com/resper1965/nprocess)
-- **Releases**: [Tags](https://github.com/resper1965/nprocess/releases)
-
-## 📖 Estrutura da Documentação
-
-```
-docs/
-├── README.md                 # Este arquivo (índice)
-├── DASHBOARD_GUIDE.md        # 🆕 Guia de consumo do dashboard
-├── PROJECT_OVERVIEW.md       # ⭐ Visão geral completa do projeto
-├── NEXT_STEPS.md             # ⭐ Próximos passos práticos
-├── AI_INTEGRATION_GUIDE.md   # Guia para IAs de desenvolvimento
-├── INTEGRATION.md            # Manual de integração
-├── PROMPTS_EXAMPLES.md       # Exemplos de prompts
-├── AUTHENTICATION.md         # Guia de autenticação
-├── SECURITY.md               # Segurança e autenticação
-├── QUICK_START.md            # Guia rápido
-├── RUN_WITHOUT_AI.md         # Modo sem IA
-├── DEPLOY_STATUS.md          # Status de deploy
-├── FRONTEND_PROPOSAL.md      # Proposta do frontend
-├── FEATURE_ROADMAP.md        # Roadmap de funcionalidades
-├── COST_OPTIMIZATION_ANALYSIS.md  # Análise de custos
-└── SECURITY_ANALYSIS_MCP.md  # Análise de segurança MCP
-```
-
-## 🆘 Precisa de Ajuda?
-
-1. **Para IAs de desenvolvimento**: Comece com [AI_INTEGRATION_GUIDE.md](AI_INTEGRATION_GUIDE.md)
-2. Consulte o [QUICK_START.md](QUICK_START.md) para setup inicial
-3. Veja [INTEGRATION.md](INTEGRATION.md) para exemplos de código
-4. Verifique [SECURITY.md](SECURITY.md) e [AUTHENTICATION.md](AUTHENTICATION.md) para segurança
-5. Use [PROMPTS_EXAMPLES.md](PROMPTS_EXAMPLES.md) para prompts de IA
-
+When adding or updating documentation:
+1. Follow the existing structure
+2. Use clear, concise language
+3. Include code examples where relevant
+4. Update this README if adding new sections
+5. Keep documentation up to date with code changes

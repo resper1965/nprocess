@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+      
+      - name: Run black check
+        run: black --check app/ tests/
+      
+      - name: Run flake8
+        run: flake8 app/ tests/ --max-line-length=120 --extend-ignore=E203,W503
+      
+      - name: Run mypy
+        run: mypy app/ --ignore-missing-imports || true
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term
+        env:
+          GOOGLE_CLOUD_PROJECT: test-project
+          GCP_PROJECT_ID: test-project
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Bandit
+        run: |
+          pip install bandit
+          bandit -r app/ -f json -o bandit-report.json || true
+      
+      - name: Run Safety
+        run: |
+          pip install safety
+          safety check --json || true
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build API image
+        run: docker build -t compliance-engine-api:test .
+      
+      - name: Build Admin Dashboard image
+        run: |
+          cd admin-dashboard
+          docker build -t compliance-engine-admin-dashboard:test .
+
