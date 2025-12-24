@@ -5,6 +5,9 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 export const metadata: Metadata = {
   title: "ComplianceEngine - Process Mapping & Compliance Analysis",
   description: "Transform business process descriptions into structured BPMN diagrams and analyze compliance with regulatory frameworks using AI",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
