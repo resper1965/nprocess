@@ -20,19 +20,12 @@ Welcome to the ComplianceEngine documentation. This directory contains comprehen
 - [Feature Roadmap](FEATURE_ROADMAP.md) - Planned features
 
 ### Deployment
-- [Deployment Status](DEPLOY_STATUS.md) - Current deployment status
-- [Deployment Summary](DEPLOY_SUMMARY.md) - Deployment overview
-- [Frontend Deploy](FRONTEND_DEPLOY.md) - Frontend deployment guide
-- [Domain Setup](DOMAIN_SETUP.md) - Custom domain configuration
-- [DNS Instructions](DNS_INSTRUCTIONS.md) - DNS configuration guide
+- [Deployment Status](DEPLOY_STATUS.md) - Current deployment status and configuration
 
 ### Operations
 - [Dashboard Guide](DASHBOARD_GUIDE.md) - Using the admin dashboard
 - [Google OAuth Setup](GOOGLE_OAUTH_SETUP.md) - OAuth configuration
 - [Google OAuth Quick Start](GOOGLE_OAUTH_QUICK_START.md) - Quick OAuth setup
-- [Admin Dashboard Access](ADMIN_DASHBOARD_ACCESS.md) - Access configuration
-- [Admin Dashboard Deploy](ADMIN_DASHBOARD_DEPLOY.md) - Deployment guide
-- [Admin Dashboard Status](ADMIN_DASHBOARD_STATUS.md) - Current status
 
 ### Security
 - [Security Overview](SECURITY.md) - Security practices
@@ -40,19 +33,11 @@ Welcome to the ComplianceEngine documentation. This directory contains comprehen
 - [Security Implementation Status](SECURITY_IMPLEMENTATION_STATUS.md) - Implementation status
 
 ### Troubleshooting
-- [Troubleshooting Domain](TROUBLESHOOTING_DOMAIN.md) - Domain issues
-- [403 Error Resolution](403_ERROR_RESOLUTION.md) - Fixing 403 errors
-- [Favicon 403 Fix](FAVICON_403_FIX.md) - Favicon issues
-- [Domain Status](DOMAIN_STATUS.md) - Domain configuration status
+- See [Deployment Status](DEPLOY_STATUS.md) for current issues and resolutions
 
 ### Analysis & Planning
 - [Cost Optimization Analysis](COST_OPTIMIZATION_ANALYSIS.md) - Cost optimization
 - [Next Steps](NEXT_STEPS.md) - Future development
-- [App Status](APP_STATUS.md) - Application status
-
-### Legacy Documents
-- [Frontend Proposal](FRONTEND_PROPOSAL.md) - Frontend proposal (archived)
-- [Prompts Examples](PROMPTS_EXAMPLES.md) - Example prompts
 
 ## 📖 Additional Resources
 
