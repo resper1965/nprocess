@@ -59,7 +59,7 @@ dados locais   dados locais   dados locais
 | **RegulatoryRAG API** | ✅ 100% | 8002 | Vector search em regulações (Vertex AI Search) |
 | **Admin Dashboard** | ✅ 100% | 3001 | Interface de gestão (Next.js 14 + shadcn/ui) |
 | **Regulatory Crawler** | ✅ 100% | 8003 | Crawling ANEEL, ONS, ARCyber com Gemini AI |
-| **Document Generator** | ✅ 85% | 8004 | POPs/Checklists em Markdown + Mermaid |
+| **Document Generator** | ✅ 100% | 8004 | POPs/Checklists em Markdown + Mermaid |
 
 ### MCP Servers (Model Context Protocol) ✅
 
