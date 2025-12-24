@@ -15,7 +15,7 @@ mypy==1.8.0
 pylint==3.0.3
 
 # Security
-bandit==1.7.6
+bandit==1.9.2
 safety==3.0.1
 
 # Pre-commit
