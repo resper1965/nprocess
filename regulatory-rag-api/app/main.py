@@ -242,9 +242,9 @@ async def search_regulations(
     - Returns top-k most relevant regulations with quality scores
 
     **Use Cases**:
-    - Compliance Chat: User selects datasets (e.g., ANEEL + ONS) for focused search
-    - OT2net: Search only ONS + ARCyber for transportadora processes
-    - n.privacy: Search only LGPD + ANPD for privacy compliance
+    - Compliance Chat: CVM + BACEN for financial/corporate compliance
+    - OT2net: ONS + ANEEL + ARCyber for energy sector processes
+    - n.privacy: LGPD + ANPD for privacy compliance
     """
 )
 async def search_regulations_by_datasets(

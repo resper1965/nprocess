@@ -213,9 +213,9 @@ const tools: Tool[] = [
       "Provide a query and select one or more datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ARCyber). " +
       "Returns regulations ONLY from the selected datasets. " +
       "Use Cases: " +
-      "- Compliance Chat: User selects datasets before searching " +
-      "- OT2net: Search only ONS + ARCyber for transportadora processes " +
-      "- n.privacy: Search only LGPD + ANPD for privacy compliance",
+      "- Compliance Chat: CVM + BACEN for financial/corporate compliance " +
+      "- OT2net: ONS + ANEEL + ARCyber for energy sector processes " +
+      "- n.privacy: LGPD + ANPD for privacy compliance",
     inputSchema: {
       type: "object",
       properties: {

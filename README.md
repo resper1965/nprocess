@@ -329,19 +329,22 @@ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 ## 🎯 Aplicações Consumidoras (Exemplos)
 
 ### 1. Compliance Chat (em produção)
-**Descrição**: Interface ChatGPT-style com dataset selector
+**Descrição**: Interface ChatGPT-style com dataset selector (foco CVM + BACEN)
 **Consome**: RegulatoryRAG MCP (search_by_datasets)
+**Datasets principais**: CVM (valores mobiliários), BACEN (sistema financeiro)
 **Armazena localmente**: Histórico de conversas, preferências de datasets
 
 ### 2. n.privacy (planejado)
 **Descrição**: SaaS de compliance LGPD (ROPA, DPIA, DSAR)
 **Consome**: ComplianceEngine MCP + RegulatoryRAG MCP
+**Datasets principais**: LGPD, ANPD (privacidade de dados)
 **Armazena localmente**: ROPAs completos, DPIAs, DSARs, evidências
 
 ### 3. OT2net (planejado)
-**Descrição**: Gestão de processos ONS Transportadoras (4 fases)
-**Consome**: ComplianceEngine MCP + RegulatoryRAG MCP (datasets: ons, arcyber)
-**Armazena localmente**: Processos operadores, aprovações comitê, conformidades ONS
+**Descrição**: Gestão de processos para empresas de energia (4 fases)
+**Consome**: ComplianceEngine MCP + RegulatoryRAG MCP (datasets: ons, aneel, arcyber)
+**Datasets principais**: ONS (procedimentos de rede), ANEEL (regulação), ARCyber (cibersegurança)
+**Armazena localmente**: Processos operacionais, aprovações comitê, conformidades ONS
 
 ### 4. ITSM (planejado)
 **Descrição**: Gestão de processos internos de TI (ITIL + CIS Controls)
