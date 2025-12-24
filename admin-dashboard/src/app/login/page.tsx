@@ -5,28 +5,42 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Shield, Lock, Mail } from "lucide-react"
 import { useState } from "react"
+import { signIn } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") || "/overview"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
 
-    // TODO: Implement NextAuth sign-in
-    // await signIn("credentials", {
-    //   email,
-    //   password,
-    //   callbackUrl: "/overview"
-    // })
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: callbackUrl.startsWith("/login") ? "/overview" : callbackUrl,
+      })
 
-    // For now, just simulate a delay
-    setTimeout(() => {
+      if (result?.error) {
+        setError("Invalid email or password")
+        setIsLoading(false)
+      } else if (result?.ok) {
+        router.push(callbackUrl.startsWith("/login") ? "/overview" : callbackUrl)
+        router.refresh()
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.")
       setIsLoading(false)
-      console.log("Login attempt:", { email })
-    }, 1000)
+    }
   }
 
   return (
@@ -108,6 +122,12 @@ export default function LoginPage() {
                 </a>
               </div>
 
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                  {error}
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full"
@@ -133,9 +153,17 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => {
-                  // TODO: Implement Google OAuth
-                  console.log("Google sign-in")
+                onClick={async () => {
+                  setIsLoading(true)
+                  setError("")
+                  try {
+                    await signIn("google", {
+                      callbackUrl: callbackUrl.startsWith("/login") ? "/overview" : callbackUrl,
+                    })
+                  } catch (err) {
+                    setError("Failed to sign in with Google")
+                    setIsLoading(false)
+                  }
                 }}
                 disabled={isLoading}
               >
