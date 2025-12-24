@@ -10,7 +10,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -33,7 +33,7 @@ RUN addgroup -g 1000 appgroup && \
 COPY --chown=appuser:appgroup package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production && \
+RUN npm install --only=production && \
     npm cache clean --force
 
 # Copy built application from builder
