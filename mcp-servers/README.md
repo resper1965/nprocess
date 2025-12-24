@@ -51,6 +51,11 @@ npm run build
 cd ../regulatory-rag
 npm install
 npm run build
+
+# Install Document Generator MCP Server
+cd ../document-generator
+npm install
+npm run build
 ```
 
 #### 2. Configure Claude Desktop
@@ -73,6 +78,14 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
       "args": ["/absolute/path/to/mcp-servers/regulatory-rag/build/index.js"],
       "env": {
         "RAG_API_URL": "https://regulatory-rag-api-xxx.run.app",
+        "API_KEY": "ce_live_..."
+      }
+    },
+    "document-generator": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-servers/document-generator/build/index.js"],
+      "env": {
+        "DOC_GEN_API_URL": "https://document-generator-xxx.run.app",
         "API_KEY": "ce_live_..."
       }
     }
