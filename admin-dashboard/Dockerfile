@@ -24,10 +24,10 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Create non-root user (use system user creation without fixed GID/UID)
-RUN addgroup -S appgroup && \
-    adduser -S -G appgroup appuser && \
-    chown -R appuser:appgroup /app
+# Create non-root user
+RUN addgroup -g 1001 -S appgroup 2>/dev/null || addgroup -S appgroup && \
+    adduser -u 1001 -S -G appgroup appuser 2>/dev/null || adduser -S -G appgroup appuser && \
+    chown -R appuser:appgroup /app || true
 
 # Copy package files
 COPY --chown=appuser:appgroup package*.json ./
