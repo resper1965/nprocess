@@ -177,7 +177,7 @@ export default function APIKeysPage() {
                         <span>{apiKey.consumer_app_id}</span>
                         <span>•</span>
                         <Badge variant="outline" className="capitalize">
-                          {apiKey.environment}
+                          {apiKey.status}
                         </Badge>
                       </CardDescription>
                     </div>
