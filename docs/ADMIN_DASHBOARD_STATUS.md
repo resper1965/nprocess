@@ -70,3 +70,4 @@ O serviço está configurado com:
 - **Frontend Demo**: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
 - **Admin Dashboard**: URL a ser obtida via `gcloud run services describe`
 
+

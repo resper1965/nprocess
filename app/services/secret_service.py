@@ -156,3 +156,4 @@ def get_secret_service(project_id: Optional[str] = None) -> SecretService:
         _secret_service = SecretService(project_id=project_id)
     return _secret_service
 
+

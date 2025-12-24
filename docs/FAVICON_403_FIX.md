@@ -45,3 +45,4 @@ O `cloudbuild.yaml` já estava configurado com `--allow-unauthenticated`, mas o 
 - ✅ Permissões IAM: `allUsers` tem `roles/run.invoker`
 - ✅ Favicon e página principal acessíveis
 
+

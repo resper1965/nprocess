@@ -70,3 +70,4 @@ echo "   - https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app/api
 echo "   - http://localhost:3000/api/auth/callback/google (para desenvolvimento)"
 echo "3. Faça um novo deploy do Admin Dashboard"
 
+

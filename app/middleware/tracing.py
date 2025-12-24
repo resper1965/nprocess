@@ -80,3 +80,4 @@ class TracingMiddleware(BaseHTTPMiddleware):
                 span.set_attribute("error.type", type(e).__name__)
                 raise
 
+

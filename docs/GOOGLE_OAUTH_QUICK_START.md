@@ -122,3 +122,4 @@ gcloud builds submit --config=cloudbuild.yaml \
 
 Para mais detalhes, veja: [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)
 
+
