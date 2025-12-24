@@ -71,7 +71,8 @@ class CacheService:
         self,
         query: str,
         domain: Optional[str] = None,
-        top_k: int = 10
+        top_k: int = 10,
+        extra: Optional[str] = None
     ) -> str:
         """
         Generate cache key from search parameters
@@ -80,6 +81,7 @@ class CacheService:
             query: Search query
             domain: Optional domain filter
             top_k: Number of results
+            extra: Extra string to include in cache key (e.g., datasets)
 
         Returns:
             Cache key (hash)
@@ -88,7 +90,8 @@ class CacheService:
         key_data = {
             "query": query.lower().strip(),
             "domain": domain,
-            "top_k": top_k
+            "top_k": top_k,
+            "extra": extra
         }
 
         # Generate MD5 hash

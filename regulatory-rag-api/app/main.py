@@ -18,8 +18,10 @@ from fastapi.responses import JSONResponse
 
 from app.schemas import (
     RegulationSearchRequest,
+    RegulationSearchByDatasetsRequest,
     RegulationSearchResponse,
     RegulationDomain,
+    BrazilianDataset,
     HealthResponse,
     ErrorResponse
 )
@@ -224,6 +226,109 @@ async def search_regulations(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to search regulations: {str(e)}"
         )
+
+@app.post(
+    "/v1/regulations/search-by-datasets",
+    response_model=RegulationSearchResponse,
+    tags=["Regulations"],
+    summary="Search regulations by Brazilian datasets",
+    description="""
+    Search for regulations filtered by specific Brazilian regulatory datasets.
+
+    This endpoint:
+    - Filters search to specified datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ARCyber)
+    - Uses Vertex AI Search for semantic understanding
+    - Caches results for improved performance
+    - Returns top-k most relevant regulations with quality scores
+
+    **Use Cases**:
+    - Compliance Chat: User selects datasets (e.g., ANEEL + ONS) for focused search
+    - OT2net: Search only ONS + ARCyber for transportadora processes
+    - n.privacy: Search only LGPD + ANPD for privacy compliance
+    """
+)
+async def search_regulations_by_datasets(
+    request: RegulationSearchByDatasetsRequest,
+    api_key: str = Depends(validate_api_key)
+):
+    """
+    Search for regulations in specific Brazilian datasets
+
+    Args:
+        request: Search request with query and dataset filters
+        api_key: Validated API key from header
+
+    Returns:
+        Search response with relevant regulations from selected datasets
+    """
+    try:
+        search_service = get_search_service()
+        cache_service = get_cache_service()
+
+        # Generate cache key (include datasets in key)
+        datasets_key = ",".join(sorted(request.datasets))
+        cache_key = cache_service.generate_cache_key(
+            query=request.query,
+            domain=None,
+            top_k=request.top_k,
+            extra=datasets_key
+        )
+
+        # Check cache
+        cached_result = cache_service.get(cache_key)
+        if cached_result:
+            logger.info(
+                f"Cache hit for datasets query: {request.query[:50]}... "
+                f"[{datasets_key}]"
+            )
+            return RegulationSearchResponse(**cached_result)
+
+        # Perform search with dataset filtering
+        logger.info(
+            f"Performing search in datasets {datasets_key}: "
+            f"{request.query[:50]}..."
+        )
+        result = await search_service.search_by_datasets(
+            query=request.query,
+            datasets=request.datasets,
+            top_k=request.top_k,
+            min_quality_score=request.min_quality_score
+        )
+
+        # Cache the result
+        cache_service.set(cache_key, result.dict(), ttl=3600)  # 1 hour TTL
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error searching regulations by datasets: {e}",
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to search regulations by datasets: {str(e)}"
+        )
+
+@app.get(
+    "/v1/regulations/datasets",
+    response_model=list[str],
+    tags=["Regulations"],
+    summary="Get available Brazilian regulatory datasets",
+    description="Returns a list of all available Brazilian regulatory datasets"
+)
+async def get_brazilian_datasets(
+    api_key: str = Depends(validate_api_key)
+):
+    """
+    Get list of available Brazilian regulatory datasets
+
+    Returns:
+        List of dataset identifiers
+    """
+    return [dataset.value for dataset in BrazilianDataset]
 
 @app.get(
     "/v1/regulations/domains",

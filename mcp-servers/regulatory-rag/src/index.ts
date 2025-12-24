@@ -21,7 +21,7 @@ import { z } from "zod";
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = process.env.RAG_API_URL || "http://localhost:8001";
+const API_BASE_URL = process.env.RAG_API_URL || "http://localhost:8002";
 const API_KEY = process.env.API_KEY || "";
 
 // ============================================================================
@@ -61,6 +61,26 @@ class RegulatoryRAGClient {
     return response.data;
   }
 
+  async searchByDatasets(
+    query: string,
+    datasets: string[],
+    topK: number = 10,
+    minQualityScore: number = 0.7
+  ) {
+    const response = await this.client.post("/v1/regulations/search-by-datasets", {
+      query,
+      datasets,
+      top_k: topK,
+      min_quality_score: minQualityScore,
+    });
+    return response.data;
+  }
+
+  async getBrazilianDatasets() {
+    const response = await this.client.get("/v1/regulations/datasets");
+    return response.data;
+  }
+
   async getRegulationDomains() {
     const response = await this.client.get("/v1/regulations/domains");
     return response.data;
@@ -83,6 +103,29 @@ const SearchRegulationsSchema = z.object({
     .optional()
     .describe(
       "Filter by regulation domain (e.g., 'banking', 'healthcare', 'data_privacy')"
+    ),
+  top_k: z
+    .number()
+    .min(1)
+    .max(50)
+    .default(10)
+    .describe("Number of top results to return (1-50)"),
+  min_quality_score: z
+    .number()
+    .min(0)
+    .max(1)
+    .default(0.7)
+    .describe("Minimum quality score threshold (0.0 to 1.0)"),
+});
+
+const SearchByDatasetsSchema = z.object({
+  query: z.string().min(3).describe("Search query in natural language"),
+  datasets: z
+    .array(z.string())
+    .min(1)
+    .describe(
+      "Array of Brazilian regulatory datasets to search (e.g., ['aneel', 'ons', 'lgpd']). " +
+        "Valid datasets: aneel, ons, bacen, cvm, susep, lgpd, anpd, arcyber"
     ),
   top_k: z
     .number()
@@ -163,6 +206,72 @@ const tools: Tool[] = [
     },
   },
   {
+    name: "search_by_datasets",
+    description:
+      "Search for regulations filtered by specific Brazilian regulatory datasets. " +
+      "This is the primary tool for Compliance Chat dataset selector and specialized compliance apps. " +
+      "Provide a query and select one or more datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ARCyber). " +
+      "Returns regulations ONLY from the selected datasets. " +
+      "Use Cases: " +
+      "- Compliance Chat: User selects datasets before searching " +
+      "- OT2net: Search only ONS + ARCyber for transportadora processes " +
+      "- n.privacy: Search only LGPD + ANPD for privacy compliance",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Search query in natural language (e.g., 'prazo de notificação de incidente de segurança')",
+        },
+        datasets: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["aneel", "ons", "bacen", "cvm", "susep", "lgpd", "anpd", "arcyber"],
+          },
+          description:
+            "Array of Brazilian regulatory datasets to search. " +
+            "Available: aneel (energia), ons (operador), bacen (banco central), " +
+            "cvm (valores mobiliários), susep (seguros), lgpd/anpd (privacidade), " +
+            "arcyber (cibersegurança setor elétrico)",
+          minItems: 1,
+        },
+        top_k: {
+          type: "number",
+          description: "Number of top results to return (default: 10, max: 50)",
+          default: 10,
+        },
+        min_quality_score: {
+          type: "number",
+          description:
+            "Minimum quality/relevance score (0.0 to 1.0, default: 0.7)",
+          default: 0.7,
+        },
+      },
+      required: ["query", "datasets"],
+    },
+  },
+  {
+    name: "list_brazilian_datasets",
+    description:
+      "Get a list of all available Brazilian regulatory datasets. " +
+      "Use this to show users which datasets they can select for filtered search. " +
+      "Returns dataset identifiers with descriptions: " +
+      "- aneel: Agência Nacional de Energia Elétrica " +
+      "- ons: Operador Nacional do Sistema Elétrico " +
+      "- bacen: Banco Central do Brasil " +
+      "- cvm: Comissão de Valores Mobiliários " +
+      "- susep: Superintendência de Seguros Privados " +
+      "- lgpd: Lei Geral de Proteção de Dados " +
+      "- anpd: Autoridade Nacional de Proteção de Dados " +
+      "- arcyber: Framework de Cibersegurança do Setor Elétrico",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "list_regulation_domains",
     description:
       "Get a list of all available regulation domains. " +
@@ -236,6 +345,80 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: JSON.stringify(formattedResults, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "search_by_datasets": {
+        const parsed = SearchByDatasetsSchema.parse(args);
+        const result = await client.searchByDatasets(
+          parsed.query,
+          parsed.datasets,
+          parsed.top_k,
+          parsed.min_quality_score
+        );
+
+        // Format results for better readability
+        const formattedResults = {
+          query: result.query,
+          datasets_searched: parsed.datasets,
+          total_results: result.total_results,
+          returned_results: result.returned_results,
+          results: result.results.map((r: any) => ({
+            id: r.regulation_id,
+            title: r.title,
+            authority: r.authority,
+            document_number: r.document_number,
+            quality_score: r.quality_score,
+            snippet: r.content_snippet,
+            domain: r.domain,
+            source: r.metadata?.source || "unknown",
+            url: r.url,
+          })),
+          search_metadata: result.search_metadata,
+        };
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(formattedResults, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "list_brazilian_datasets": {
+        const result = await client.getBrazilianDatasets();
+        const datasetInfo = {
+          aneel: "Agência Nacional de Energia Elétrica",
+          ons: "Operador Nacional do Sistema Elétrico",
+          bacen: "Banco Central do Brasil",
+          cvm: "Comissão de Valores Mobiliários",
+          susep: "Superintendência de Seguros Privados",
+          lgpd: "Lei Geral de Proteção de Dados",
+          anpd: "Autoridade Nacional de Proteção de Dados",
+          arcyber: "Framework de Cibersegurança do Setor Elétrico",
+        };
+
+        const formattedDatasets = result.map((id: string) => ({
+          id,
+          name: datasetInfo[id as keyof typeof datasetInfo] || id,
+        }));
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  datasets: formattedDatasets,
+                  count: result.length,
+                },
+                null,
+                2
+              ),
             },
           ],
         };
