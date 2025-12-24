@@ -154,4 +154,142 @@ export const apiKeysAPI = {
   },
 };
 
+// Compliance API Types
+export interface ComplianceAnalyzeRequest {
+  process_id: string;
+  regulations?: string[];
+  context?: string;
+}
+
+export interface ComplianceAnalyzeResponse {
+  analysis_id: string;
+  process_id: string;
+  compliance_score: number;
+  gaps: Array<{
+    id: string;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    description: string;
+    regulation: string;
+    recommendation: string;
+  }>;
+  suggestions: Array<{
+    id: string;
+    priority: 'high' | 'medium' | 'low';
+    description: string;
+    impact: string;
+  }>;
+  created_at: string;
+}
+
+// Diagrams API Types
+export interface DiagramGenerateRequest {
+  description: string;
+  context?: string;
+}
+
+export interface DiagramGenerateResponse {
+  normalized_text: string;
+  mermaid_code: string;
+  metadata: {
+    actors?: string[];
+    activities_count?: number;
+    decision_points?: number;
+  };
+}
+
+// Processes API Types
+export interface ProcessCreateRequest {
+  name: string;
+  description: string;
+  domain: string;
+  mermaid_code: string;
+  nodes: Array<{
+    id: string;
+    type: 'task' | 'event' | 'gateway';
+    label: string;
+    properties?: Record<string, any>;
+  }>;
+  flows: Array<{
+    from_node: string;
+    to_node: string;
+    label?: string;
+  }>;
+  metadata?: Record<string, any>;
+}
+
+export interface ProcessResponse {
+  process_id: string;
+  name: string;
+  description: string;
+  domain: string;
+  mermaid_code: string;
+  nodes: Array<{
+    id: string;
+    type: 'task' | 'event' | 'gateway';
+    label: string;
+    properties?: Record<string, any>;
+  }>;
+  flows: Array<{
+    from_node: string;
+    to_node: string;
+    label?: string;
+  }>;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+// Compliance API
+export const complianceAPI = {
+  list: async (): Promise<ComplianceAnalyzeResponse[]> => {
+    const response = await apiClient.get('/v1/compliance/analyses');
+    return response.data;
+  },
+
+  get: async (analysisId: string): Promise<ComplianceAnalyzeResponse> => {
+    const response = await apiClient.get(`/v1/compliance/analyses/${analysisId}`);
+    return response.data;
+  },
+
+  analyze: async (request: ComplianceAnalyzeRequest): Promise<ComplianceAnalyzeResponse> => {
+    const response = await apiClient.post('/v1/compliance/analyze', request);
+    return response.data;
+  },
+};
+
+// Diagrams API
+export const diagramsAPI = {
+  generate: async (request: DiagramGenerateRequest): Promise<DiagramGenerateResponse> => {
+    const response = await apiClient.post('/v1/diagrams/generate', request);
+    return response.data;
+  },
+};
+
+// Processes API
+export const processesAPI = {
+  list: async (): Promise<ProcessResponse[]> => {
+    const response = await apiClient.get('/v1/processes');
+    return response.data;
+  },
+
+  get: async (processId: string): Promise<ProcessResponse> => {
+    const response = await apiClient.get(`/v1/processes/${processId}`);
+    return response.data;
+  },
+
+  create: async (request: ProcessCreateRequest): Promise<ProcessResponse> => {
+    const response = await apiClient.post('/v1/processes', request);
+    return response.data;
+  },
+
+  update: async (processId: string, data: Partial<ProcessCreateRequest>): Promise<ProcessResponse> => {
+    const response = await apiClient.put(`/v1/processes/${processId}`, data);
+    return response.data;
+  },
+
+  delete: async (processId: string): Promise<void> => {
+    await apiClient.delete(`/v1/processes/${processId}`);
+  },
+};
+
 export default apiClient;
