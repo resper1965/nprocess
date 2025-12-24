@@ -1,39 +1,43 @@
-# Status do Deploy - ComplianceEngine
+# Deployment Status
 
-**Data**: 2025-12-24  
-**Última atualização**: Deploy da API e Admin Dashboard
+**Última atualização**: 2025-12-24  
+**Versão**: `54d035b`
 
 ## ✅ Serviços Deployados
 
 ### 1. ComplianceEngine API
 - **URL**: https://compliance-engine-5wqihg7s7a-uc.a.run.app
 - **Status**: ✅ Deployado e funcionando
-- **Versão**: `1c56c79`
-- **Acesso**: Público (autenticação via API Key)
+- **Versão**: `54d035b`
+- **Health Check**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
 - **Documentação**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
+- **Acesso**: Público (autenticação via API Key)
 
 ### 2. Admin Dashboard
 - **URL**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
-- **Status**: ✅ Deployado
-- **Acesso**: Autenticado (IAM)
+- **Status**: ✅ Deployado e funcionando
+- **Versão**: `54d035b`
+- **Acesso**: Autenticado (IAM configurado)
 - **Interface**: Interface humana para gerenciar o motor
 
-### 3. Frontend Demo (Removido)
-- **Status**: ❌ Removido intencionalmente
-- **Motivo**: Admin Dashboard agora é a interface principal
+### 3. Frontend Demo
+- **URL**: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
+- **Status**: ⚠️ Removido (não mais utilizado)
+- **Nota**: Admin Dashboard é a interface principal
 
 ## 🔐 Autenticação
 
 ### API
 - Autenticação via API Key no header `X-API-Key` ou `Authorization: Bearer <key>`
 - Endpoint de validação: `/v1/api-keys/validate`
+- Auto-serviço: `/v1/my/api-keys`
 
 ### Admin Dashboard
 - Autenticação via NextAuth.js
 - Credenciais mock disponíveis:
   - Email: `admin@company.com` / Senha: `admin123`
   - Email: `john.doe@company.com` / Senha: `admin123`
-- Google OAuth: Configuração pendente (secrets não criados)
+- Google OAuth: Não configurado (opcional)
 
 ## 📝 Configurações
 
@@ -47,21 +51,17 @@
 - `google-client-id`: ❌ Não configurado (OAuth desabilitado)
 - `google-client-secret`: ❌ Não configurado (OAuth desabilitado)
 
-## 🚀 Próximos Passos
+## 🚀 Como Acessar
 
-1. **Configurar Google OAuth** (opcional):
-   - Criar secrets `google-client-id` e `google-client-secret`
-   - Configurar permissões IAM
-   - Atualizar `cloudbuild.yaml` para incluir os secrets
+### Admin Dashboard
+1. Acesse: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
+2. Faça login com:
+   - Email: `admin@company.com`
+   - Senha: `admin123`
 
-2. **Configurar domínio customizado** (opcional):
-   - Configurar DNS para o Admin Dashboard
-   - Atualizar `NEXTAUTH_URL` com o novo domínio
-
-3. **Testar funcionalidades**:
-   - Gerenciamento de API Keys
-   - FinOps e controle de custos
-   - Analytics e monitoramento
+### API
+- Swagger: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
+- Health: https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
 
 ## 📊 Recursos Disponíveis
 
@@ -79,8 +79,32 @@
 - `/analytics` - Métricas e gráficos
 - `/services` - Monitoramento de serviços
 
+## 🔄 Deploy Automático
+
+Deploys são realizados automaticamente via:
+- **GitHub Actions** (`.github/workflows/cd.yml`)
+- **Cloud Build** (manual via `gcloud builds submit`)
+
+## 📋 Próximos Passos
+
+1. **Configurar Google OAuth** (opcional):
+   - Criar secrets `google-client-id` e `google-client-secret`
+   - Configurar permissões IAM
+   - Atualizar `cloudbuild.yaml`
+
+2. **Monitoramento**:
+   - Configurar alertas no Cloud Monitoring
+   - Dashboard de métricas
+   - Log aggregation
+
+3. **Testes**:
+   - Expandir cobertura de testes
+   - Adicionar testes de integração
+   - Configurar testes E2E
+
 ## 🔗 Links Úteis
 
 - **API Swagger**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
 - **API Health**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
 - **Admin Dashboard**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
+- **GitHub Repository**: https://github.com/resper1965/nprocess
