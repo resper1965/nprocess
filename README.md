@@ -68,7 +68,7 @@ dados locais   dados locais   dados locais
 | MCP Server | Status | Tools Fornecidos |
 |------------|--------|------------------|
 | **ComplianceEngine MCP** | ✅ 100% | `generate_bpmn`, `map_controls`, `analyze_gaps`, `list_frameworks` |
-| **RegulatoryRAG MCP** | ✅ 80% | `search_regulations`, `search_by_datasets` ⏳, `get_regulation_details` |
+| **RegulatoryRAG MCP** | ✅ 100% | `search_regulations`, `search_by_datasets`, `get_regulation_details` |
 | **Document Generator MCP** | ⏳ 50% | `generate_documents`, `convert_bpmn_to_mermaid`, `export_package` |
 | **Regulatory Crawler MCP** | ⏳ 30% | `trigger_crawl`, `get_latest_updates`, `subscribe_notifications` |
 | **MCP HTTP Gateway** | ✅ 100% | Bridge HTTP para consumo web (todas as apps) |
@@ -326,30 +326,67 @@ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 - ✅ **SUSEP** - Superintendência de Seguros Privados
   - Resoluções, Circulares
 
-## 🎯 Aplicações Consumidoras (Exemplos)
+## ⚙️ Capacidades do Motor (O que este sistema FAZ)
 
-### 1. Compliance Chat (em produção)
-**Descrição**: Interface ChatGPT-style com dataset selector (foco CVM + BACEN)
-**Consome**: RegulatoryRAG MCP (search_by_datasets)
-**Datasets principais**: CVM (valores mobiliários), BACEN (sistema financeiro)
-**Armazena localmente**: Histórico de conversas, preferências de datasets
+### 1️⃣ BPMN Generation Engine
+**Entrada**: Descrição em linguagem natural
+**Processamento**: Gemini 1.5 Flash + análise estruturada
+**Saída**: BPMN 2.0 XML válido + Mermaid diagram
 
-### 2. n.privacy (planejado)
-**Descrição**: SaaS de compliance LGPD (ROPA, DPIA, DSAR)
-**Consome**: ComplianceEngine MCP + RegulatoryRAG MCP
-**Datasets principais**: LGPD, ANPD (privacidade de dados)
-**Armazena localmente**: ROPAs completos, DPIAs, DSARs, evidências
+**Exemplo**:
+```
+Input: "Instalação de antivírus corporativo via GPO"
+Output: BPMN com tasks, gateways, events mapeados para ISO 27001 A.8.7
+```
 
-### 3. OT2net (planejado)
-**Descrição**: Gestão de processos para empresas de energia (4 fases)
-**Consome**: ComplianceEngine MCP + RegulatoryRAG MCP (datasets: ons, aneel, arcyber)
-**Datasets principais**: ONS (procedimentos de rede), ANEEL (regulação), ARCyber (cibersegurança)
-**Armazena localmente**: Processos operacionais, aprovações comitê, conformidades ONS
+### 2️⃣ Regulatory Search Engine (RAG)
+**Corpus**: 8 datasets regulatórios brasileiros via Vertex AI Search
+**Funcionalidades**:
+- ✅ Busca semântica em todo corpus
+- ✅ **Busca filtrada por datasets** (CVM, BACEN, ANEEL, ONS, LGPD, SUSEP, ANPD, ARCyber)
+- ✅ Quality scoring e snippet extraction
+- ✅ Cache Redis para performance
 
-### 4. ITSM (planejado)
-**Descrição**: Gestão de processos internos de TI (ITIL + CIS Controls)
-**Consome**: ComplianceEngine MCP + Document Generator MCP
-**Armazena localmente**: Processos validados, KPIs, evidências de controles
+**Datasets disponíveis**:
+- CVM (valores mobiliários), BACEN (sistema financeiro), SUSEP (seguros)
+- ANEEL (energia elétrica), ONS (operador sistema), ARCyber (cibersegurança)
+- LGPD/ANPD (proteção de dados)
+
+### 3️⃣ Document Generator Engine
+**Entrada**: BPMN XML + Framework + Controles
+**Templates**: Jinja2 para Markdown (POPs, Work Instructions, Checklists)
+**Saída**: Documentos em Markdown + Mermaid (versionáveis em Git)
+
+**Tipos de documentos gerados**:
+- 📋 **POPs** (Procedimentos Operacionais Padrão)
+  - Estrutura completa: objetivo, escopo, responsabilidades, procedimento detalhado
+  - Fluxo BPMN convertido para Mermaid flowchart
+  - Evidências e registros mapeados
+
+- 📝 **Instruções de Trabalho**
+  - Passos detalhados para execução
+  - Checklist de verificação
+
+- ✅ **Checklists de Auditoria**
+  - Por framework (ISO 27001, SOC2, LGPD, CIS Controls)
+  - Controles mapeados ao processo
+  - Evidências esperadas
+
+**Formato**: Markdown + Mermaid (não PDF/DOCX)
+- ✅ Git-friendly (diff legível)
+- ✅ Versionável
+- ✅ Renderizável (GitHub, GitLab, Confluence)
+
+### 4️⃣ Regulatory Intelligence Crawler
+**Fontes**: Sites oficiais ANEEL, ONS, ARCyber
+**Processamento**: Gemini 1.5 Pro para análise de relevância
+**Saída**: Notificações de novas regulações + metadata estruturado
+
+**Funcionalidades**:
+- Crawling automático agendado
+- Detecção de novas resoluções/procedimentos
+- Análise de impacto com IA
+- Notificações via webhook
 
 ## 📚 Documentação Completa
 
