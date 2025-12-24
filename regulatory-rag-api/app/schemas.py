@@ -27,7 +27,7 @@ class RegulationDomain(str, Enum):
     ANTI_MONEY_LAUNDERING = "anti_money_laundering"
 
 class BrazilianDataset(str, Enum):
-    """Brazilian regulatory datasets"""
+    """Brazilian and international regulatory datasets"""
     ANEEL = "aneel"  # Agência Nacional de Energia Elétrica
     ONS = "ons"      # Operador Nacional do Sistema Elétrico
     BACEN = "bacen"  # Banco Central do Brasil
@@ -36,6 +36,7 @@ class BrazilianDataset(str, Enum):
     ANS = "ans"      # Agência Nacional de Saúde Suplementar (RN 623, etc)
     LGPD = "lgpd"    # Lei Geral de Proteção de Dados (ANPD)
     ANPD = "anpd"    # Autoridade Nacional de Proteção de Dados
+    GDPR = "gdpr"    # General Data Protection Regulation (EU)
     ARCYBER = "arcyber"  # Framework de Cibersegurança do Setor Elétrico
 
 # ============================================================================
