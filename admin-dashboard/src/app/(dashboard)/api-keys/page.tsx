@@ -208,7 +208,7 @@ export default function APIKeysPage() {
                     <div>
                       <p className="text-muted-foreground">Requests Today</p>
                       <p className="font-medium mt-1">
-                        {apiKey.usage_stats?.requests_today.toLocaleString() || 0} / {apiKey.quotas.requests_per_day.toLocaleString()}
+                        {apiKey.usage?.requests_today.toLocaleString() || 0} / {apiKey.quotas.requests_per_day.toLocaleString()}
                       </p>
                     </div>
                     <div>
