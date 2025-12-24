@@ -24,9 +24,9 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -S -g 1001 appgroup && \
-    adduser -S -u 1001 -G appgroup appuser && \
+# Create non-root user (use system user creation without fixed GID/UID)
+RUN addgroup -S appgroup && \
+    adduser -S -G appgroup appuser && \
     chown -R appuser:appgroup /app
 
 # Copy package files
