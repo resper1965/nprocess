@@ -492,7 +492,7 @@ class VertexSearchService:
     async def search_by_datasets(
         self,
         query: str,
-        datasets: list[str],  # ["aneel", "ons", "lgpd"]
+        datasets: list[str],  # ["aneel", "ons", "ans", "lgpd"]
         max_results: int = 5
     ) -> list[dict]:
         """Busca filtrada por datasets"""
@@ -749,7 +749,7 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 
 - ✅ **Gemini 1.5 Flash** para todas as tarefas frequentes
 - ✅ **Gemini 1.5 Pro** para análises complexas
-- ⏳ **Vertex AI Search** com datasets segregados (ANEEL, ONS, LGPD)
+- ⏳ **Vertex AI Search** com datasets segregados (ANEEL, ONS, ANS, LGPD, CVM, BACEN, SUSEP, ARCyber)
 - ⏳ **Embeddings API** (text-embedding-004) para similarity search
 
 ### Médio Prazo (Q2 2025)

@@ -125,7 +125,7 @@ const SearchByDatasetsSchema = z.object({
     .min(1)
     .describe(
       "Array of Brazilian regulatory datasets to search (e.g., ['aneel', 'ons', 'lgpd']). " +
-        "Valid datasets: aneel, ons, bacen, cvm, susep, lgpd, anpd, arcyber"
+        "Valid datasets: aneel, ons, bacen, cvm, susep, ans, lgpd, anpd, arcyber"
     ),
   top_k: z
     .number()
@@ -210,12 +210,13 @@ const tools: Tool[] = [
     description:
       "Search for regulations filtered by specific Brazilian regulatory datasets. " +
       "This is the primary tool for Compliance Chat dataset selector and specialized compliance apps. " +
-      "Provide a query and select one or more datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ARCyber). " +
+      "Provide a query and select one or more datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ANS, ARCyber). " +
       "Returns regulations ONLY from the selected datasets. " +
       "Use Cases: " +
       "- Compliance Chat: CVM + BACEN for financial/corporate compliance " +
       "- OT2net: ONS + ANEEL + ARCyber for energy sector processes " +
-      "- n.privacy: LGPD + ANPD for privacy compliance",
+      "- n.privacy: LGPD + ANPD for privacy compliance " +
+      "- Health compliance: ANS (RN 623 for data protection in healthcare)",
     inputSchema: {
       type: "object",
       properties: {
@@ -228,13 +229,13 @@ const tools: Tool[] = [
           type: "array",
           items: {
             type: "string",
-            enum: ["aneel", "ons", "bacen", "cvm", "susep", "lgpd", "anpd", "arcyber"],
+            enum: ["aneel", "ons", "bacen", "cvm", "susep", "ans", "lgpd", "anpd", "arcyber"],
           },
           description:
             "Array of Brazilian regulatory datasets to search. " +
             "Available: aneel (energia), ons (operador), bacen (banco central), " +
-            "cvm (valores mobiliários), susep (seguros), lgpd/anpd (privacidade), " +
-            "arcyber (cibersegurança setor elétrico)",
+            "cvm (valores mobiliários), susep (seguros), ans (saúde suplementar - RN 623), " +
+            "lgpd/anpd (privacidade), arcyber (cibersegurança setor elétrico)",
           minItems: 1,
         },
         top_k: {
@@ -397,6 +398,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           bacen: "Banco Central do Brasil",
           cvm: "Comissão de Valores Mobiliários",
           susep: "Superintendência de Seguros Privados",
+          ans: "Agência Nacional de Saúde Suplementar (RN 623)",
           lgpd: "Lei Geral de Proteção de Dados",
           anpd: "Autoridade Nacional de Proteção de Dados",
           arcyber: "Framework de Cibersegurança do Setor Elétrico",

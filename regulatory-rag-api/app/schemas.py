@@ -33,6 +33,7 @@ class BrazilianDataset(str, Enum):
     BACEN = "bacen"  # Banco Central do Brasil
     CVM = "cvm"      # Comissão de Valores Mobiliários
     SUSEP = "susep"  # Superintendência de Seguros Privados
+    ANS = "ans"      # Agência Nacional de Saúde Suplementar (RN 623, etc)
     LGPD = "lgpd"    # Lei Geral de Proteção de Dados (ANPD)
     ANPD = "anpd"    # Autoridade Nacional de Proteção de Dados
     ARCYBER = "arcyber"  # Framework de Cibersegurança do Setor Elétrico

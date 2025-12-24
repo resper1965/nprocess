@@ -236,7 +236,7 @@ async def search_regulations(
     Search for regulations filtered by specific Brazilian regulatory datasets.
 
     This endpoint:
-    - Filters search to specified datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ARCyber)
+    - Filters search to specified datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ANS, ARCyber)
     - Uses Vertex AI Search for semantic understanding
     - Caches results for improved performance
     - Returns top-k most relevant regulations with quality scores
@@ -245,6 +245,7 @@ async def search_regulations(
     - Compliance Chat: CVM + BACEN for financial/corporate compliance
     - OT2net: ONS + ANEEL + ARCyber for energy sector processes
     - n.privacy: LGPD + ANPD for privacy compliance
+    - Health compliance: ANS (RN 623 for data protection in healthcare)
     """
 )
 async def search_regulations_by_datasets(

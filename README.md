@@ -325,6 +325,8 @@ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
   - Instruções, Deliberações
 - ✅ **SUSEP** - Superintendência de Seguros Privados
   - Resoluções, Circulares
+- ✅ **ANS** - Agência Nacional de Saúde Suplementar
+  - **RN 623** (Proteção de Dados em Saúde), RN 443, RN 452, e outras resoluções normativas
 
 ## ⚙️ Capacidades do Motor (O que este sistema FAZ)
 
@@ -340,17 +342,18 @@ Output: BPMN com tasks, gateways, events mapeados para ISO 27001 A.8.7
 ```
 
 ### 2️⃣ Regulatory Search Engine (RAG)
-**Corpus**: 8 datasets regulatórios brasileiros via Vertex AI Search
+**Corpus**: 9 datasets regulatórios brasileiros via Vertex AI Search
 **Funcionalidades**:
 - ✅ Busca semântica em todo corpus
-- ✅ **Busca filtrada por datasets** (CVM, BACEN, ANEEL, ONS, LGPD, SUSEP, ANPD, ARCyber)
+- ✅ **Busca filtrada por datasets** (CVM, BACEN, ANEEL, ONS, ANS, LGPD, SUSEP, ANPD, ARCyber)
 - ✅ Quality scoring e snippet extraction
 - ✅ Cache Redis para performance
 
 **Datasets disponíveis**:
-- CVM (valores mobiliários), BACEN (sistema financeiro), SUSEP (seguros)
-- ANEEL (energia elétrica), ONS (operador sistema), ARCyber (cibersegurança)
-- LGPD/ANPD (proteção de dados)
+- **Financeiro/Corporativo**: CVM (valores mobiliários), BACEN (sistema financeiro), SUSEP (seguros)
+- **Energia**: ANEEL (energia elétrica), ONS (operador sistema), ARCyber (cibersegurança)
+- **Saúde**: ANS (saúde suplementar - **RN 623** e outras resoluções normativas)
+- **Privacidade**: LGPD/ANPD (proteção de dados)
 
 ### 3️⃣ Document Generator Engine
 **Entrada**: BPMN XML + Framework + Controles
