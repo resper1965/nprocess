@@ -38,9 +38,10 @@ RUN npm install --only=production && \
 
 # Copy built application from builder
 COPY --chown=appuser:appgroup --from=builder /app/.next ./.next
-COPY --chown=appuser:appgroup --from=builder /app/public ./public
 COPY --chown=appuser:appgroup --from=builder /app/package.json ./
 COPY --chown=appuser:appgroup --from=builder /app/next.config.* ./ 2>/dev/null || true
+# Copy public directory if it exists
+COPY --chown=appuser:appgroup --from=builder /app/public* ./ 2>/dev/null || true
 
 # Set environment variables
 ENV NODE_ENV=production \
