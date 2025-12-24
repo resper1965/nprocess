@@ -1,80 +1,86 @@
-# Status de Deploy - ComplianceEngine
+# Status do Deploy - ComplianceEngine
 
-**Última atualização**: 2025-12-23
+**Data**: 2025-12-24  
+**Última atualização**: Deploy da API e Admin Dashboard
 
-## ✅ Status Geral
+## ✅ Serviços Deployados
 
-- **API Backend**: ✅ Deployado e funcionando
-- **Frontend**: ✅ Deployado e funcionando
-- **Custom Domain**: ⏳ Aguardando SSL
-
----
-
-## 🔗 URLs
-
-### API Backend
+### 1. ComplianceEngine API
 - **URL**: https://compliance-engine-5wqihg7s7a-uc.a.run.app
-- **Health Check**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
-- **Swagger UI**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
-- **ReDoc**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/redoc
+- **Status**: ✅ Deployado e funcionando
+- **Versão**: `1c56c79`
+- **Acesso**: Público (autenticação via API Key)
+- **Documentação**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
 
-### Frontend
-- **URL**: https://compliance-engine-frontend-5wqihg7s7a-uc.a.run.app
-- **Custom Domain**: https://nprocess.ness.com.br (aguardando SSL)
+### 2. Admin Dashboard
+- **URL**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
+- **Status**: ✅ Deployado
+- **Acesso**: Autenticado (IAM)
+- **Interface**: Interface humana para gerenciar o motor
 
----
+### 3. Frontend Demo (Removido)
+- **Status**: ❌ Removido intencionalmente
+- **Motivo**: Admin Dashboard agora é a interface principal
 
-## 📦 Último Deploy
+## 🔐 Autenticação
 
-**Commit**: `e2fc94d`  
-**Data**: 2025-12-23  
-**Funcionalidades**:
-- ✅ Gestão de API Keys para usuários (self-service)
-- ✅ Endpoints `/v1/my/api-keys` no backend
-- ✅ Página `/api-keys` no frontend
-- ✅ Visualização de consumo e estatísticas
-- ✅ Preparação para exibição de custos
+### API
+- Autenticação via API Key no header `X-API-Key` ou `Authorization: Bearer <key>`
+- Endpoint de validação: `/v1/api-keys/validate`
 
----
+### Admin Dashboard
+- Autenticação via NextAuth.js
+- Credenciais mock disponíveis:
+  - Email: `admin@company.com` / Senha: `admin123`
+  - Email: `john.doe@company.com` / Senha: `admin123`
+- Google OAuth: Configuração pendente (secrets não criados)
 
-## 🆕 Novas Funcionalidades
+## 📝 Configurações
 
-### Gestão de API Keys (Self-Service)
+### Variáveis de Ambiente (Admin Dashboard)
+- `NEXT_PUBLIC_API_URL`: https://compliance-engine-5wqihg7s7a-uc.a.run.app
+- `NEXTAUTH_URL`: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
+- `NEXTAUTH_SECRET`: Configurado via Secret Manager
 
-**Backend**:
-- `POST /v1/my/api-keys` - Criar nova API key
-- `GET /v1/my/api-keys` - Listar minhas API keys
-- `GET /v1/my/api-keys/{key_id}` - Detalhes de uma API key
-- `POST /v1/my/api-keys/{key_id}/revoke` - Revogar API key
-- `GET /v1/my/api-keys/{key_id}/usage` - Estatísticas de uso
+### Secrets (Admin Dashboard)
+- `nextauth-secret`: ✅ Configurado
+- `google-client-id`: ❌ Não configurado (OAuth desabilitado)
+- `google-client-secret`: ❌ Não configurado (OAuth desabilitado)
 
-**Frontend**:
-- Página `/api-keys` para gerenciar chaves
-- Criar, listar, revogar API keys
-- Visualizar consumo (hoje, mês, total)
-- Ver validade e status
-- Placeholder para custos (futuro)
+## 🚀 Próximos Passos
 
----
+1. **Configurar Google OAuth** (opcional):
+   - Criar secrets `google-client-id` e `google-client-secret`
+   - Configurar permissões IAM
+   - Atualizar `cloudbuild.yaml` para incluir os secrets
 
-## 🔍 Verificação
+2. **Configurar domínio customizado** (opcional):
+   - Configurar DNS para o Admin Dashboard
+   - Atualizar `NEXTAUTH_URL` com o novo domínio
 
-Para verificar se os serviços estão funcionando:
+3. **Testar funcionalidades**:
+   - Gerenciamento de API Keys
+   - FinOps e controle de custos
+   - Analytics e monitoramento
 
-```bash
-# Health check da API
-curl https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
+## 📊 Recursos Disponíveis
 
-# Listar API keys (requer autenticação)
-curl -H "Authorization: Bearer <api-key>" \
-  https://compliance-engine-5wqihg7s7a-uc.a.run.app/v1/my/api-keys
-```
+### API Endpoints Principais
+- `/v1/diagrams/generate` - Gerar diagramas BPMN
+- `/v1/processes` - Gerenciar processos
+- `/v1/analysis/compliance` - Análise de conformidade
+- `/v1/api-keys` - Gerenciar API Keys (admin)
+- `/v1/my/api-keys` - Auto-serviço de API Keys
 
----
+### Admin Dashboard Pages
+- `/` - Dashboard principal
+- `/api-keys` - Gerenciamento de API Keys
+- `/finops` - Controle de custos
+- `/analytics` - Métricas e gráficos
+- `/services` - Monitoramento de serviços
 
-## 📝 Próximos Passos
+## 🔗 Links Úteis
 
-1. ⏳ Configurar SSL para custom domain
-2. 🔐 Implementar autenticação de usuários (JWT)
-3. 💰 Integrar sistema de pagamento/custos
-4. 📊 Dashboard de analytics completo
+- **API Swagger**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
+- **API Health**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/health
+- **Admin Dashboard**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app

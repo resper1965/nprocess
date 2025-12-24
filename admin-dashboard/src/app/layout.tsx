@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "ComplianceEngine - Admin Dashboard",
   description: "Manage your compliance platform with ease",
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({

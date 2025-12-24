@@ -22,6 +22,11 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 
@@ -35,21 +40,21 @@ COPY --chown=appuser:appuser ./app ./app
 ENV PATH=/home/appuser/.local/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8080
+    API_PORT=8000
 
 # Switch to non-root user
 USER appuser
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Run application with gunicorn
 CMD exec gunicorn app.main:app \
-    --bind :$PORT \
+    --bind :${API_PORT:-8000} \
     --workers 1 \
     --threads 8 \
     --timeout 0 \
