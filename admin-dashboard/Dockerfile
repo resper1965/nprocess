@@ -36,13 +36,13 @@ COPY --chown=appuser:appgroup package*.json ./
 RUN npm install --only=production && \
     npm cache clean --force
 
-# Copy built application from builder
-COPY --chown=appuser:appgroup --from=builder /app/.next ./.next
-COPY --chown=appuser:appgroup --from=builder /app/package.json ./
-COPY --chown=appuser:appgroup --from=builder /app/next.config.js ./
-# Create public directory and copy if exists
+# Copy standalone server
+COPY --chown=appuser:appgroup --from=builder /app/.next/standalone ./
+# Copy static files
+COPY --chown=appuser:appgroup --from=builder /app/.next/static ./.next/static
+# Copy public files if they exist
 RUN mkdir -p ./public
-COPY --chown=appuser:appgroup --from=builder /app/public ./public
+COPY --chown=appuser:appgroup --from=builder /app/public ./public 2>/dev/null || true
 
 # Set environment variables
 ENV NODE_ENV=production \
@@ -60,4 +60,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD node -e "require('http').get('http://localhost:8080/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
 
 # Start the application using standalone output
-CMD ["node", ".next/standalone/server.js"]
+CMD ["node", "server.js"]
