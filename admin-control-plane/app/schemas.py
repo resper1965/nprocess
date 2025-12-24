@@ -412,3 +412,308 @@ class SuccessResponse(BaseModel):
     success: bool
     message: str
     data: Optional[Dict[str, Any]] = None
+
+# ============================================================================
+# Multi-Tenancy & SaaS Schemas
+# ============================================================================
+
+class SubscriptionPlan(str, Enum):
+    """Subscription plan tiers"""
+    STARTER = "starter"
+    PROFESSIONAL = "professional"
+    ENTERPRISE = "enterprise"
+    CUSTOM = "custom"
+
+
+class SubscriptionStatus(str, Enum):
+    """Subscription status"""
+    TRIAL = "trial"
+    ACTIVE = "active"
+    PAST_DUE = "past_due"
+    CANCELED = "canceled"
+    SUSPENDED = "suspended"
+
+
+class TenantStatus(str, Enum):
+    """Tenant status"""
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    CANCELED = "canceled"
+
+
+# ============================================================================
+# Tenant Management Schemas
+# ============================================================================
+
+class TenantCreate(BaseModel):
+    """Schema for creating a tenant (organization)"""
+    name: str = Field(..., min_length=1, max_length=200)
+    slug: str = Field(..., min_length=3, max_length=50, pattern="^[a-z0-9-]+$")
+    email: EmailStr
+    plan: SubscriptionPlan = SubscriptionPlan.STARTER
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class TenantResponse(BaseModel):
+    """Schema for tenant response"""
+    tenant_id: str
+    name: str
+    slug: str
+    email: str
+    status: TenantStatus
+    plan: SubscriptionPlan
+    created_at: datetime
+    updated_at: datetime
+    metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
+class TenantUpdate(BaseModel):
+    """Schema for updating tenant"""
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    email: Optional[EmailStr] = None
+    status: Optional[TenantStatus] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class TenantSettings(BaseModel):
+    """Tenant-specific settings"""
+    tenant_id: str
+    allowed_domains: List[str] = Field(default_factory=list)
+    max_api_keys: int = 1
+    max_team_members: int = 3
+    max_documents_per_month: int = 50
+    max_api_calls_per_month: int = 1000
+    enabled_frameworks: List[str] = Field(default_factory=lambda: ["lgpd", "iso_27001", "hipaa"])
+    integrations: Dict[str, bool] = Field(default_factory=lambda: {
+        "google_drive": True,
+        "sharepoint": False,
+        "slack": False,
+        "notebooklm": False
+    })
+    custom_branding: Optional[Dict[str, Any]] = None
+
+
+# ============================================================================
+# Subscription & Billing Schemas
+# ============================================================================
+
+class SubscriptionCreate(BaseModel):
+    """Schema for creating a subscription"""
+    tenant_id: str
+    plan: SubscriptionPlan
+    billing_cycle: str = Field("monthly", pattern="^(monthly|annual)$")
+    payment_method_id: Optional[str] = None
+
+
+class SubscriptionResponse(BaseModel):
+    """Schema for subscription response"""
+    subscription_id: str
+    tenant_id: str
+    plan: SubscriptionPlan
+    status: SubscriptionStatus
+    billing_cycle: str
+    current_period_start: datetime
+    current_period_end: datetime
+    trial_end: Optional[datetime] = None
+    cancel_at: Optional[datetime] = None
+    canceled_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PlanLimits(BaseModel):
+    """Plan limits and features"""
+    plan: SubscriptionPlan
+    price_monthly: float
+    price_annual: float
+    max_documents_per_month: int
+    max_api_calls_per_month: int
+    max_api_keys: int
+    max_team_members: int
+    frameworks_included: List[str]
+    chat_messages_per_month: int
+    support_level: str
+    features: Dict[str, bool] = Field(default_factory=dict)
+
+
+# Default plan limits
+PLAN_LIMITS = {
+    SubscriptionPlan.STARTER: PlanLimits(
+        plan=SubscriptionPlan.STARTER,
+        price_monthly=99.0,
+        price_annual=990.0,  # 2 months free
+        max_documents_per_month=50,
+        max_api_calls_per_month=1000,
+        max_api_keys=1,
+        max_team_members=3,
+        frameworks_included=["lgpd", "iso_27001", "hipaa"],
+        chat_messages_per_month=100,
+        support_level="email",
+        features={
+            "google_drive": True,
+            "sharepoint": False,
+            "audit_logs": True,
+            "custom_branding": False,
+            "api_access": True,
+            "priority_support": False
+        }
+    ),
+    SubscriptionPlan.PROFESSIONAL: PlanLimits(
+        plan=SubscriptionPlan.PROFESSIONAL,
+        price_monthly=299.0,
+        price_annual=2990.0,
+        max_documents_per_month=200,
+        max_api_calls_per_month=5000,
+        max_api_keys=5,
+        max_team_members=10,
+        frameworks_included=[
+            "lgpd", "gdpr", "iso_27001", "iso_27701", "hipaa",
+            "fda_510k", "iso_13485", "soc2", "pci_dss", "cis_v8"
+        ],
+        chat_messages_per_month=500,
+        support_level="email_chat",
+        features={
+            "google_drive": True,
+            "sharepoint": True,
+            "audit_logs": True,
+            "custom_branding": False,
+            "api_access": True,
+            "priority_support": True,
+            "notebooklm": True
+        }
+    ),
+    SubscriptionPlan.ENTERPRISE: PlanLimits(
+        plan=SubscriptionPlan.ENTERPRISE,
+        price_monthly=999.0,
+        price_annual=9990.0,
+        max_documents_per_month=-1,  # Unlimited
+        max_api_calls_per_month=50000,
+        max_api_keys=-1,  # Unlimited
+        max_team_members=-1,  # Unlimited
+        frameworks_included=["all"],  # All frameworks
+        chat_messages_per_month=-1,  # Unlimited
+        support_level="dedicated",
+        features={
+            "google_drive": True,
+            "sharepoint": True,
+            "audit_logs": True,
+            "custom_branding": True,
+            "api_access": True,
+            "priority_support": True,
+            "notebooklm": True,
+            "white_label": True,
+            "sla": True,
+            "dedicated_instance": False
+        }
+    )
+}
+
+
+class UsageMetricsResponse(BaseModel):
+    """Current usage metrics for a tenant"""
+    tenant_id: str
+    period_start: datetime
+    period_end: datetime
+    documents_generated: int
+    api_calls_made: int
+    chat_messages_sent: int
+    storage_used_mb: float
+    limits: PlanLimits
+    usage_percent: Dict[str, float] = Field(default_factory=dict)
+
+
+class BillingInvoice(BaseModel):
+    """Billing invoice"""
+    invoice_id: str
+    tenant_id: str
+    subscription_id: str
+    amount: float
+    currency: str = "USD"
+    status: str  # "draft", "open", "paid", "void"
+    period_start: datetime
+    period_end: datetime
+    due_date: datetime
+    paid_at: Optional[datetime] = None
+    invoice_pdf_url: Optional[str] = None
+    created_at: datetime
+
+
+# ============================================================================
+# Client Portal Schemas (Self-Service)
+# ============================================================================
+
+class ClientAPIKeyCreate(BaseModel):
+    """Schema for client creating their own API key"""
+    name: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+
+
+class ClientSecretCreate(BaseModel):
+    """Schema for client configuring integration secrets"""
+    integration_type: str = Field(..., pattern="^(google_cloud|aws|azure|github)$")
+    secret_name: str = Field(..., min_length=1, max_length=100)
+    secret_value: str = Field(..., min_length=1)
+    description: Optional[str] = None
+
+
+class ClientIntegrationConfig(BaseModel):
+    """Schema for configuring integrations"""
+    integration_type: str = Field(..., pattern="^(google_drive|sharepoint|slack|notebooklm)$")
+    enabled: bool
+    config: Dict[str, Any]  # Integration-specific config
+
+
+class ClientComplianceStatus(BaseModel):
+    """Compliance status dashboard for client"""
+    tenant_id: str
+    framework: str
+    status: str  # "compliant", "partial", "non_compliant", "not_started"
+    completion_percent: float
+    controls_total: int
+    controls_implemented: int
+    documents_generated: int
+    last_updated: datetime
+    next_actions: List[str] = Field(default_factory=list)
+
+
+# ============================================================================
+# Integration Schemas (Google Drive, SharePoint, etc)
+# ============================================================================
+
+class GoogleDriveConfig(BaseModel):
+    """Google Drive integration configuration"""
+    enabled: bool = True
+    folder_id: Optional[str] = None
+    folder_name: str = "ComplianceEngine Documents"
+    auto_upload: bool = False
+    share_with_emails: List[str] = Field(default_factory=list)
+
+
+class SharePointConfig(BaseModel):
+    """SharePoint integration configuration"""
+    enabled: bool = False
+    site_id: Optional[str] = None
+    library_name: str = "Compliance Documents"
+    tenant_id: Optional[str] = None
+    auto_upload: bool = False
+
+
+class SlackConfig(BaseModel):
+    """Slack integration configuration"""
+    enabled: bool = False
+    webhook_url: Optional[str] = None
+    channel: str = "#compliance"
+    notify_on: List[str] = Field(default_factory=lambda: ["document_generated", "compliance_issue"])
+
+
+class NotebookLMConfig(BaseModel):
+    """NotebookLM integration configuration"""
+    enabled: bool = False
+    auto_create_notebooks: bool = False
+    notebook_title_template: str = "Compliance - {framework} - {date}"

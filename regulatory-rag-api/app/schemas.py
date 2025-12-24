@@ -26,18 +26,47 @@ class RegulationDomain(str, Enum):
     SECURITIES = "securities"
     ANTI_MONEY_LAUNDERING = "anti_money_laundering"
 
-class BrazilianDataset(str, Enum):
-    """Brazilian and international regulatory datasets"""
-    ANEEL = "aneel"  # Agência Nacional de Energia Elétrica
-    ONS = "ons"      # Operador Nacional do Sistema Elétrico
-    BACEN = "bacen"  # Banco Central do Brasil
-    CVM = "cvm"      # Comissão de Valores Mobiliários
-    SUSEP = "susep"  # Superintendência de Seguros Privados
-    ANS = "ans"      # Agência Nacional de Saúde Suplementar (RN 623, etc)
-    LGPD = "lgpd"    # Lei Geral de Proteção de Dados (ANPD)
-    ANPD = "anpd"    # Autoridade Nacional de Proteção de Dados
-    GDPR = "gdpr"    # General Data Protection Regulation (EU)
-    ARCYBER = "arcyber"  # Framework de Cibersegurança do Setor Elétrico
+class RegulatoryDataset(str, Enum):
+    """Global regulatory and compliance framework datasets"""
+
+    # Brazilian Regulatory Agencies
+    ANEEL = "aneel"      # Agência Nacional de Energia Elétrica
+    ONS = "ons"          # Operador Nacional do Sistema Elétrico
+    BACEN = "bacen"      # Banco Central do Brasil
+    CVM = "cvm"          # Comissão de Valores Mobiliários
+    SUSEP = "susep"      # Superintendência de Seguros Privados
+    ANS = "ans"          # Agência Nacional de Saúde Suplementar (RN 623, HIPAA-like)
+    ANPD = "anpd"        # Autoridade Nacional de Proteção de Dados
+
+    # Privacy & Data Protection (Global)
+    LGPD = "lgpd"        # Lei Geral de Proteção de Dados (Brasil)
+    GDPR = "gdpr"        # General Data Protection Regulation (EU)
+
+    # Healthcare & Medical Devices (Global)
+    FDA_510K = "fda_510k"       # FDA 510(k) Medical Device Authorization (USA)
+    HIPAA = "hipaa"             # Health Insurance Portability and Accountability Act (USA)
+    ISO_13485 = "iso_13485"     # Medical Devices Quality Management (SaMD)
+
+    # Information Security (Global)
+    ISO_27001 = "iso_27001"     # Information Security Management
+    ISO_27701 = "iso_27701"     # Privacy Information Management
+    ISO_27017 = "iso_27017"     # Cloud Security Controls
+    ISO_27018 = "iso_27018"     # Cloud Privacy
+    CIS_V8 = "cis_v8"           # CIS Controls v8.1
+
+    # Cybersecurity Frameworks
+    ARCYBER = "arcyber"         # Framework de Cibersegurança (Brasil - Energia)
+    NIST_CSF = "nist_csf"       # NIST Cybersecurity Framework (USA)
+
+    # Development & Quality
+    SDLC = "sdlc"               # Secure Development Lifecycle Best Practices
+
+    # Financial & Payment
+    SOC2 = "soc2"               # Service Organization Control 2
+    PCI_DSS = "pci_dss"         # Payment Card Industry Data Security Standard
+
+# Backward compatibility alias
+BrazilianDataset = RegulatoryDataset
 
 # ============================================================================
 # Search Models
