@@ -55,7 +55,7 @@ jobs:
           GCP_PROJECT_ID: test-project
       
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage.xml
           flags: unittests
