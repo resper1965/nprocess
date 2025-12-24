@@ -77,7 +77,7 @@ export interface APIKeyInfo {
 
 export interface APIKeyResponse {
   key_id: string;
-  key: string; // Only shown once on creation
+  api_key: string; // Only shown once on creation (matches backend response field name)
   name: string;
   description?: string;
   consumer_app_id: string;
@@ -91,6 +91,7 @@ export interface APIKeyResponse {
     requests_per_day: number;
     requests_per_month: number;
   };
+  warning?: string; // Optional warning message
 }
 
 export interface APIKeyValidationRequest {
