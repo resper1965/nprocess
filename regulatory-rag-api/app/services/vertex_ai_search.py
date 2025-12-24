@@ -170,6 +170,146 @@ class VertexAISearchService:
             logger.error(f"Unexpected error in search: {e}", exc_info=True)
             raise
 
+    async def search_by_datasets(
+        self,
+        query: str,
+        datasets: List[str],
+        top_k: int = 10,
+        min_quality_score: float = 0.7
+    ) -> RegulationSearchResponse:
+        """
+        Search for regulations filtered by Brazilian regulatory datasets
+
+        Args:
+            query: Search query in natural language
+            datasets: List of datasets to search (e.g., ['aneel', 'ons', 'lgpd'])
+            top_k: Number of results to return
+            min_quality_score: Minimum quality score threshold
+
+        Returns:
+            RegulationSearchResponse with results from specified datasets
+        """
+        try:
+            start_time = datetime.utcnow()
+
+            # Build filter for datasets using OR logic
+            # Example: source: ANY("aneel", "ons", "lgpd")
+            datasets_filter = 'source: ANY("' + '", "'.join(datasets) + '")'
+
+            logger.info(f"Filter applied: {datasets_filter}")
+
+            # Build search request with dataset filter
+            request = discoveryengine.SearchRequest(
+                serving_config=SERVING_CONFIG,
+                query=query,
+                page_size=top_k,
+                # Filter by datasets (source field)
+                filter=datasets_filter,
+                # Boost recent documents
+                boost_spec=discoveryengine.SearchRequest.BoostSpec(
+                    condition_boost_specs=[
+                        discoveryengine.SearchRequest.BoostSpec.ConditionBoostSpec(
+                            condition="published_date > \"2020-01-01\"",
+                            boost=1.2
+                        )
+                    ]
+                ),
+                # Content search spec
+                content_search_spec=discoveryengine.SearchRequest.ContentSearchSpec(
+                    snippet_spec=discoveryengine.SearchRequest.ContentSearchSpec.SnippetSpec(
+                        max_snippet_count=3,
+                        return_snippet=True
+                    ),
+                    summary_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec(
+                        summary_result_count=5,
+                        include_citations=True
+                    )
+                )
+            )
+
+            # Execute search
+            logger.info(
+                f"Executing Vertex AI Search in datasets {datasets}: "
+                f"{query[:50]}..."
+            )
+            response = self.client.search(request)
+
+            # Parse results (same logic as regular search)
+            results = []
+            total_results = 0
+
+            for result in response.results:
+                document = result.document
+                doc_data = document.derived_struct_data
+
+                # Calculate quality score
+                quality_score = self._calculate_quality_score(
+                    result.relevance_score if hasattr(result, 'relevance_score') else 0.8,
+                    doc_data
+                )
+
+                # Filter by minimum quality score
+                if quality_score < min_quality_score:
+                    continue
+
+                # Extract snippet
+                snippet = ""
+                if hasattr(result, 'document') and hasattr(result.document, 'derived_struct_data'):
+                    snippets = doc_data.get('snippets', [])
+                    if snippets:
+                        snippet = snippets[0].get('snippet', '')
+
+                # Create regulation result
+                regulation = RegulationResult(
+                    regulation_id=document.id,
+                    title=doc_data.get('title', 'Untitled'),
+                    description=doc_data.get('description', ''),
+                    content_snippet=snippet,
+                    domain=doc_data.get('domain', 'general'),
+                    authority=doc_data.get('authority', 'Unknown'),
+                    document_number=doc_data.get('document_number', ''),
+                    published_date=self._parse_date(doc_data.get('published_date')),
+                    effective_date=self._parse_date(doc_data.get('effective_date')),
+                    url=doc_data.get('url'),
+                    quality_score=quality_score,
+                    metadata={
+                        **doc_data.get('metadata', {}),
+                        'source': doc_data.get('source', 'unknown')  # Include source/dataset
+                    }
+                )
+
+                results.append(regulation)
+                total_results += 1
+
+            # Calculate processing time
+            processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+
+            # Build response
+            return RegulationSearchResponse(
+                query=query,
+                total_results=total_results,
+                returned_results=len(results),
+                results=results,
+                search_metadata={
+                    "processing_time_ms": processing_time,
+                    "cache_hit": False,
+                    "service": "vertex_ai_search",
+                    "model": "enterprise_search",
+                    "datasets_searched": datasets
+                },
+                searched_at=datetime.utcnow()
+            )
+
+        except GoogleAPIError as e:
+            logger.error(f"Vertex AI Search API error (datasets search): {e}")
+            raise
+        except Exception as e:
+            logger.error(
+                f"Unexpected error in search_by_datasets: {e}",
+                exc_info=True
+            )
+            raise
+
     async def get_by_id(self, regulation_id: str) -> Dict[str, Any]:
         """
         Get regulation by ID

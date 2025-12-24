@@ -26,6 +26,18 @@ class RegulationDomain(str, Enum):
     SECURITIES = "securities"
     ANTI_MONEY_LAUNDERING = "anti_money_laundering"
 
+class BrazilianDataset(str, Enum):
+    """Brazilian regulatory datasets"""
+    ANEEL = "aneel"  # Agência Nacional de Energia Elétrica
+    ONS = "ons"      # Operador Nacional do Sistema Elétrico
+    BACEN = "bacen"  # Banco Central do Brasil
+    CVM = "cvm"      # Comissão de Valores Mobiliários
+    SUSEP = "susep"  # Superintendência de Seguros Privados
+    ANS = "ans"      # Agência Nacional de Saúde Suplementar (RN 623, etc)
+    LGPD = "lgpd"    # Lei Geral de Proteção de Dados (ANPD)
+    ANPD = "anpd"    # Autoridade Nacional de Proteção de Dados
+    ARCYBER = "arcyber"  # Framework de Cibersegurança do Setor Elétrico
+
 # ============================================================================
 # Search Models
 # ============================================================================
@@ -62,6 +74,54 @@ class RegulationSearchRequest(BaseModel):
                 "domain": "banking",
                 "top_k": 5,
                 "min_quality_score": 0.8
+            }
+        }
+
+class RegulationSearchByDatasetsRequest(BaseModel):
+    """Request model for regulation search filtered by Brazilian datasets"""
+    query: str = Field(
+        ...,
+        min_length=3,
+        max_length=1000,
+        description="Search query in natural language"
+    )
+    datasets: List[str] = Field(
+        ...,
+        min_items=1,
+        description="List of datasets to search (e.g., ['aneel', 'ons', 'lgpd'])"
+    )
+    top_k: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Number of top results to return"
+    )
+    min_quality_score: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Minimum quality score threshold (0.0 to 1.0)"
+    )
+
+    @validator('datasets')
+    def validate_datasets(cls, v):
+        """Validate that all datasets are valid Brazilian datasets"""
+        valid_datasets = [d.value for d in BrazilianDataset]
+        for dataset in v:
+            if dataset.lower() not in valid_datasets:
+                raise ValueError(
+                    f"Invalid dataset '{dataset}'. "
+                    f"Must be one of: {', '.join(valid_datasets)}"
+                )
+        return [d.lower() for d in v]  # Normalize to lowercase
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "prazo de notificação de incidente de segurança cibernética",
+                "datasets": ["aneel", "arcyber"],
+                "top_k": 5,
+                "min_quality_score": 0.75
             }
         }
 
