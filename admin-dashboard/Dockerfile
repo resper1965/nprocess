@@ -36,13 +36,10 @@ COPY --chown=appuser:appgroup package*.json ./
 RUN npm install --only=production && \
     npm cache clean --force
 
-# Copy standalone server
+# Copy standalone server (includes server.js and node_modules)
 COPY --chown=appuser:appgroup --from=builder /app/.next/standalone ./
-# Copy static files
+# Copy static files (needed for _next/static routes)
 COPY --chown=appuser:appgroup --from=builder /app/.next/static ./.next/static
-# Copy public files if they exist
-RUN mkdir -p ./public
-COPY --chown=appuser:appgroup --from=builder /app/public ./public 2>/dev/null || true
 
 # Set environment variables
 ENV NODE_ENV=production \
