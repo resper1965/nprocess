@@ -40,6 +40,8 @@ RUN npm install --only=production && \
 COPY --chown=appuser:appgroup --from=builder /app/.next/standalone ./
 # Copy static files (needed for _next/static routes)
 COPY --chown=appuser:appgroup --from=builder /app/.next/static ./.next/static
+# Copy public directory
+COPY --chown=appuser:appgroup --from=builder /app/public ./public
 
 # Set environment variables
 ENV NODE_ENV=production \
