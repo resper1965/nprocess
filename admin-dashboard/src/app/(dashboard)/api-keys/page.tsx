@@ -156,8 +156,8 @@ export default function APIKeysPage() {
       {!isLoading && (
         <div className="space-y-4">
           {filteredKeys.map((apiKey) => {
-            const usagePercent = apiKey.usage_stats
-              ? (apiKey.usage_stats.requests_today / apiKey.quotas.requests_per_day) * 100
+            const usagePercent = apiKey.usage
+              ? (apiKey.usage.requests_today / apiKey.quotas.requests_per_day) * 100
               : 0
 
             // Extract prefix from key_id for display
