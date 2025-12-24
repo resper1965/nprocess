@@ -124,8 +124,8 @@ const SearchByDatasetsSchema = z.object({
     .array(z.string())
     .min(1)
     .describe(
-      "Array of Brazilian regulatory datasets to search (e.g., ['aneel', 'ons', 'lgpd']). " +
-        "Valid datasets: aneel, ons, bacen, cvm, susep, ans, lgpd, anpd, arcyber"
+      "Array of regulatory datasets to search (e.g., ['aneel', 'ons', 'lgpd', 'gdpr']). " +
+        "Valid datasets: aneel, ons, bacen, cvm, susep, ans, lgpd, anpd, gdpr, arcyber"
     ),
   top_k: z
     .number()
@@ -208,15 +208,16 @@ const tools: Tool[] = [
   {
     name: "search_by_datasets",
     description:
-      "Search for regulations filtered by specific Brazilian regulatory datasets. " +
+      "Search for regulations filtered by specific regulatory datasets (Brazilian + international). " +
       "This is the primary tool for Compliance Chat dataset selector and specialized compliance apps. " +
-      "Provide a query and select one or more datasets (ANEEL, ONS, LGPD, BACEN, CVM, SUSEP, ANS, ARCyber). " +
+      "Provide a query and select one or more datasets (ANEEL, ONS, LGPD, GDPR, BACEN, CVM, SUSEP, ANS, ARCyber). " +
       "Returns regulations ONLY from the selected datasets. " +
       "Use Cases: " +
       "- Compliance Chat: CVM + BACEN for financial/corporate compliance " +
       "- OT2net: ONS + ANEEL + ARCyber for energy sector processes " +
-      "- n.privacy: LGPD + ANPD for privacy compliance " +
-      "- Health compliance: ANS (RN 623 for data protection in healthcare)",
+      "- n.privacy: LGPD + ANPD + GDPR for privacy compliance (Brazil + EU) " +
+      "- Health compliance: ANS (RN 623 for data protection in healthcare) " +
+      "- International operations: GDPR for EU data protection compliance",
     inputSchema: {
       type: "object",
       properties: {
@@ -229,13 +230,13 @@ const tools: Tool[] = [
           type: "array",
           items: {
             type: "string",
-            enum: ["aneel", "ons", "bacen", "cvm", "susep", "ans", "lgpd", "anpd", "arcyber"],
+            enum: ["aneel", "ons", "bacen", "cvm", "susep", "ans", "lgpd", "anpd", "gdpr", "arcyber"],
           },
           description:
-            "Array of Brazilian regulatory datasets to search. " +
+            "Array of regulatory datasets to search (Brazilian + international). " +
             "Available: aneel (energia), ons (operador), bacen (banco central), " +
             "cvm (valores mobiliários), susep (seguros), ans (saúde suplementar - RN 623), " +
-            "lgpd/anpd (privacidade), arcyber (cibersegurança setor elétrico)",
+            "lgpd/anpd (privacidade Brasil), gdpr (privacidade UE), arcyber (cibersegurança setor elétrico)",
           minItems: 1,
         },
         top_k: {
@@ -399,8 +400,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           cvm: "Comissão de Valores Mobiliários",
           susep: "Superintendência de Seguros Privados",
           ans: "Agência Nacional de Saúde Suplementar (RN 623)",
-          lgpd: "Lei Geral de Proteção de Dados",
-          anpd: "Autoridade Nacional de Proteção de Dados",
+          lgpd: "Lei Geral de Proteção de Dados (Brasil)",
+          anpd: "Autoridade Nacional de Proteção de Dados (Brasil)",
+          gdpr: "General Data Protection Regulation (EU)",
           arcyber: "Framework de Cibersegurança do Setor Elétrico",
         };
 

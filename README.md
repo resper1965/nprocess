@@ -59,7 +59,7 @@ dados locais   dados locais   dados locais
 | **RegulatoryRAG API** | ✅ 100% | 8002 | Vector search em regulações (Vertex AI Search) |
 | **Admin Dashboard** | ✅ 100% | 3001 | Interface de gestão (Next.js 14 + shadcn/ui) |
 | **Regulatory Crawler** | ✅ 100% | 8003 | Crawling ANEEL, ONS, ARCyber com Gemini AI |
-| **Document Generator** | ✅ 85% | 8004 | POPs/Checklists em Markdown + Mermaid |
+| **Document Generator** | ✅ 100% | 8004 | POPs/Checklists em Markdown + Mermaid |
 
 ### MCP Servers (Model Context Protocol) ✅
 
@@ -312,8 +312,11 @@ uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 - ✅ **CIS Controls v8** - 18 controles (IG1, IG2, IG3)
 - ✅ **ITIL v4** - Service Value System
 
-### Regulações Brasileiras (Corpus RAG)
+### Regulações Brasileiras e Internacionais (Corpus RAG)
 - ✅ **LGPD** (Lei 13.709/2018) - ANPD (Autoridade Nacional de Proteção de Dados)
+- ✅ **GDPR** (General Data Protection Regulation) - Regulação de Proteção de Dados da União Europeia
+  - Compliance para empresas brasileiras operando na UE
+  - Artigos sobre direitos dos titulares, transferência internacional de dados
 - ✅ **ANEEL** - Agência Nacional de Energia Elétrica
   - Resoluções Normativas, Homologatórias, Notas Técnicas
 - ✅ **ONS** - Operador Nacional do Sistema Elétrico
@@ -342,10 +345,10 @@ Output: BPMN com tasks, gateways, events mapeados para ISO 27001 A.8.7
 ```
 
 ### 2️⃣ Regulatory Search Engine (RAG)
-**Corpus**: 9 datasets regulatórios brasileiros via Vertex AI Search
+**Corpus**: 10 datasets regulatórios (Brasil + Internacional) via Vertex AI Search
 **Funcionalidades**:
 - ✅ Busca semântica em todo corpus
-- ✅ **Busca filtrada por datasets** (CVM, BACEN, ANEEL, ONS, ANS, LGPD, SUSEP, ANPD, ARCyber)
+- ✅ **Busca filtrada por datasets** (CVM, BACEN, ANEEL, ONS, ANS, LGPD, GDPR, SUSEP, ANPD, ARCyber)
 - ✅ Quality scoring e snippet extraction
 - ✅ Cache Redis para performance
 
@@ -353,7 +356,7 @@ Output: BPMN com tasks, gateways, events mapeados para ISO 27001 A.8.7
 - **Financeiro/Corporativo**: CVM (valores mobiliários), BACEN (sistema financeiro), SUSEP (seguros)
 - **Energia**: ANEEL (energia elétrica), ONS (operador sistema), ARCyber (cibersegurança)
 - **Saúde**: ANS (saúde suplementar - **RN 623** e outras resoluções normativas)
-- **Privacidade**: LGPD/ANPD (proteção de dados)
+- **Privacidade**: LGPD/ANPD (proteção de dados Brasil), **GDPR** (proteção de dados UE)
 
 ### 3️⃣ Document Generator Engine
 **Entrada**: BPMN XML + Framework + Controles
