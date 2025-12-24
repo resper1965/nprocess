@@ -1,60 +1,158 @@
 version: '3.8'
 
 services:
-  # ComplianceEngine API
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: compliance-engine-api
-    ports:
-      - "8080:8080"
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: compliance-engine-db
     environment:
-      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-your-project-id}
-      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-your-project-id}
-      - VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION:-us-central1}
-      - APP_ENV=development
-      - LOG_LEVEL=INFO
-      # Para usar credenciais locais, monte o arquivo de credenciais
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials.json
+      POSTGRES_USER: ${POSTGRES_USER:-compliance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-compliance_pass_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-compliance_engine}
+    ports:
+      - "5432:5432"
     volumes:
-      # Mount do código para hot reload em desenvolvimento
-      - ./app:/app/app
-      # Mount de credenciais (se necessário)
-      # - ~/.config/gcloud/application_default_credentials.json:/app/credentials.json:ro
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U compliance"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - compliance-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: compliance-engine-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - compliance-network
+
+  # Regulatory RAG API
+  regulatory-api:
+    build:
+      context: ./regulatory-rag-api
+      dockerfile: Dockerfile
+    container_name: compliance-engine-rag-api
+    environment:
+      # Database
+      DATABASE_URL: postgresql://compliance:compliance_pass_2024@postgres:5432/compliance_engine
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # Google Cloud
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID:-nprocess}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/gcp-service-account.json
+      VERTEX_AI_SEARCH_LOCATION: ${VERTEX_AI_SEARCH_LOCATION:-global}
+      VERTEX_AI_DATA_STORE_ID: ${VERTEX_AI_DATA_STORE_ID:-regulations-datastore}
+
+      # API Config
+      API_PORT: 8000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENABLE_CORS: "true"
+      ALLOWED_ORIGINS: http://localhost:3001,http://localhost:8008
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./credentials:/app/credentials:ro
+      - ./regulatory-rag-api/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # Firestore Emulator (para desenvolvimento local sem GCP)
-  firestore-emulator:
-    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:latest
-    container_name: firestore-emulator
-    command: >
-      gcloud emulators firestore start
-      --host-port=0.0.0.0:8081
-    ports:
-      - "8081:8081"
-    environment:
-      - FIRESTORE_PROJECT_ID=test-project
     networks:
       - compliance-network
+
+  # Admin Control Plane
+  admin-control-plane:
+    build:
+      context: ./admin-control-plane
+      dockerfile: Dockerfile
+    container_name: compliance-engine-admin
+    environment:
+      # Database
+      DATABASE_URL: postgresql://compliance:compliance_pass_2024@postgres:5432/compliance_engine
+
+      # Redis
+      REDIS_URL: redis://redis:6379/1
+
+      # Google Cloud / Gemini
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GCP_PROJECT_ID: ${GCP_PROJECT_ID:-nprocess}
+
+      # JWT / Auth
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+
+      # API Config
+      API_PORT: 8008
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENABLE_CORS: "true"
+      ALLOWED_ORIGINS: http://localhost:3001
+
+      # API Keys Encryption
+      API_KEY_ENCRYPTION_KEY: ${API_KEY_ENCRYPTION_KEY:-32-byte-encryption-key-change-me}
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./credentials:/app/credentials:ro
+      - ./admin-control-plane/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - compliance-network
+
+  # Client Portal (Next.js)
+  client-portal:
+    build:
+      context: ./client-portal
+      dockerfile: Dockerfile
+    container_name: compliance-engine-portal
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8008
+      NEXT_PUBLIC_RAG_API_URL: http://localhost:8000
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    depends_on:
+      - admin-control-plane
+      - regulatory-api
+    networks:
+      - compliance-network
 
 networks:
   compliance-network:
     driver: bridge
 
-# Volumes para persistência (opcional)
 volumes:
-  firestore-data:
+  postgres_data:
+  redis_data:
