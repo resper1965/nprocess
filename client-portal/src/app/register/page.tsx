@@ -25,9 +25,9 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(email, name, password)
-    } catch (error) {
-      // Error handling is done in the auth context
+      await register(email, password, name)
+    } catch (error: any) {
+      alert(error.message || 'Erro ao criar conta')
     }
   }
 

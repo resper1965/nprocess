@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
+import { loginWithGoogle } from '@/lib/firebase-auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,9 +20,19 @@ export default function LoginPage() {
     if (!email || !password) return
 
     try {
+      setError('')
       await login(email, password)
-    } catch (error) {
-      // Error handling is done in the auth context
+    } catch (error: any) {
+      setError(error.message || 'Erro ao fazer login')
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      setError('')
+      await loginWithGoogle()
+    } catch (error: any) {
+      setError(error.message || 'Erro ao fazer login com Google')
     }
   }
 
@@ -51,6 +62,11 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-600 dark:text-red-400">
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email */}
               <div className="space-y-2">
