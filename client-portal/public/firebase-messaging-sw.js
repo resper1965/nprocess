@@ -5,9 +5,9 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 // Initialize Firebase
 firebase.initializeApp({
   apiKey: 'YOUR_API_KEY',
-  authDomain: 'nprocess.firebaseapp.com',
-  projectId: 'nprocess',
-  storageBucket: 'nprocess.appspot.com',
+  authDomain: 'nprocess-33a44.firebaseapp.com',
+  projectId: 'nprocess-33a44',
+  storageBucket: 'nprocess-33a44.appspot.com',
   messagingSenderId: 'YOUR_SENDER_ID',
   appId: 'YOUR_APP_ID'
 });
