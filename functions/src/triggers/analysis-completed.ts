@@ -1,15 +1,24 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import * as admin from 'firebase-admin';
+
+// Initialize Firebase Admin
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 
 /**
  * Firestore trigger para quando uma análise de compliance é concluída
  * Dispara webhooks e notificações
  */
-export const onAnalysisCompleted = functions.firestore
-  .document('compliance_analyses/{analysisId}')
-  .onCreate(async (snap, context) => {
+export const onAnalysisCompleted = functions.firestore.onDocumentCreated(
+  {
+    document: 'compliance_analyses/{analysisId}',
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
     const analysis = snap.data();
-    const analysisId = context.params.analysisId;
+    const analysisId = event.params.analysisId;
     
     console.log(`Análise concluída: ${analysisId}`);
 

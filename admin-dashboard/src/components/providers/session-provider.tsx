@@ -1,7 +1,6 @@
 "use client"
 
-import { SessionProvider as NextAuthSessionProvider } from "next-auth/react"
-
+// SessionProvider removed - using client-side auth with localStorage instead
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-  return <NextAuthSessionProvider>{children}</NextAuthSessionProvider>
+  return <>{children}</>
 }

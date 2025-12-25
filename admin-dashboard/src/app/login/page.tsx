@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Shield, Lock, Mail } from "lucide-react"
 import { useState, Suspense } from "react"
-import { signIn } from "next-auth/react"
+// Removed NextAuth - using direct API call instead
+import { verifyCredentials } from "@/lib/auth-api"
 import { useRouter, useSearchParams } from "next/navigation"
 
 function LoginForm() {
@@ -23,22 +24,17 @@ function LoginForm() {
     setError("")
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-        callbackUrl: callbackUrl.startsWith("/login") ? "/overview" : callbackUrl,
-      })
-
-      if (result?.error) {
-        setError("Invalid email or password")
-        setIsLoading(false)
-      } else if (result?.ok) {
-        router.push(callbackUrl.startsWith("/login") ? "/overview" : callbackUrl)
-        router.refresh()
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.")
+      const user = await verifyCredentials(email, password)
+      // Store user in localStorage for client-side auth
+      localStorage.setItem('admin_user', JSON.stringify({
+        id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }))
+      router.push(callbackUrl.startsWith("/login") ? "/overview" : callbackUrl)
+    } catch (err: any) {
+      setError(err.message || "Invalid email or password")
       setIsLoading(false)
     }
   }
@@ -153,17 +149,10 @@ function LoginForm() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={async () => {
-                  setIsLoading(true)
-                  setError("")
-                  try {
-                    await signIn("google", {
-                      callbackUrl: callbackUrl.startsWith("/login") ? "/overview" : callbackUrl,
-                    })
-                  } catch (err) {
-                    setError("Failed to sign in with Google")
-                    setIsLoading(false)
-                  }
+                onClick={() => {
+                  // Google Sign In - redirect to Admin Control Plane OAuth
+                  const API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:8008'
+                  window.location.href = `${API_URL}/v1/auth/google`
                 }}
                 disabled={isLoading}
               >

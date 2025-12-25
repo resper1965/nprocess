@@ -23,6 +23,11 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
         return null;
       }
 
+      if (!messagingInstance) {
+        console.warn('Firebase Messaging not initialized');
+        return null;
+      }
+      
       const token = await getToken(messagingInstance, { vapidKey });
       
       // Save token to Firestore
@@ -60,9 +65,13 @@ export const onMessageListener = (): Promise<any> => {
   }
 
   return new Promise((resolve) => {
-    onMessage(messagingInstance, (payload) => {
-      resolve(payload);
-    });
+    if (messagingInstance) {
+      onMessage(messagingInstance, (payload) => {
+        resolve(payload);
+      });
+    } else {
+      resolve(null);
+    }
   });
 };
 

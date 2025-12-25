@@ -1,5 +1,10 @@
 import * as admin from 'firebase-admin';
 
+// Initialize Firebase Admin
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
+
 /**
  * Função helper para enviar notificações push via FCM
  */

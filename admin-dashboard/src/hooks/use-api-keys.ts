@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
+// Removed NextAuth - using localStorage for user data
 import {
   apiKeysAPI,
   APIKeyCreate,
@@ -25,7 +25,13 @@ export const apiKeysKeys = {
  * Hook to fetch all API keys
  */
 export function useAPIKeys() {
-  const { data: session } = useSession()
+  // Get user from localStorage (client-side auth)
+  const getUser = () => {
+    if (typeof window === 'undefined') return null
+    const stored = localStorage.getItem('admin_user')
+    return stored ? JSON.parse(stored) : null
+  }
+  const session = { user: getUser() }
   const adminToken = (session as any)?.accessToken || ''
 
   return useQuery({
@@ -39,7 +45,13 @@ export function useAPIKeys() {
  * Hook to fetch a specific API key
  */
 export function useAPIKey(keyId: string) {
-  const { data: session } = useSession()
+  // Get user from localStorage (client-side auth)
+  const getUser = () => {
+    if (typeof window === 'undefined') return null
+    const stored = localStorage.getItem('admin_user')
+    return stored ? JSON.parse(stored) : null
+  }
+  const session = { user: getUser() }
   const adminToken = (session as any)?.accessToken || ''
 
   return useQuery({
@@ -54,7 +66,13 @@ export function useAPIKey(keyId: string) {
  */
 export function useCreateAPIKey() {
   const queryClient = useQueryClient()
-  const { data: session } = useSession()
+  // Get user from localStorage (client-side auth)
+  const getUser = () => {
+    if (typeof window === 'undefined') return null
+    const stored = localStorage.getItem('admin_user')
+    return stored ? JSON.parse(stored) : null
+  }
+  const session = { user: getUser() }
   const adminToken = (session as any)?.accessToken || ''
 
   return useMutation({
@@ -71,7 +89,13 @@ export function useCreateAPIKey() {
  */
 export function useRevokeAPIKey() {
   const queryClient = useQueryClient()
-  const { data: session } = useSession()
+  // Get user from localStorage (client-side auth)
+  const getUser = () => {
+    if (typeof window === 'undefined') return null
+    const stored = localStorage.getItem('admin_user')
+    return stored ? JSON.parse(stored) : null
+  }
+  const session = { user: getUser() }
   const adminToken = (session as any)?.accessToken || ''
 
   return useMutation({

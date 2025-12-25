@@ -5,7 +5,8 @@
  */
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth, loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout } from './firebase-auth';
+import { auth } from './firebase-config';
+import { loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout } from './firebase-auth';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {

@@ -1,16 +1,26 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import * as admin from 'firebase-admin';
+
+// Initialize Firebase Admin
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
+
 import * as crypto from 'crypto';
 
 /**
  * Firebase Function para entregar webhooks
  * Triggered quando um novo delivery é criado no Firestore
  */
-export const deliverWebhook = functions.firestore
-  .document('webhooks/{webhookId}/deliveries/{deliveryId}')
-  .onCreate(async (snap, context) => {
+export const deliverWebhook = functions.firestore.onDocumentCreated(
+  {
+    document: 'webhooks/{webhookId}/deliveries/{deliveryId}',
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
     const delivery = snap.data();
-    const webhookId = context.params.webhookId;
+    const webhookId = event.params.webhookId;
     
     const webhookRef = admin.firestore()
       .collection('webhooks')
@@ -45,7 +55,7 @@ export const deliverWebhook = functions.firestore
           'Content-Type': 'application/json',
           'X-Webhook-Signature': signature,
           'X-Webhook-Event': delivery.event_type,
-          'X-Webhook-Delivery-Id': context.params.deliveryId,
+          'X-Webhook-Delivery-Id': event.params.deliveryId,
           'User-Agent': 'nProcess-Webhook/1.0'
         },
         body: payloadString,
