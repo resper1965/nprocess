@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Import routers
 from app.routers import (
+    auth,
     apikeys,
     users,
     ai_keys,
