@@ -6,6 +6,24 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getAnalytics, Analytics } from 'firebase/analytics';
+import { validateFirebaseConfig, logFirebaseConfigStatus } from './firebase-config-validator';
+
+// Validate configuration on module load
+if (typeof window !== 'undefined') {
+  const validation = validateFirebaseConfig();
+
+  if (!validation.valid) {
+    logFirebaseConfigStatus();
+    throw new Error(
+      `Firebase configuration is invalid. Missing: ${validation.missing.join(', ')}`
+    );
+  }
+
+  // Log warnings in development
+  if (process.env.NODE_ENV === 'development' && validation.warnings.length > 0) {
+    logFirebaseConfigStatus();
+  }
+}
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
