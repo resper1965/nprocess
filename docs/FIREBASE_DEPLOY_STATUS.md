@@ -1,113 +1,87 @@
-# Status do Deploy Firebase
+# Deploy Firebase - Status Atual
 
 **Data**: 2025-01-XX  
-**Status**: 🔄 Deploy em Progresso
+**Status**: ✅ **Hosting Deployado** | ⏳ **Functions Parcialmente Deployadas**
 
 ---
 
-## 📊 Deploy Status
+## ✅ Deploy Concluído
 
 ### Firebase Hosting
-
-#### Admin Dashboard
-- **Status**: ⏳ Pendente
-- **Target**: `admin-dashboard`
-- **Public**: `admin-dashboard/out`
-- **URL**: Será gerada após deploy
-
-#### Client Portal
-- **Status**: ⏳ Pendente
-- **Target**: `client-portal`
-- **Public**: `client-portal/out`
-- **URL**: Será gerada após deploy
+- ✅ **Deployado com sucesso**
+- ✅ URL: https://nprocess-33a44.web.app
+- ✅ Admin Dashboard online
 
 ### Firebase Functions
-
-#### Functions Deployadas
-- ⏳ `deliverWebhook` - Webhook delivery
-- ⏳ `dailyCrawler` - Scheduled crawler
-- ⏳ `onProcessCreated` - Firestore trigger
-- ⏳ `onAnalysisCompleted` - Firestore trigger
+- ✅ `dailyCrawler` - Deployado (scheduled, executa diariamente às 2h)
+- ⏳ `deliverWebhook` - Aguardando propagação de permissões Eventarc
+- ⏳ `onProcessCreated` - Aguardando propagação de permissões Eventarc
+- ⏳ `onAnalysisCompleted` - Aguardando propagação de permissões Eventarc
 
 ---
 
-## 🚀 Comandos de Deploy
+## ⚠️ Status das Functions
 
-### 1. Build dos Projetos
-```bash
-# Admin Dashboard
-cd admin-dashboard
-npm run build
+As functions que usam **Firestore Triggers** (Eventarc) precisam aguardar alguns minutos para que as permissões do **Eventarc Service Agent** sejam propagadas.
 
-# Client Portal
-cd ../client-portal
-npm run build
-```
-
-### 2. Deploy Firebase Hosting
-```bash
-# Deploy Admin Dashboard
-firebase deploy --only hosting:admin-dashboard
-
-# Deploy Client Portal
-firebase deploy --only hosting:client-portal
-
-# Ou deploy ambos
-firebase deploy --only hosting
-```
-
-### 3. Deploy Firebase Functions
-```bash
-cd functions
-npm run build
-firebase deploy --only functions
-```
+**Mensagem do Firebase**:
+> "Since this is your first time using 2nd gen functions, we need a little bit longer to finish setting everything up. Retry the deployment in a few minutes."
 
 ---
 
-## ⚙️ Configurações Necessárias
+## 🔧 Solução
 
-### 1. VAPID Key para FCM
-1. Acesse: https://console.firebase.google.com/project/nprocess-33a44/settings/cloudmessaging
-2. Gere VAPID key
-3. Adicione como variável de ambiente: `NEXT_PUBLIC_FCM_VAPID_KEY`
+### Opção 1: Aguardar e tentar novamente (Recomendado)
 
-### 2. Custom Domains (Opcional)
+Aguarde 5-10 minutos e execute:
+
 ```bash
-# Listar sites
-firebase hosting:sites:list
-
-# Adicionar custom domain
-firebase hosting:channel:deploy preview --only hosting:admin-dashboard
+firebase deploy --only functions --project nprocess-33a44
 ```
 
-### 3. Environment Variables para Functions
-```bash
-# Configurar variáveis de ambiente
-firebase functions:config:set \
-  regulatory.api_url="https://regulatory-api-5wqihg7s7a-uc.a.run.app" \
-  regulatory.api_key="YOUR_API_KEY"
-```
+### Opção 2: Verificar permissões manualmente
+
+1. Acesse: https://console.cloud.google.com/iam-admin/iam?project=nprocess-33a44
+2. Procure por: `service-{PROJECT_NUMBER}@gcp-sa-eventarc.iam.gserviceaccount.com`
+3. Verifique se tem a role: **Eventarc Service Agent**
 
 ---
 
-## 📋 Checklist Pós-Deploy
+## 📊 Status Atual
 
-- [ ] Verificar URLs dos sites
-- [ ] Testar autenticação
-- [ ] Testar upload de arquivos
-- [ ] Testar webhooks
-- [ ] Verificar logs das functions
-- [ ] Configurar alertas
-- [ ] Testar Analytics
-- [ ] Validar Security Rules
+✅ **Funcionando**:
+- Firebase Hosting
+- Firebase Functions: `dailyCrawler`
+- Firestore Database
+
+⏳ **Aguardando**:
+- Functions com Firestore Triggers (3 functions)
+- Propagação de permissões Eventarc
 
 ---
 
-## 🔗 Links Úteis
+## 🔗 URLs
 
-- [Firebase Console](https://console.firebase.google.com/project/nprocess-33a44)
-- [Firebase Hosting](https://console.firebase.google.com/project/nprocess-33a44/hosting)
-- [Firebase Functions](https://console.firebase.google.com/project/nprocess-33a44/functions)
-- [Firebase Analytics](https://console.firebase.google.com/project/nprocess-33a44/analytics)
+- **Hosting**: https://nprocess-33a44.web.app
+- **Firebase Console**: https://console.firebase.google.com/project/nprocess-33a44
+- **Functions**: https://console.firebase.google.com/project/nprocess-33a44/functions
 
+---
+
+## 📝 Próximos Passos
+
+1. Aguardar 5-10 minutos
+2. Executar: `firebase deploy --only functions`
+3. Verificar: `firebase functions:list`
+4. Testar o site: https://nprocess-33a44.web.app
+
+---
+
+## ✅ Checklist
+
+- [x] Hosting deployado
+- [x] Firestore criado
+- [x] Function `dailyCrawler` deployada
+- [ ] Functions com triggers deployadas (aguardando permissões)
+- [ ] Testar site
+- [ ] Configurar VAPID key (opcional)
