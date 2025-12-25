@@ -30,7 +30,14 @@
       ],
       "rewrites": [
         {
-          "source": "/api/**",
+          "source": "/api/auth/**",
+          "run": {
+            "serviceId": "compliance-engine-admin-dashboard",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/v1/**",
           "run": {
             "serviceId": "compliance-engine-api",
             "region": "us-central1"
@@ -63,7 +70,7 @@
       ],
       "rewrites": [
         {
-          "source": "/api/**",
+          "source": "/v1/**",
           "run": {
             "serviceId": "compliance-engine-api",
             "region": "us-central1"
