@@ -11,8 +11,8 @@ if (admin.apps.length === 0) {
  * Executa todos os dias às 2h da manhã (horário de Brasília)
  */
 export const dailyCrawler = functions.scheduler.onSchedule(
-  '0 2 * * *',
   {
+    schedule: '0 2 * * *',
     timeZone: 'America/Sao_Paulo',
   },
   async (event) => {

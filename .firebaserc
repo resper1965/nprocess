@@ -10,7 +10,14 @@
       "client-portal": [
         "nprocess"
       ]
+    },
+    "nprocess-33a44": {
+      "hosting": {
+        "client-portal": [
+          "nprocess-33a44"
+        ]
+      }
     }
-  }
+  },
+  "etags": {}
 }
-

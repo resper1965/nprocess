@@ -22,7 +22,17 @@
   "hosting": [
     {
       "target": "admin-dashboard",
-      "public": "admin-dashboard/out",
+      "public": "admin-dashboard/.next/standalone",
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "function": "admin-dashboard-api"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "ignore": [
         "firebase.json",
         "**/.*",
