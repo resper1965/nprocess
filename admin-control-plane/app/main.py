@@ -48,6 +48,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/v1/auth", tags=["Authentication"])
 app.include_router(apikeys.router, prefix="/v1/admin/apikeys", tags=["API Keys"])
 app.include_router(users.router, prefix="/v1/admin/users", tags=["Users"])
 app.include_router(ai_keys.router, prefix="/v1/admin/ai-keys", tags=["AI Keys"])

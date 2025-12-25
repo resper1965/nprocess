@@ -23,13 +23,16 @@ check_service() {
     echo -n "Verificando $SERVICE_NAME... "
     
     # Try health endpoint first, then root
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL/health" -L 2>/dev/null || echo "000")
-    if [ "$HTTP_CODE" != "200" ]; then
-        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" -L 2>/dev/null || echo "000")
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL/health" -L --max-time 5 2>/dev/null)
+    if [ -z "$HTTP_CODE" ] || [ "$HTTP_CODE" = "000" ] || [ "$HTTP_CODE" != "200" ]; then
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL" -L --max-time 5 2>/dev/null)
     fi
     
-    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ] || [ "$HTTP_CODE" = "302" ]; then
-        echo -e "${GREEN}✅ OK${NC}"
+    # Clean HTTP_CODE (remove any extra characters)
+    HTTP_CODE=$(echo "$HTTP_CODE" | tr -d '\n\r' | head -c 3)
+    
+    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ] || [ "$HTTP_CODE" = "302" ] || [ "$HTTP_CODE" = "403" ]; then
+        echo -e "${GREEN}✅ OK (HTTP $HTTP_CODE)${NC}"
         return 0
     else
         echo -e "${RED}❌ FALHOU (HTTP $HTTP_CODE)${NC}"

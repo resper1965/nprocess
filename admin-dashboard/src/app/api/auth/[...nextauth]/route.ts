@@ -1,26 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import { compare } from "bcryptjs"
-
-// TODO: Replace with actual database integration
-// For now, using mock users
-const mockUsers = [
-  {
-    id: "1",
-    name: "Admin User",
-    email: "admin@company.com",
-    password: "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyJSs/4NdVGu", // "admin123"
-    role: "Super Admin"
-  },
-  {
-    id: "2",
-    name: "John Doe",
-    email: "john.doe@company.com",
-    password: "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyJSs/4NdVGu", // "admin123"
-    role: "Admin"
-  }
-]
+import { verifyCredentials } from "@/lib/auth-api"
 
 const authOptions: NextAuthOptions = {
   providers: [
@@ -35,25 +16,19 @@ const authOptions: NextAuthOptions = {
           throw new Error("Invalid credentials")
         }
 
-        // TODO: Replace with actual database query
-        const user = mockUsers.find(u => u.email === credentials.email)
+        try {
+          // Verify credentials with Admin Control Plane API
+          const user = await verifyCredentials(credentials.email, credentials.password)
 
-        if (!user) {
+          return {
+            id: user.user_id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          }
+        } catch (error) {
+          console.error("Authentication error:", error)
           throw new Error("Invalid credentials")
-        }
-
-        // Verify password
-        const isValidPassword = await compare(credentials.password, user.password)
-
-        if (!isValidPassword) {
-          throw new Error("Invalid credentials")
-        }
-
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
         }
       }
     }),

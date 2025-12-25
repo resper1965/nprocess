@@ -53,7 +53,7 @@ steps:
       - '--timeout=300'
       - '--max-instances=${_MAX_INSTANCES}'
       - '--port=8080'
-      - '--set-env-vars=NEXT_PUBLIC_API_URL=https://compliance-engine-5wqihg7s7a-uc.a.run.app,NEXTAUTH_URL=https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app'
+      - '--set-env-vars=NEXT_PUBLIC_API_URL=https://compliance-engine-5wqihg7s7a-uc.a.run.app,NEXT_PUBLIC_ADMIN_API_URL=https://admin-control-plane-5wqihg7s7a-uc.a.run.app,NEXTAUTH_URL=https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app'
       - '--update-secrets=NEXTAUTH_SECRET=nextauth-secret:latest'
       - '--labels=app=compliance-engine-admin-dashboard,version=$SHORT_SHA,managed-by=cloud-build'
       - '--ingress=all'
