@@ -28,20 +28,6 @@
     ],
     "rewrites": [
       {
-        "source": "/api/auth/**",
-        "run": {
-          "serviceId": "compliance-engine-admin-dashboard",
-          "region": "us-central1"
-        }
-      },
-      {
-        "source": "/v1/**",
-        "run": {
-          "serviceId": "compliance-engine-api",
-          "region": "us-central1"
-        }
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
