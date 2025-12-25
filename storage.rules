@@ -1,0 +1,41 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Backups - apenas autenticados podem ler/escrever
+    match /backups/{backupId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Documentos - apenas o dono pode acessar
+    match /documents/{userId}/{documentId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Templates públicos - todos podem ler, apenas admins podem escrever
+    match /templates/{templateId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+    }
+    
+    // User uploads
+    match /uploads/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Default: deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

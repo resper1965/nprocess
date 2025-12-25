@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "default": "nprocess"
+  },
+  "targets": {
+    "hosting": {
+      "admin-dashboard": [
+        "nprocess"
+      ],
+      "client-portal": [
+        "nprocess"
+      ]
+    }
+  }
+}
+

@@ -1,0 +1,48 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "processes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "created_by",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "compliance_analyses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "process_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "analyzed_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "webhooks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "api_key_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+
