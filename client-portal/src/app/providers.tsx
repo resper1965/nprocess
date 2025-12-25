@@ -4,10 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
 import { useState, useEffect } from 'react'
-import { AuthProvider } from '@/lib/auth-context'
+import { AuthProvider, useAuth } from '@/lib/auth-context'
 import { analytics } from '@/lib/firebase-config'
 import { setAnalyticsUserId } from '@/lib/firebase-analytics'
-import { useAuth } from '@/lib/auth-context'
 
 function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
