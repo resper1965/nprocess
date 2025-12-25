@@ -21,8 +21,8 @@
   ],
   "hosting": [
     {
-      "target": "admin-dashboard",
-      "public": "admin-dashboard/out",
+      "target": "client-portal",
+      "public": "client-portal/out",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -30,9 +30,9 @@
       ],
       "rewrites": [
         {
-          "source": "/api/auth/**",
+          "source": "/admin/**",
           "run": {
-            "serviceId": "compliance-engine-admin-dashboard",
+            "serviceId": "nprocess-admin-dashboard",
             "region": "us-central1"
           }
         },
@@ -57,28 +57,6 @@
               "value": "max-age=31536000"
             }
           ]
-        }
-      ]
-    },
-    {
-      "target": "client-portal",
-      "public": "client-portal/out",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "/v1/**",
-          "run": {
-            "serviceId": "compliance-engine-api",
-            "region": "us-central1"
-          }
-        },
-        {
-          "source": "**",
-          "destination": "/index.html"
         }
       ]
     }
