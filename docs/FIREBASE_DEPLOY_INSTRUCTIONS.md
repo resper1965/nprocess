@@ -4,7 +4,17 @@
 
 ---
 
-## ⚠️ Bloqueador: Firestore Database
+## ⚠️ Bloqueadores
+
+### 1. Habilitar Cloud Run Admin API
+
+O Hosting precisa da Cloud Run Admin API habilitada para os rewrites funcionarem.
+
+1. Acesse: https://console.developers.google.com/apis/api/run.googleapis.com/overview?project=406039759652
+2. Clique em **"Enable"**
+3. Aguarde alguns minutos para propagação
+
+### 2. Criar Firestore Database
 
 O Firestore precisa ser criado **manualmente** no Firebase Console antes de fazer deploy das Functions.
 
