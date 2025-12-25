@@ -149,17 +149,10 @@ function LoginForm() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={async () => {
-                  setIsLoading(true)
-                  setError("")
-                  try {
-                    await signIn("google", {
-                      callbackUrl: callbackUrl.startsWith("/login") ? "/overview" : callbackUrl,
-                    })
-                  } catch (err) {
-                    setError("Failed to sign in with Google")
-                    setIsLoading(false)
-                  }
+                onClick={() => {
+                  // Google Sign In - redirect to Admin Control Plane OAuth
+                  const API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:8008'
+                  window.location.href = `${API_URL}/v1/auth/google`
                 }}
                 disabled={isLoading}
               >
