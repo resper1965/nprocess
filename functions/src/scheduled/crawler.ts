@@ -41,11 +41,8 @@ export const dailyCrawler = functions.scheduler.onSchedule(
       const result = await response.json();
       console.log(`Crawler concluído: ${result.length} atualizações encontradas`);
       
-      return {
-        success: true,
-        updatesFound: result.length,
-        timestamp: new Date().toISOString()
-      };
+      console.log(`Crawler concluído: ${result.length} atualizações encontradas`);
+      return;
     } catch (error: any) {
       console.error('Erro ao executar crawler:', error);
       throw error;
