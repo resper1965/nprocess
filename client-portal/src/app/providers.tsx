@@ -3,8 +3,23 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AuthProvider } from '@/lib/auth-context'
+import { analytics } from '@/lib/firebase-config'
+import { setAnalyticsUserId } from '@/lib/firebase-analytics'
+import { useAuth } from '@/lib/auth-context'
+
+function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth()
+  
+  useEffect(() => {
+    if (user && analytics) {
+      setAnalyticsUserId(user.uid)
+    }
+  }, [user])
+  
+  return <>{children}</>
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -28,8 +43,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
       >
         <AuthProvider>
-          {children}
-          <Toaster richColors position="top-right" />
+          <AnalyticsWrapper>
+            {children}
+            <Toaster richColors position="top-right" />
+          </AnalyticsWrapper>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

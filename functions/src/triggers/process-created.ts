@@ -1,15 +1,24 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
 import * as admin from 'firebase-admin';
+
+// Initialize Firebase Admin
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 
 /**
  * Firestore trigger para quando um processo é criado
  * Dispara webhooks e outras ações automáticas
  */
-export const onProcessCreated = functions.firestore
-  .document('processes/{processId}')
-  .onCreate(async (snap, context) => {
+export const onProcessCreated = functions.firestore.onDocumentCreated(
+  {
+    document: 'processes/{processId}',
+  },
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
     const process = snap.data();
-    const processId = context.params.processId;
+    const processId = event.params.processId;
     
     console.log(`Processo criado: ${processId}`);
 

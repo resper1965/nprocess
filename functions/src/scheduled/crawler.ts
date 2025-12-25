@@ -1,13 +1,21 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v2';
+
+// Initialize Firebase Admin
+import * as admin from 'firebase-admin';
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 
 /**
  * Scheduled function para executar crawler diário de regulamentações
  * Executa todos os dias às 2h da manhã (horário de Brasília)
  */
-export const dailyCrawler = functions.pubsub
-  .schedule('0 2 * * *') // 2 AM diariamente
-  .timeZone('America/Sao_Paulo')
-  .onRun(async (context) => {
+export const dailyCrawler = functions.scheduler.onSchedule(
+  {
+    schedule: '0 2 * * *',
+    timeZone: 'America/Sao_Paulo',
+  },
+  async (event) => {
     console.log('Iniciando crawler diário de regulamentações...');
     
     const REGULATORY_API_URL = process.env.REGULATORY_API_URL || 
@@ -42,5 +50,6 @@ export const dailyCrawler = functions.pubsub
       console.error('Erro ao executar crawler:', error);
       throw error;
     }
-  });
+  }
+);
 
