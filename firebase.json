@@ -19,70 +19,45 @@
       ]
     }
   ],
-  "hosting": [
-    {
-      "target": "admin-dashboard",
-      "public": "admin-dashboard/out",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "/api/auth/**",
-          "run": {
-            "serviceId": "compliance-engine-admin-dashboard",
-            "region": "us-central1"
-          }
-        },
-        {
-          "source": "/v1/**",
-          "run": {
-            "serviceId": "compliance-engine-api",
-            "region": "us-central1"
-          }
-        },
-        {
-          "source": "**",
-          "destination": "/index.html"
+  "hosting": {
+    "public": "admin-dashboard/out",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/auth/**",
+        "run": {
+          "serviceId": "compliance-engine-admin-dashboard",
+          "region": "us-central1"
         }
-      ],
-      "headers": [
-        {
-          "source": "**/*.@(js|css)",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "max-age=31536000"
-            }
-          ]
+      },
+      {
+        "source": "/v1/**",
+        "run": {
+          "serviceId": "compliance-engine-api",
+          "region": "us-central1"
         }
-      ]
-    },
-    {
-      "target": "client-portal",
-      "public": "client-portal/out",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "/v1/**",
-          "run": {
-            "serviceId": "compliance-engine-api",
-            "region": "us-central1"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
           }
-        },
-        {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ]
-    }
-  ],
+        ]
+      }
+    ]
+  },
   "storage": {
     "rules": "storage.rules"
   },
