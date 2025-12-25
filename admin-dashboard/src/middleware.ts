@@ -1,58 +1,37 @@
-import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token
-    const path = req.nextUrl.pathname
-    const url = req.nextUrl.clone()
+export function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname
+  const url = request.nextUrl.clone()
 
-    // Allow access to login page without auth
-    if (path === "/login") {
-      if (token) {
-        // Already authenticated, redirect to overview
-        url.pathname = "/overview"
-        return NextResponse.redirect(url)
-      }
-      return NextResponse.next()
-    }
-
-    // Allow access to API routes
-    if (path.startsWith("/api/")) {
-      return NextResponse.next()
-    }
-
-    // Redirect to login if not authenticated (with proper callbackUrl)
-    if (!token) {
-      url.pathname = "/login"
-      url.searchParams.set("callbackUrl", path)
-      return NextResponse.redirect(url)
-    }
-
+  // Allow access to login page without auth
+  if (path === "/login") {
     return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        // Allow login page without auth
-        if (req.nextUrl.pathname === "/login") {
-          return true
-        }
-        return !!token
-      },
-    },
   }
-)
+
+  // Allow access to static files
+  if (
+    path.startsWith("/_next/") ||
+    path.startsWith("/static/") ||
+    path.includes(".")
+  ) {
+    return NextResponse.next()
+  }
+
+  // For other routes, check authentication client-side
+  // (Firebase Hosting static export doesn't support server-side middleware)
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth API routes - handled by NextAuth)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 }

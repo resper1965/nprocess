@@ -12,7 +12,7 @@ if (admin.apps.length === 0) {
  */
 export const dailyCrawler = functions.scheduler.onSchedule(
   {
-    schedule: '0 2 * * *',
+    schedule: 'every day 02:00',
     timeZone: 'America/Sao_Paulo',
   },
   async (event) => {
