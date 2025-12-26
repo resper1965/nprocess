@@ -4,28 +4,28 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: compliance-engine-db
+    container_name: nprocess-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-compliance}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-compliance_pass_2024}
-      POSTGRES_DB: ${POSTGRES_DB:-compliance_engine}
+      POSTGRES_USER: ${POSTGRES_USER:-nprocess}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nprocess_pass_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-nprocess}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U compliance"]
+      test: ["CMD-SHELL", "pg_isready -U nprocess"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - compliance-network
+      - nprocess-network
 
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: compliance-engine-redis
+    container_name: nprocess-redis
     ports:
       - "6379:6379"
     volumes:
@@ -36,82 +36,48 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - compliance-network
+      - nprocess-network
 
-  # Regulatory RAG API
-  regulatory-api:
+  # Core API (n.process)
+  api:
     build:
-      context: ./regulatory-rag-api
+      context: ./app
       dockerfile: Dockerfile
-    container_name: compliance-engine-rag-api
+    container_name: nprocess-api
     environment:
-      # Database
-      DATABASE_URL: postgresql://compliance:compliance_pass_2024@postgres:5432/compliance_engine
-
-      # Redis
+      DATABASE_URL: postgresql://nprocess:nprocess_pass_2024@postgres:5432/nprocess
       REDIS_URL: redis://redis:6379/0
-
-      # Google Cloud
       GCP_PROJECT_ID: ${GCP_PROJECT_ID:-nprocess}
       GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/gcp-service-account.json
-      VERTEX_AI_SEARCH_LOCATION: ${VERTEX_AI_SEARCH_LOCATION:-global}
-      VERTEX_AI_DATA_STORE_ID: ${VERTEX_AI_DATA_STORE_ID:-regulations-datastore}
-
-      # API Config
       API_PORT: 8000
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      ENABLE_CORS: "true"
-      ALLOWED_ORIGINS: http://localhost:3001,http://localhost:8008
     ports:
       - "8000:8000"
     volumes:
       - ./credentials:/app/credentials:ro
-      - ./regulatory-rag-api/app:/app/app
+      - ./app:/app/app
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
-      - compliance-network
+      - nprocess-network
 
-  # Admin Control Plane
-  admin-control-plane:
+  # Admin Control Plane API
+  admin-api:
     build:
       context: ./admin-control-plane
       dockerfile: Dockerfile
-    container_name: compliance-engine-admin
+    container_name: nprocess-admin-api
     environment:
-      # Database
-      DATABASE_URL: postgresql://compliance:compliance_pass_2024@postgres:5432/compliance_engine
-
-      # Redis
+      DATABASE_URL: postgresql://nprocess:nprocess_pass_2024@postgres:5432/nprocess
       REDIS_URL: redis://redis:6379/1
-
-      # Google Cloud / Gemini
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
       GCP_PROJECT_ID: ${GCP_PROJECT_ID:-nprocess}
-
-      # JWT / Auth
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-secret-key-change-in-production}
-      JWT_ALGORITHM: HS256
-      ACCESS_TOKEN_EXPIRE_MINUTES: 60
-
-      # API Config
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-in-production}
       API_PORT: 8008
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      ENABLE_CORS: "true"
-      ALLOWED_ORIGINS: http://localhost:3001
-
-      # API Keys Encryption
-      API_KEY_ENCRYPTION_KEY: ${API_KEY_ENCRYPTION_KEY:-32-byte-encryption-key-change-me}
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8008
     ports:
       - "8008:8008"
     volumes:
@@ -122,35 +88,42 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     networks:
-      - compliance-network
+      - nprocess-network
+
+  # Admin Dashboard (Next.js)
+  admin-dashboard:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: nprocess-admin-dashboard
+    environment:
+      NEXT_PUBLIC_ADMIN_API_URL: http://localhost:8008
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - admin-api
+    networks:
+      - nprocess-network
 
   # Client Portal (Next.js)
   client-portal:
     build:
       context: ./client-portal
       dockerfile: Dockerfile
-    container_name: compliance-engine-portal
+    container_name: nprocess-client-portal
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8008
-      NEXT_PUBLIC_RAG_API_URL: http://localhost:8000
-      NODE_ENV: production
     ports:
       - "3001:3001"
     depends_on:
-      - admin-control-plane
-      - regulatory-api
+      - admin-api
     networks:
-      - compliance-network
+      - nprocess-network
 
 networks:
-  compliance-network:
+  nprocess-network:
     driver: bridge
 
 volumes:
