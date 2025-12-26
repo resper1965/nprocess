@@ -19,31 +19,48 @@
       ]
     }
   ],
-  "hosting": {
-    "public": "admin-dashboard/out",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**/*.@(js|css)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
+  "hosting": [
+    {
+      "target": "client-portal",
+      "public": "client-portal/out",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "/admin/**",
+          "run": {
+            "serviceId": "nprocess-admin-dashboard",
+            "region": "us-central1"
           }
-        ]
-      }
-    ]
-  },
+        },
+        {
+          "source": "/v1/**",
+          "run": {
+            "serviceId": "compliance-engine-api",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(js|css)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "max-age=31536000"
+            }
+          ]
+        }
+      ]
+    }
+  ],
   "storage": {
     "rules": "storage.rules"
   },

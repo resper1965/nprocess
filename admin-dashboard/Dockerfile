@@ -1,62 +1,43 @@
-# Admin Dashboard - Dockerfile optimized for Google Cloud Run
+# Admin Dashboard - Cloud Run Dockerfile
+FROM node:18-alpine AS base
 
-# Build stage
-FROM node:20-alpine as builder
-
-# Set working directory
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy source code
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the application
+# Build Next.js app
 RUN npm run build
 
-# Runtime stage
-FROM node:20-alpine
-
-# Set working directory
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -g 1001 -S appgroup 2>/dev/null || addgroup -S appgroup && \
-    adduser -u 1001 -S -G appgroup appuser 2>/dev/null || adduser -S -G appgroup appuser && \
-    chown -R appuser:appgroup /app || true
+ENV NODE_ENV production
 
-# Copy package files
-COPY --chown=appuser:appgroup package*.json ./
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Install production dependencies only
-RUN npm install --only=production && \
-    npm cache clean --force
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy standalone server (includes server.js and node_modules)
-COPY --chown=appuser:appgroup --from=builder /app/.next/standalone ./
-# Copy static files (needed for _next/static routes)
-COPY --chown=appuser:appgroup --from=builder /app/.next/static ./.next/static
-# Copy public directory
-COPY --chown=appuser:appgroup --from=builder /app/public ./public
+USER nextjs
 
-# Set environment variables
-ENV NODE_ENV=production \
-    PORT=8080 \
-    HOSTNAME="0.0.0.0"
+EXPOSE 3000
 
-# Switch to non-root user
-USER appuser
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
-# Expose port
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:8080/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})" || exit 1
-
-# Start the application using standalone output
 CMD ["node", "server.js"]

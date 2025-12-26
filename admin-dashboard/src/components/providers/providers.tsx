@@ -2,13 +2,21 @@
 
 import { SessionProvider } from "./session-provider"
 import { QueryProvider } from "./query-provider"
+import { ThemeProvider } from "./theme-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <QueryProvider>
-        {children}
-      </QueryProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem={false}
+        disableTransitionOnChange
+      >
+        <QueryProvider>
+          {children}
+        </QueryProvider>
+      </ThemeProvider>
     </SessionProvider>
   )
 }
