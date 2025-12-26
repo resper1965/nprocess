@@ -1,37 +1,67 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, UserPlus, Mail, Shield, Trash2 } from 'lucide-react'
+import { Users, UserPlus, Mail, Shield, Trash2, Loader2 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+
+interface TeamMember {
+  id: string
+  name: string
+  email: string
+  role: string
+  status: string
+  joinedAt: string
+}
 
 export default function TeamPage() {
-  const teamMembers = [
-    {
-      id: '1',
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'Owner',
-      status: 'active',
-      joinedAt: '2024-01-01',
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'Admin',
-      status: 'active',
-      joinedAt: '2024-01-10',
-    },
-    {
-      id: '3',
-      name: 'Bob Johnson',
-      email: 'bob@example.com',
-      role: 'Member',
-      status: 'active',
-      joinedAt: '2024-01-15',
-    },
-  ]
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        setLoading(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/team')
+        // const data = await response.json()
+        // setTeamMembers(data)
+
+        // For now, show current user only
+        if (user) {
+          setTeamMembers([
+            {
+              id: user.uid,
+              name: user.displayName || user.email?.split('@')[0] || 'User',
+              email: user.email || '',
+              role: 'Owner',
+              status: 'active',
+              joinedAt: new Date().toISOString().split('T')[0],
+            }
+          ])
+        }
+      } catch (err) {
+        console.error('Failed to load team members:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user) {
+      fetchTeamMembers()
+    }
+  }, [user])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

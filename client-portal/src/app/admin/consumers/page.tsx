@@ -1,14 +1,70 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, TrendingUp, TrendingDown, Activity, DollarSign, Key, BarChart3 } from "lucide-react"
+import { Search, Plus, TrendingUp, TrendingDown, Activity, DollarSign, Key, BarChart3, Loader2 } from "lucide-react"
+
+interface Consumer {
+  id: string
+  name: string
+  description: string
+  status: string
+  apiKeys: number
+  activeKeys: number
+  requestsToday: number
+  requestsTrend: number
+  costToday: number
+  costTrend: number
+  environment: string
+  owner: string
+  email: string
+  createdAt: string
+  lastActivity: string
+}
 
 export default function ConsumersPage() {
-  // Mock data - replace with actual API data
-  const consumers = [
+  const [loading, setLoading] = useState(true)
+  const [consumers, setConsumers] = useState<Consumer[]>([])
+
+  useEffect(() => {
+    const fetchConsumers = async () => {
+      try {
+        setLoading(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/admin/consumers')
+        // const data = await response.json()
+        // setConsumers(data)
+
+        setConsumers([])
+      } catch (err) {
+        console.error('Failed to load consumers:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchConsumers()
+  }, [])
+
+  const stats = {
+    totalConsumers: consumers.length,
+    activeConsumers: consumers.filter(c => c.status === "active").length,
+    totalRequests: consumers.reduce((sum, c) => sum + c.requestsToday, 0),
+    totalCost: consumers.reduce((sum, c) => sum + c.costToday, 0)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  const oldConsumers = [
     {
       id: "1",
       name: "Contracts Application",
@@ -95,13 +151,6 @@ export default function ConsumersPage() {
       lastActivity: "7 days ago"
     }
   ]
-
-  const stats = {
-    totalConsumers: consumers.length,
-    activeConsumers: consumers.filter(c => c.status === "active").length,
-    totalRequests: consumers.reduce((sum, c) => sum + c.requestsToday, 0),
-    totalCost: consumers.reduce((sum, c) => sum + c.costToday, 0)
-  }
 
   return (
     <div className="space-y-8">
@@ -298,14 +347,15 @@ export default function ConsumersPage() {
         ))}
       </div>
 
-      {/* Empty State (shown when no consumers) */}
+      {/* Empty State */}
       {consumers.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Activity className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No consumers yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Get started by adding your first consumer application
+            <h3 className="text-lg font-semibold mb-2">No Consumers Yet</h3>
+            <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
+              Consumer applications will appear here when they start using your API.
+              Configure API keys in the API Keys section to get started.
             </p>
             <Button>
               <Plus className="mr-2 h-4 w-4" />

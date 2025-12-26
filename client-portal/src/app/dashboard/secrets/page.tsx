@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Lock, Plus, Trash2, Eye, EyeOff, Cloud, Github, Database } from 'lucide-react'
+import { Lock, Plus, Trash2, Eye, EyeOff, Cloud, Github, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 type IntegrationType = 'google_cloud' | 'aws' | 'azure' | 'github'
@@ -47,6 +47,8 @@ const integrationConfig = {
 }
 
 export default function SecretsPage() {
+  const [loading, setLoading] = useState(true)
+  const [secrets, setSecrets] = useState<Secret[]>([])
   const [showNewSecretDialog, setShowNewSecretDialog] = useState(false)
   const [revealedSecrets, setRevealedSecrets] = useState<Set<string>>(new Set())
   const [formData, setFormData] = useState({
@@ -56,17 +58,25 @@ export default function SecretsPage() {
     description: '',
   })
 
-  // Mock data
-  const secrets: Secret[] = [
-    {
-      id: 'secret_1',
-      integration_type: 'google_cloud',
-      secret_name: 'GOOGLE_APPLICATION_CREDENTIALS',
-      description: 'Service account key for Vertex AI',
-      created: '2024-01-15',
-      lastUsed: '2 hours ago',
-    },
-  ]
+  useEffect(() => {
+    const fetchSecrets = async () => {
+      try {
+        setLoading(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/secrets')
+        // const data = await response.json()
+        // setSecrets(data)
+
+        setSecrets([])
+      } catch (err) {
+        console.error('Failed to load secrets:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSecrets()
+  }, [])
 
   const toggleSecretVisibility = (secretId: string) => {
     setRevealedSecrets(prev => {
@@ -95,6 +105,14 @@ export default function SecretsPage() {
       secret_value: '',
       description: '',
     })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -224,8 +242,25 @@ export default function SecretsPage() {
       )}
 
       {/* Secrets List */}
-      <div className="space-y-4">
-        {secrets.map((secret) => {
+      {secrets.length === 0 && !showNewSecretDialog ? (
+        <Card glass>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Lock className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No Secrets Yet
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center max-w-md">
+              Store your API keys and credentials securely for external integrations
+            </p>
+            <Button onClick={() => setShowNewSecretDialog(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Your First Secret
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {secrets.map((secret) => {
           const isRevealed = revealedSecrets.has(secret.id)
           const config = integrationConfig[secret.integration_type]
           const Icon = config.icon
@@ -303,8 +338,9 @@ export default function SecretsPage() {
               </CardContent>
             </Card>
           )
-        })}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Integration Examples */}
       <Card glass>

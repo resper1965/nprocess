@@ -1,104 +1,154 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CreditCard, Download, CheckCircle2, ArrowUpRight, Calendar } from 'lucide-react'
+import { CreditCard, Download, CheckCircle2, Calendar, Loader2 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+
+interface Plan {
+  name: string
+  price: number
+  annualPrice: number
+  description: string
+  features: string[]
+  current?: boolean
+  popular?: boolean
+}
+
+interface Invoice {
+  id: string
+  date: string
+  amount: number
+  status: string
+  downloadUrl: string
+}
+
+interface BillingData {
+  currentPlan: {
+    name: string
+    price: number
+    billingCycle: string
+    renewalDate: string
+    features: string[]
+  }
+  plans: Plan[]
+  invoices: Invoice[]
+}
 
 export default function BillingPage() {
-  // Mock data
-  const currentPlan = {
-    name: 'Starter',
-    price: 99,
-    billingCycle: 'monthly',
-    renewalDate: '2024-02-15',
-    features: [
-      '50 documents per month',
-      '1,000 API calls per month',
-      '1 API key',
-      '3 team members',
-      '3 frameworks (LGPD, ISO 27001, HIPAA)',
-      '100 chat messages per month',
-      'Email support',
-    ],
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<BillingData | null>(null)
+
+  useEffect(() => {
+    const fetchBillingData = async () => {
+      try {
+        setLoading(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/billing')
+        // const billingData = await response.json()
+
+        // Default plans structure (these are the available tiers)
+        const defaultPlans: Plan[] = [
+          {
+            name: 'Starter',
+            price: 99,
+            annualPrice: 990,
+            description: 'Perfect for small teams getting started',
+            features: [
+              '50 documents/month',
+              '1,000 API calls/month',
+              '1 API key',
+              '3 team members',
+              '3 frameworks',
+              'Email support',
+            ],
+            current: true,
+          },
+          {
+            name: 'Professional',
+            price: 299,
+            annualPrice: 2990,
+            description: 'For growing teams with more demands',
+            features: [
+              '200 documents/month',
+              '10,000 API calls/month',
+              '5 API keys',
+              '10 team members',
+              '10 frameworks',
+              'Priority support',
+              'Google Drive integration',
+              'SharePoint integration',
+            ],
+            popular: true,
+          },
+          {
+            name: 'Enterprise',
+            price: 999,
+            annualPrice: 9990,
+            description: 'Advanced features for large organizations',
+            features: [
+              'Unlimited documents',
+              'Unlimited API calls',
+              'Unlimited API keys',
+              'Unlimited team members',
+              'All 23 frameworks',
+              '24/7 priority support',
+              'All integrations',
+              'Custom compliance frameworks',
+              'Dedicated account manager',
+              'SLA guarantee',
+            ],
+          },
+        ]
+
+        // Set data with defaults
+        setData({
+          currentPlan: {
+            name: 'Starter',
+            price: 99,
+            billingCycle: 'monthly',
+            renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            features: [
+              '50 documents per month',
+              '1,000 API calls per month',
+              '1 API key',
+              '3 team members',
+              '3 frameworks (LGPD, ISO 27001, HIPAA)',
+              '100 chat messages per month',
+              'Email support',
+            ],
+          },
+          plans: defaultPlans,
+          invoices: []
+        })
+      } catch (err) {
+        console.error('Failed to load billing data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user) {
+      fetchBillingData()
+    }
+  }, [user])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
-  const plans = [
-    {
-      name: 'Starter',
-      price: 99,
-      annualPrice: 990,
-      description: 'Perfect for small teams getting started',
-      features: [
-        '50 documents/month',
-        '1,000 API calls/month',
-        '1 API key',
-        '3 team members',
-        '3 frameworks',
-        'Email support',
-      ],
-      current: true,
-    },
-    {
-      name: 'Professional',
-      price: 299,
-      annualPrice: 2990,
-      description: 'For growing teams with more demands',
-      features: [
-        '200 documents/month',
-        '10,000 API calls/month',
-        '5 API keys',
-        '10 team members',
-        '10 frameworks',
-        'Priority support',
-        'Google Drive integration',
-        'SharePoint integration',
-      ],
-      popular: true,
-    },
-    {
-      name: 'Enterprise',
-      price: 999,
-      annualPrice: 9990,
-      description: 'Advanced features for large organizations',
-      features: [
-        'Unlimited documents',
-        'Unlimited API calls',
-        'Unlimited API keys',
-        'Unlimited team members',
-        'All 23 frameworks',
-        '24/7 priority support',
-        'All integrations',
-        'Custom compliance frameworks',
-        'Dedicated account manager',
-        'SLA guarantee',
-      ],
-    },
-  ]
+  if (!data) {
+    return null
+  }
 
-  const invoices = [
-    {
-      id: 'INV-001',
-      date: '2024-01-15',
-      amount: 99,
-      status: 'paid',
-      downloadUrl: '#',
-    },
-    {
-      id: 'INV-002',
-      date: '2023-12-15',
-      amount: 99,
-      status: 'paid',
-      downloadUrl: '#',
-    },
-    {
-      id: 'INV-003',
-      date: '2023-11-15',
-      amount: 99,
-      status: 'paid',
-      downloadUrl: '#',
-    },
-  ]
+  const { currentPlan, plans, invoices } = data
 
   return (
     <div className="space-y-8">
@@ -266,8 +316,16 @@ export default function BillingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {invoices.map((invoice) => (
+          {invoices.length === 0 ? (
+            <div className="text-center py-8">
+              <Calendar className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                No invoices yet. Your billing history will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {invoices.map((invoice) => (
               <div
                 key={invoice.id}
                 className="flex items-center justify-between py-3 border-b border-white/10 dark:border-gray-800/30 last:border-0"
@@ -299,8 +357,9 @@ export default function BillingPage() {
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
