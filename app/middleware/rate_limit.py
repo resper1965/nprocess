@@ -11,8 +11,10 @@ from fastapi import HTTPException, Request, status
 from fastapi.responses import Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.services.apikey_service import get_apikey_service
-from app.schemas_apikeys import APIKeyValidationResult, APIKeyQuotas
+# API key service removed in v2.0.0 refactoring
+# Rate limiting temporarily disabled - will be re-implemented with admin-control-plane integration
+# from app.services.apikey_service import get_apikey_service
+# from app.schemas_apikeys import APIKeyValidationResult, APIKeyQuotas
 
 logger = logging.getLogger(__name__)
 
@@ -54,40 +56,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if request.url.path in ["/health", "/", "/docs", "/redoc", "/openapi.json"]:
             return await call_next(request)
         
+        # Rate limiting temporarily disabled in v2.0.0
+        # TODO: Re-implement with admin-control-plane integration
+        # For now, allow all requests without rate limiting
+        return await call_next(request)
+        
+        # Original code (disabled):
         # Extract API key from request
-        api_key = self._extract_api_key(request)
-        
-        if not api_key:
-            # No API key - allow but don't track
-            return await call_next(request)
-        
-        # Validate API key and get quotas
-        apikey_service = get_apikey_service()
-        validation_result = await apikey_service.validate_api_key(api_key)
-        
-        if not validation_result.valid:
-            # Invalid key - let auth middleware handle it
-            return await call_next(request)
-        
-        # Get quotas from API key service
-        key_id = validation_result.key_id
-        
-        # Fetch key info to get quotas
-        try:
-            # Get all keys and find the one we need
-            api_keys = await apikey_service.list_api_keys(limit=1000)
-            key_info = next((k for k in api_keys if k.key_id == key_id), None)
-            
-            if not key_info:
-                # Key not found - use default quotas
-                logger.warning(f"Key {key_id} not found in list, using default quotas")
-                quotas = APIKeyQuotas()
-            else:
-                quotas = key_info.quotas
-        except Exception as e:
-            logger.error(f"Error fetching quotas for rate limiting: {e}")
-            # On error, use default quotas and allow request
-            quotas = APIKeyQuotas()
+        # api_key = self._extract_api_key(request)
+        # ... rest of rate limiting logic
         
         try:
             allowed, remaining, reset_time = await self._check_rate_limit(
