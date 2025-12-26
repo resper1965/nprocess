@@ -18,6 +18,9 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import { handleAuthOperation } from './firebase-errors';
 
+// Re-export auth for convenience
+export { auth };
+
 // Initialize Firestore (only in browser)
 const getDb = () => {
   if (typeof window === 'undefined') return null;
