@@ -102,7 +102,14 @@ app = FastAPI(
 )
 
 # 1. Trusted Host Middleware (Prevents Host Header Injection)
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,nprocess.ness.com.br").split(",")
+# In production (Cloud Run), allow all hosts since Cloud Run handles routing
+# In development, restrict to localhost
+if os.getenv("ENVIRONMENT") == "production" or os.getenv("GOOGLE_CLOUD_PROJECT"):
+    # Cloud Run - allow all hosts (Cloud Run validates routing)
+    ALLOWED_HOSTS = ["*"]
+else:
+    # Local development - restrict to localhost
+    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 
 # 2. CORS Configuration
