@@ -9,7 +9,7 @@ pydantic-settings==2.5.2
 # Google Cloud Platform
 google-auth==2.35.0
 google-cloud-firestore==2.19.0
-google-cloud-aiplatform==1.71.1
+google-cloud-aiplatform==1.132.0
 
 # Vertex AI
 vertexai==1.71.1
