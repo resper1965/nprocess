@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { NessLogo } from './ness-logo'
+import { useAuth } from '@/lib/auth-context'
 import {
   LayoutDashboard,
   Key,
@@ -32,11 +33,20 @@ const navigation = [
 
 const bottomNavigation = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { name: 'Sign Out', href: '/logout', icon: LogOut },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!user?.displayName) return user?.email?.charAt(0).toUpperCase() || "U"
+    const names = user.displayName.split(" ")
+    return names.length > 1 
+      ? `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase()
+      : names[0].charAt(0).toUpperCase()
+  }
 
   return (
     <div className="flex h-screen w-64 flex-col glass-strong dark:glass-strong-dark border-r border-white/20 dark:border-gray-800/50">
@@ -95,20 +105,29 @@ export function Sidebar() {
             </Link>
           )
         })}
+        
+        {/* Logout Button */}
+        <button
+          onClick={() => logout()}
+          className="w-full group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          Sign Out
+        </button>
       </div>
 
-      {/* User Profile (placeholder) */}
+      {/* User Profile */}
       <div className="border-t border-white/10 dark:border-gray-800/30 p-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold">
-            U
+            {getInitials()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              User Name
+              {user?.displayName || "User"}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              user@example.com
+              {user?.email || "Loading..."}
             </p>
           </div>
         </div>

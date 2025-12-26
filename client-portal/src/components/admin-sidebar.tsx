@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/lib/auth-context"
 import {
   Sidebar,
   SidebarContent,
@@ -40,10 +41,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  // CollapsibleContent,
-  // CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
 const navigation = [
@@ -87,6 +84,16 @@ const navigation = [
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const { state } = useSidebar()
+  const { user, logout } = useAuth()
+
+  // Get user initials for avatar
+  const getInitials = () => {
+    if (!user?.displayName) return user?.email?.charAt(0).toUpperCase() || "U"
+    const names = user.displayName.split(" ")
+    return names.length > 1 
+      ? `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase()
+      : names[0].charAt(0).toUpperCase()
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -157,12 +164,16 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-                      AD
+                      {getInitials()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Admin</span>
-                    <span className="truncate text-xs text-muted-foreground">admin@nprocess.com</span>
+                    <span className="truncate font-semibold">
+                      {user?.displayName || "Admin"}
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {user?.email || "Loading..."}
+                    </span>
                   </div>
                   <ChevronRight className="ml-auto size-4" />
                 </SidebarMenuButton>
@@ -173,12 +184,17 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem>
-                  <Settings className="mr-2 size-4" />
-                  Settings
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/settings">
+                    <Settings className="mr-2 size-4" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <DropdownMenuItem 
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => logout()}
+                >
                   <LogOut className="mr-2 size-4" />
                   Logout
                 </DropdownMenuItem>

@@ -13,7 +13,7 @@
     },
     "nprocess-33a44": {
       "hosting": {
-        "admin-dashboard": [
+        "client-portal": [
           "nprocess-33a44"
         ]
       }
