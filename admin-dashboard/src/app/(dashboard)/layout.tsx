@@ -41,7 +41,7 @@ export default function DashboardLayout({
           <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
           <div className="fixed inset-y-0 left-0 w-64 bg-card border-r z-50">
             <div className="flex items-center justify-between p-4 border-b">
-              <h1 className="text-xl font-bold">ComplianceEngine</h1>
+              <h1 className="text-xl font-medium font-montserrat"><span>n</span><span className="text-[#00ade8]">.</span><span>process</span></h1>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="p-2 hover:bg-accent rounded-md"
@@ -79,10 +79,10 @@ export default function DashboardLayout({
         <div className="flex flex-col flex-1 min-h-0 border-r bg-card">
           <div className="flex items-center gap-2 p-6 border-b">
             <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">CE</span>
+              <span className="text-primary-foreground font-bold text-sm">n.</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold">ComplianceEngine</h1>
+              <h1 className="text-lg font-medium font-montserrat"><span>n</span><span className="text-[#00ade8]">.</span><span>process</span></h1>
               <p className="text-xs text-muted-foreground">Admin Dashboard</p>
             </div>
           </div>

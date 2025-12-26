@@ -49,7 +49,7 @@ function LoginForm() {
               <Shield className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">ComplianceEngine</h1>
+          <h1 className="text-3xl font-medium font-montserrat tracking-tight"><span>n</span><span className="text-[#00ade8]">.</span><span>process</span></h1>
           <p className="text-muted-foreground">Admin Dashboard</p>
         </div>
 

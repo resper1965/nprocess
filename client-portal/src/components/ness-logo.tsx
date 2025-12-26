@@ -1,7 +1,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
-interface NessLogoProps {
+interface NProcessLogoProps {
   /**
    * Size of the logo
    * @default 'md'
@@ -28,7 +28,15 @@ const sizeClasses = {
   xl: 'text-6xl',
 }
 
-export function NessLogo({ size = 'md', variant = 'auto', className }: NessLogoProps) {
+/**
+ * n.process Logo Component
+ * 
+ * Renders the n.process brand name with:
+ * - Font: Montserrat Medium
+ * - Text: black or white (auto-adapts to theme)
+ * - Dot: #00ade8 (ness blue)
+ */
+export function NProcessLogo({ size = 'md', variant = 'auto', className }: NProcessLogoProps) {
   const textColor = variant === 'auto'
     ? 'text-foreground dark:text-white'
     : variant === 'light'
@@ -37,13 +45,14 @@ export function NessLogo({ size = 'md', variant = 'auto', className }: NessLogoP
 
   return (
     <div className={cn('font-montserrat font-medium select-none', sizeClasses[size], className)}>
-      <span className={textColor}>ness</span>
+      <span className={textColor}>n</span>
       <span className="text-[#00ade8]">.</span>
+      <span className={textColor}>process</span>
     </div>
   )
 }
 
-interface NessLogomarkProps {
+interface NProcessLogomarkProps {
   /**
    * Size of the logomark (just the dot)
    */
@@ -56,9 +65,9 @@ interface NessLogomarkProps {
 }
 
 /**
- * Just the ness. dot - useful for favicons, etc.
+ * Just the n.process dot - useful for favicons, etc.
  */
-export function NessLogomark({ size = 24, className }: NessLogomarkProps) {
+export function NProcessLogomark({ size = 24, className }: NProcessLogomarkProps) {
   return (
     <div
       className={cn('rounded-full bg-[#00ade8]', className)}
@@ -66,3 +75,6 @@ export function NessLogomark({ size = 24, className }: NessLogomarkProps) {
     />
   )
 }
+
+// Legacy export for backwards compatibility
+export { NProcessLogo as NessLogo }
