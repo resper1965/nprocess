@@ -189,7 +189,7 @@ function LoginForm() {
             </a>
           </p>
           <p className="mt-4">
-            Protected by enterprise-grade security
+            n.process · powered by <span className="font-medium">ness</span><span className="text-[#00ade8]">.</span>
           </p>
         </div>
       </div>

@@ -44,7 +44,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <NessLogo size="xl" className="inline-block mb-4" />
           <p className="text-gray-600 dark:text-gray-400">
-            Create your ComplianceEngine account
+            Create your n.process account
           </p>
         </div>
 
@@ -153,7 +153,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
-          © 2024 ness. ComplianceEngine. All rights reserved.
+          n.process · powered by <span className="font-medium">ness</span><span className="text-[#00ade8]">.</span>
         </p>
       </div>
     </div>

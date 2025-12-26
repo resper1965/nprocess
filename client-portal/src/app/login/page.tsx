@@ -50,7 +50,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <NessLogo size="xl" className="inline-block mb-4" />
           <p className="text-gray-600 dark:text-gray-400">
-            Sign in to your ComplianceEngine account
+            Sign in to your n.process account
           </p>
         </div>
 
@@ -126,18 +126,6 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Demo credentials */}
-            <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
-                Demo Account
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Email: <span className="font-mono">demo@complianceengine.com</span>
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                Password: <span className="font-mono">demo123</span>
-              </p>
-            </div>
 
             {/* Sign up link */}
             <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
@@ -151,7 +139,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
-          © 2024 ness. ComplianceEngine. All rights reserved.
+          n.process · powered by <span className="font-medium">ness</span><span className="text-[#00ade8]">.</span>
         </p>
       </div>
     </div>
