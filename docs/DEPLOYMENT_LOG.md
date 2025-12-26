@@ -2,28 +2,30 @@
 
 **Data**: 2025-12-26  
 **Status**: ✅ Deploy Completo  
-**Última Atualização**: 2025-12-26 05:01 UTC
+**Última Atualização**: 2025-12-26 05:15 UTC
 
 ---
 
 ## ✅ Deployment Realizado
 
 ### Firebase Hosting
-- ✅ Admin Dashboard deployado (2025-12-26 05:01 UTC)
-- ✅ Build estático gerado com sucesso (11 páginas)
+- ✅ Admin Dashboard deployado (2025-12-26 05:15 UTC)
+- ✅ Build estático gerado com sucesso (11 páginas, 51 arquivos)
 - ✅ CSS do Tailwind processado corretamente (18KB)
 - ✅ Layout flexbox funcionando corretamente
+- ✅ Rebranding para n.process aplicado
 - ✅ URL: https://nprocess.ness.com.br
 - ✅ HTTP 200 - Funcionando corretamente
 - ✅ Problema de hidratação resolvido
 - ✅ Problema de layout empilhado resolvido
 
 ### Cloud Run - ComplianceEngine API
-- ✅ API deployada (2025-12-26 05:01 UTC)
+- ✅ API deployada (2025-12-26 05:15 UTC)
 - ✅ Service URL: https://compliance-engine-api-273624403528.us-central1.run.app
-- ✅ Revision: compliance-engine-api-00001-lhj
+- ✅ Revision: compliance-engine-api-00002-fkn
 - ✅ Memory: 2Gi, CPU: 2
 - ✅ Max Instances: 10, Min Instances: 0
+- ✅ Health check: OK
 
 ### Cloud Run Services
 - ⏳ Verificando serviços para deploy
