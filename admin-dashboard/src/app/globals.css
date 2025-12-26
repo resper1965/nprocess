@@ -5,48 +5,82 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 220 9% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 220 9% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --popover-foreground: 220 9% 12%;
+    --primary: 197 100% 46%; /* #00ade8 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 9% 96%;
+    --secondary-foreground: 220 9% 12%;
+    --muted: 220 9% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 9% 96%;
+    --accent-foreground: 220 9% 12%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 9% 90%;
+    --input: 220 9% 90%;
+    --ring: 197 100% 46%; /* #00ade8 */
     --radius: 0.5rem;
+    /* Brand color */
+    --brand: 197 100% 46%; /* #00ade8 = hsl(197, 100%, 46%) */
+    /* Chart colors */
+    --chart-1: 197 100% 46%;
+    --chart-2: 220 9% 46%;
+    --chart-3: 220 9% 36%;
+    --chart-4: 220 9% 26%;
+    --chart-5: 220 9% 16%;
+    /* Sidebar */
+    --sidebar-background: 220 9% 98%;
+    --sidebar-foreground: 220 9% 26%;
+    --sidebar-primary: 197 100% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 9% 95%;
+    --sidebar-accent-foreground: 220 9% 12%;
+    --sidebar-border: 220 9% 90%;
+    --sidebar-ring: 197 100% 46%;
   }
 
   .dark {
-    /* Dark theme using gray-950 as base */
-    --background: 240 10% 3.9%;  /* gray-950 */
-    --foreground: 0 0% 98%;
-    --card: 240 8% 5%;  /* Slightly lighter than background */
-    --card-foreground: 0 0% 98%;
-    --popover: 240 8% 5%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 5% 15%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Dark theme using gray-900 as base */
+    --background: 220 9% 11%; /* gray-900 */
+    --foreground: 220 9% 98%;
+    --card: 220 9% 13%; /* Slightly lighter than background */
+    --card-foreground: 220 9% 98%;
+    --popover: 220 9% 13%;
+    --popover-foreground: 220 9% 98%;
+    --primary: 197 100% 46%; /* #00ade8 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 9% 18%;
+    --secondary-foreground: 220 9% 98%;
+    --muted: 220 9% 18%;
+    --muted-foreground: 220 9% 65%;
+    --accent: 220 9% 18%;
+    --accent-foreground: 220 9% 98%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 15%;
-    --input: 240 5% 15%;
-    --ring: 240 4.9% 83.9%;
+    --border: 220 9% 20%;
+    --input: 220 9% 20%;
+    --ring: 197 100% 46%; /* #00ade8 */
+    /* Brand color */
+    --brand: 197 100% 46%;
+    /* Chart colors - brand accent theme */
+    --chart-1: 197 100% 46%;
+    --chart-2: 197 80% 55%;
+    --chart-3: 197 60% 65%;
+    --chart-4: 220 9% 55%;
+    --chart-5: 220 9% 45%;
+    /* Sidebar */
+    --sidebar-background: 220 9% 9%; /* Darker than main bg */
+    --sidebar-foreground: 220 9% 98%;
+    --sidebar-primary: 197 100% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 9% 15%;
+    --sidebar-accent-foreground: 220 9% 98%;
+    --sidebar-border: 220 9% 18%;
+    --sidebar-ring: 197 100% 46%;
   }
 }
 
@@ -75,6 +109,19 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-600;
+}
+
+/* Brand utilities */
+.text-brand {
+  color: hsl(var(--brand));
+}
+
+.bg-brand {
+  background-color: hsl(var(--brand));
+}
+
+.border-brand {
+  border-color: hsl(var(--brand));
 }
 
 /* Animations */
