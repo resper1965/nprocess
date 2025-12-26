@@ -1,10 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Admin Dashboard uses Next.js server (deployed to Cloud Run)
-  // NOT static export - requires API routes and middleware for NextAuth
-  output: 'standalone', // For Docker/Cloud Run deployment
+  // Firebase Hosting requires static export
+  output: 'export',
   reactStrictMode: true,
   swcMinify: true,
+  trailingSlash: true,
+  // Disable image optimization (Firebase Hosting doesn't support Next.js Image Optimization)
+  images: {
+    unoptimized: true
+  },
   // Optimize package imports to reduce bundle size
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-*'],
