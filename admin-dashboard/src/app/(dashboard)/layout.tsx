@@ -34,7 +34,7 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex" style={{ display: 'flex', minHeight: '100vh', width: '100%' }}>
       {/* Mobile sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -75,7 +75,7 @@ export default function DashboardLayout({
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:flex-shrink-0 lg:w-64 lg:flex-col">
+      <aside className="hidden lg:flex lg:flex-shrink-0 lg:w-64 lg:flex-col" style={{ flexShrink: 0, width: '16rem' }}>
         <div className="flex flex-col flex-1 min-h-0 border-r bg-card">
           <div className="flex items-center gap-2 p-6 border-b">
             <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
@@ -118,7 +118,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0" style={{ flex: '1 1 0%', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top bar */}
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-8">
           <button
