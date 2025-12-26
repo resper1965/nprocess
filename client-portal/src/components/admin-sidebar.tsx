@@ -13,6 +13,7 @@ import {
   LogOut,
   ChevronRight,
   Terminal,
+  Database,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -48,6 +49,11 @@ const navigation = [
     title: "Overview", 
     url: "/admin/overview", 
     icon: LayoutDashboard,
+  },
+  { 
+    title: "Knowledge", 
+    url: "/admin/knowledge", 
+    icon: Database,
   },
   { 
     title: "API Keys", 
