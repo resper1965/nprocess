@@ -19,7 +19,8 @@
 - ✅ `gcr.io/nprocess/compliance-engine-admin-dashboard` - Todas as imagens deletadas
 - ✅ `gcr.io/nprocess/compliance-engine-frontend` - Todas as imagens deletadas
 
-**Economia estimada**: ~$5-10/mês (armazenamento de imagens)
+**Economia estimada**: ~$5-10/mês (armazenamento de imagens)  
+**Status**: ✅ Todas as imagens antigas deletadas
 
 ### APIs Desabilitadas (Não Utilizadas)
 - ✅ `bigquery.googleapis.com` e todas as APIs relacionadas (8 APIs)
