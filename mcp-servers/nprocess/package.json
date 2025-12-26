@@ -1,11 +1,11 @@
 {
-  "name": "@compliance-platform/mcp-compliance-engine",
+  "name": "@nprocess/mcp-server",
   "version": "1.0.0",
-  "description": "MCP Server for ComplianceEngine API - BPMN generation and compliance analysis",
+  "description": "MCP Server for n.process - BPMN generation and compliance analysis",
   "type": "module",
   "main": "build/index.js",
   "bin": {
-    "compliance-engine-mcp": "build/index.js"
+    "nprocess-mcp": "build/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -16,11 +16,12 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "nprocess",
     "compliance",
     "bpmn",
     "vertex-ai"
   ],
-  "author": "ComplianceEngine Team",
+  "author": "ness.",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
