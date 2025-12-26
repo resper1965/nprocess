@@ -88,10 +88,15 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS Middleware
+# CORS Configuration - use ALLOWED_ORIGINS env var in production
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS", 
+    "http://localhost:3001,http://localhost:3000,https://nprocess.ness.com.br"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure adequadamente em produção
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -485,12 +490,8 @@ async def analyze_compliance(request: ComplianceAnalyzeRequest):
             except Exception as e:
                 logger.warning(f"Failed to trigger webhook for analysis.completed: {e}")
         
-        # Atualizar score em tempo real
-        try:
-            realtime_service = get_realtime_score_service()
-            background_tasks.add_task(realtime_service.update_score, request.process_id, request.domain, overall_score, "analysis")
-        except Exception as e:
-            logger.warning(f"Failed to update real-time score: {e}")
+        # TODO: Implement real-time score updates
+        # Requires BackgroundTasks dependency injection
 
         return analysis_response
 

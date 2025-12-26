@@ -41,3 +41,6 @@ google-cloud-monitoring==2.19.0
 
 # Secret Management
 google-cloud-secret-manager==2.20.0
+
+# Firebase Admin SDK for token verification
+firebase-admin==6.4.0

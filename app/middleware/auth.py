@@ -90,29 +90,71 @@ async def verify_admin_token(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 ) -> str:
     """
-    Verify admin authentication token.
+    Verify admin authentication token using Firebase Auth.
 
-    In production, this should verify JWT token from admin dashboard.
-    For now, we'll use a simple bearer token check.
+    Validates the Firebase ID token and checks for admin role in custom claims.
+    Custom claims are synced via Cloud Functions (syncUserRoleToClaims).
 
     Args:
-        credentials: HTTP Authorization credentials
+        credentials: HTTP Authorization credentials with Firebase ID token
 
     Returns:
-        User ID if valid
+        Firebase UID if valid
+
+    Raises:
+        HTTPException: If token is invalid or user is not admin
+    """
+    token = credentials.credentials
+
+    # Import Firebase service
+    from app.services.firebase_service import verify_firebase_token, is_admin
+
+    # Verify the Firebase ID token
+    decoded_token = verify_firebase_token(token)
+    
+    if not decoded_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired authentication token"
+        )
+
+    # Check for admin role in custom claims
+    if not is_admin(decoded_token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required"
+        )
+
+    logger.info(f"Admin authenticated: {decoded_token.get('uid')}")
+    return decoded_token.get("uid")
+
+
+async def verify_firebase_user(
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+) -> dict:
+    """
+    Verify any Firebase authenticated user (not just admin).
+
+    Args:
+        credentials: HTTP Authorization credentials with Firebase ID token
+
+    Returns:
+        Decoded Firebase token claims
 
     Raises:
         HTTPException: If token is invalid
     """
     token = credentials.credentials
 
-    # TODO: Implement proper JWT verification
-    # For now, accept any token starting with "admin_"
-    if not token.startswith("admin_"):
+    from app.services.firebase_service import verify_firebase_token
+
+    decoded_token = verify_firebase_token(token)
+    
+    if not decoded_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token"
+            detail="Invalid or expired authentication token"
         )
 
-    return "admin_user"  # Return user ID
+    return decoded_token
 
