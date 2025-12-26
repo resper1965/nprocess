@@ -1,5 +1,5 @@
 """
-Webhook management endpoints for ComplianceEngine.
+Webhook management endpoints for n.process.
 """
 import logging
 from datetime import datetime

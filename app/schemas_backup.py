@@ -1,5 +1,5 @@
 """
-Backup and restore schemas for ComplianceEngine.
+Backup and restore schemas for n.process.
 """
 from datetime import datetime
 from typing import List, Optional, Dict, Any

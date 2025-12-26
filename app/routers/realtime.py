@@ -1,5 +1,5 @@
 """
-Real-time compliance score endpoints for ComplianceEngine.
+Real-time compliance score endpoints for n.process.
 """
 import logging
 from typing import Optional

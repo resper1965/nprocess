@@ -1,5 +1,5 @@
 """
-ComplianceEngine API - Microsserviço de análise de compliance de processos.
+n.process API - Microsserviço de análise de compliance de processos.
 """
 import logging
 from contextlib import asynccontextmanager
@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Gerencia inicialização e shutdown da aplicação."""
     # Startup
-    logger.info("🚀 Inicializando ComplianceEngine API...")
+    logger.info("🚀 Inicializando n.process API...")
 
     # Inicializa serviços
     try:
@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    logger.info("👋 Encerrando ComplianceEngine API...")
+    logger.info("👋 Encerrando n.process API...")
 
 
 # ============================================================================
@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 app = FastAPI(
-    title="ComplianceEngine API",
+    title="n.process API",
     description="API REST para análise de compliance de processos de negócio",
     version="1.0.0",
     lifespan=lifespan,
@@ -593,7 +593,7 @@ async def get_prompts():
     summary="Retorna manual de integração",
     description="""
     Retorna o conteúdo completo do arquivo INTEGRATION.md com guia completo
-    de como integrar a ComplianceEngine API em outras aplicações.
+    de como integrar a n.process API em outras aplicações.
     """
 )
 async def get_integration_guide():

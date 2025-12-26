@@ -1,5 +1,5 @@
 """
-Advanced search service for ComplianceEngine.
+Advanced search service for n.process.
 """
 import logging
 import time

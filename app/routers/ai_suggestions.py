@@ -1,5 +1,5 @@
 """
-AI improvement suggestions endpoints for ComplianceEngine.
+AI improvement suggestions endpoints for n.process.
 """
 import logging
 

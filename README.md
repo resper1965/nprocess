@@ -1,4 +1,4 @@
-# ness. ComplianceEngine
+# ness. n.process
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
@@ -9,7 +9,7 @@
 
 ## 🎯 Overview
 
-ComplianceEngine is an API-first platform that enables organizations to:
+n.process is an API-first platform that enables organizations to:
 - **Map business processes** into structured BPMN diagrams using AI
 - **Analyze compliance** with regulatory frameworks (ANEEL, ONS, LGPD, GDPR, etc.)
 - **Track compliance scores** in real-time
@@ -30,7 +30,7 @@ graph TB
     end
 
     subgraph "API Layer"
-        E[ComplianceEngine API<br/>FastAPI - Core]
+        E[n.process API<br/>FastAPI - Core]
         F[Admin Control Plane<br/>Python API]
         G[Regulatory RAG API<br/>FastAPI]
         H[Document Generator Engine<br/>FastAPI]
@@ -38,7 +38,7 @@ graph TB
 
     subgraph "MCP Layer"
         I[MCP Gateway<br/>HTTP Gateway]
-        J[ComplianceEngine MCP<br/>STDIO Server]
+        J[n.process MCP<br/>STDIO Server]
         K[Regulatory RAG MCP<br/>STDIO Server]
         L[Document Generator MCP<br/>STDIO Server]
         M[Regulatory Crawler MCP<br/>STDIO Server]
@@ -85,7 +85,7 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant Client
-    participant API as ComplianceEngine API
+    participant API as n.process API
     participant Auth as Auth Middleware
     participant RateLimit as Rate Limiter
     participant Service as Business Service
@@ -123,7 +123,7 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph "Core Services"
-        A[ComplianceEngine API<br/>Port: 8080<br/>FastAPI]
+        A[n.process API<br/>Port: 8080<br/>FastAPI]
         B[Admin Control Plane<br/>Port: 8008<br/>Python API]
         C[Regulatory RAG API<br/>Port: 8000<br/>FastAPI]
         D[Document Generator<br/>Port: 8001<br/>FastAPI]
@@ -136,7 +136,7 @@ graph LR
 
     subgraph "MCP Services"
         G[MCP Gateway<br/>HTTP Gateway]
-        H[ComplianceEngine MCP<br/>STDIO]
+        H[n.process MCP<br/>STDIO]
         I[Regulatory RAG MCP<br/>STDIO]
         J[Document Generator MCP<br/>STDIO]
         K[Regulatory Crawler MCP<br/>STDIO]
@@ -178,12 +178,12 @@ flowchart TD
     
     B -->|Route Request| C{Service Type}
     
-    C -->|Compliance| D[ComplianceEngine MCP<br/>Server]
+    C -->|Compliance| D[n.process MCP<br/>Server]
     C -->|Regulatory| E[Regulatory RAG MCP<br/>Server]
     C -->|Document| F[Document Generator MCP<br/>Server]
     C -->|Crawler| G[Regulatory Crawler MCP<br/>Server]
     
-    D -->|HTTP/REST| H[ComplianceEngine API]
+    D -->|HTTP/REST| H[n.process API]
     E -->|HTTP/REST| I[Regulatory RAG API]
     F -->|HTTP/REST| J[Document Generator API]
     G -->|HTTP/REST| I
@@ -250,13 +250,13 @@ flowchart LR
 
 ## 📦 Components
 
-### 1. ComplianceEngine API (`app/`)
+### 1. n.process API (`app/`)
 
 **Core REST API for compliance management**
 
 ```mermaid
 graph TB
-    subgraph "ComplianceEngine API"
+    subgraph "n.process API"
         A[FastAPI Application]
         B[API Routers]
         C[Business Services]
@@ -328,7 +328,7 @@ graph LR
     end
     
     subgraph "Backend"
-        J[ComplianceEngine API]
+        J[n.process API]
         K[Admin Control Plane]
     end
     
@@ -367,14 +367,14 @@ graph TB
     end
     
     subgraph "MCP Servers"
-        D[ComplianceEngine MCP<br/>STDIO Server]
+        D[n.process MCP<br/>STDIO Server]
         E[Regulatory RAG MCP<br/>STDIO Server]
         F[Document Generator MCP<br/>STDIO Server]
         G[Regulatory Crawler MCP<br/>STDIO Server]
     end
     
     subgraph "Backend APIs"
-        H[ComplianceEngine API]
+        H[n.process API]
         I[Regulatory RAG API]
         J[Document Generator API]
     end
@@ -393,7 +393,7 @@ graph TB
 ```
 
 **Available MCP Servers:**
-- ✅ **ComplianceEngine MCP** - Core compliance operations
+- ✅ **n.process MCP** - Core compliance operations
 - ✅ **Regulatory RAG MCP** - Regulatory intelligence search
 - ✅ **Document Generator MCP** - BPMN to Mermaid conversion
 - ✅ **Regulatory Crawler MCP** - Automated regulation crawling

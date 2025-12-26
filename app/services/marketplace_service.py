@@ -1,5 +1,5 @@
 """
-Marketplace templates service for ComplianceEngine.
+Marketplace templates service for n.process.
 """
 import logging
 from datetime import datetime

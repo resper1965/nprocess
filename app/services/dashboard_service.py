@@ -1,5 +1,5 @@
 """
-Compliance dashboard service for ComplianceEngine.
+Compliance dashboard service for n.process.
 """
 import logging
 from datetime import datetime, timedelta

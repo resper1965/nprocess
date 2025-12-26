@@ -1,5 +1,5 @@
 """
-Process versioning service for ComplianceEngine.
+Process versioning service for n.process.
 """
 import logging
 from datetime import datetime

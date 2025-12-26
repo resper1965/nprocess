@@ -1,5 +1,5 @@
 """
-Compliance dashboard endpoints for ComplianceEngine.
+Compliance dashboard endpoints for n.process.
 """
 import logging
 from typing import List

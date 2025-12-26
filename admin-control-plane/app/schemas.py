@@ -690,7 +690,7 @@ class GoogleDriveConfig(BaseModel):
     """Google Drive integration configuration"""
     enabled: bool = True
     folder_id: Optional[str] = None
-    folder_name: str = "ComplianceEngine Documents"
+    folder_name: str = "n.process Documents"
     auto_upload: bool = False
     share_with_emails: List[str] = Field(default_factory=list)
 

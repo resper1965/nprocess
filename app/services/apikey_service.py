@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 API_KEYS_COLLECTION = "api_keys"
-API_KEY_PREFIX = "ce"  # ComplianceEngine
+API_KEY_PREFIX = "ce"  # n.process
 KEY_LENGTH = 32  # bytes (64 hex characters)
 
 

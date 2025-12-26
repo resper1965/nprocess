@@ -1,5 +1,5 @@
 """
-Process template endpoints for ComplianceEngine.
+Process template endpoints for n.process.
 """
 import logging
 from datetime import datetime

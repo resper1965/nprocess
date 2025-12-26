@@ -1,5 +1,5 @@
 """
-Process approval workflow endpoints for ComplianceEngine.
+Process approval workflow endpoints for n.process.
 """
 import logging
 from typing import List, Optional

@@ -1,5 +1,5 @@
 """
-Process template service for ComplianceEngine.
+Process template service for n.process.
 """
 import logging
 import re

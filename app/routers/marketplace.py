@@ -1,5 +1,5 @@
 """
-Marketplace templates endpoints for ComplianceEngine.
+Marketplace templates endpoints for n.process.
 """
 import logging
 from typing import List, Optional

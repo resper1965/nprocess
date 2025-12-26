@@ -1,5 +1,5 @@
 """
-AI improvement suggestion service for ComplianceEngine.
+AI improvement suggestion service for n.process.
 """
 import logging
 from datetime import datetime

@@ -1,5 +1,5 @@
 """
-Process approval workflow schemas for ComplianceEngine.
+Process approval workflow schemas for n.process.
 """
 from datetime import datetime
 from typing import List, Optional, Dict, Any

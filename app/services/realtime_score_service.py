@@ -1,5 +1,5 @@
 """
-Real-time compliance score service for ComplianceEngine.
+Real-time compliance score service for n.process.
 """
 import logging
 from datetime import datetime, timedelta

@@ -64,7 +64,7 @@ class GeminiChatService:
         )
 
         # System prompt for admin operations
-        self.system_prompt = """You are an AI assistant for the ComplianceEngine Platform's Admin Control Plane.
+        self.system_prompt = """You are an AI assistant for the n.process Platform's Admin Control Plane.
 
 You help administrators manage:
 - Users and permissions (RBAC)

@@ -1,5 +1,5 @@
 """
-Tag and categorization service for ComplianceEngine.
+Tag and categorization service for n.process.
 """
 import logging
 from datetime import datetime

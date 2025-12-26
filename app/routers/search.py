@@ -1,5 +1,5 @@
 """
-Advanced search endpoints for ComplianceEngine.
+Advanced search endpoints for n.process.
 """
 import logging
 from typing import List, Optional

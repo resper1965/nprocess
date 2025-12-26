@@ -1,6 +1,6 @@
 """
 Admin Control Plane API
-Central administrative API for ComplianceEngine Platform
+Central administrative API for n.process Platform
 """
 
 from fastapi import FastAPI, Request
@@ -33,7 +33,7 @@ from app.schemas import HealthResponse
 # Create FastAPI app
 app = FastAPI(
     title="Admin Control Plane API",
-    description="Administrative API for ComplianceEngine Platform - User Management, API Keys, FinOps, AI Keys, and Gemini Chat",
+    description="Administrative API for n.process Platform - User Management, API Keys, FinOps, AI Keys, and Gemini Chat",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -86,7 +86,7 @@ async def root():
     return {
         "service": "Admin Control Plane API",
         "version": "1.0.0",
-        "description": "Administrative API for ComplianceEngine Platform",
+        "description": "Administrative API for n.process Platform",
         "docs": "/docs",
         "health": "/health"
     }

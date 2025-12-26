@@ -1,5 +1,5 @@
 """
-Schemas Pydantic para validação de dados do ComplianceEngine API.
+Schemas Pydantic para validação de dados do n.process API.
 """
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -235,7 +235,7 @@ class HealthCheckResponse(BaseModel):
     """Response do health check."""
 
     status: str = Field(default="healthy")
-    service: str = Field(default="ComplianceEngine")
+    service: str = Field(default="n.process")
     version: str = Field(default="1.0.0")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 

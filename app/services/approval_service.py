@@ -1,5 +1,5 @@
 """
-Process approval workflow service for ComplianceEngine.
+Process approval workflow service for n.process.
 """
 import logging
 from datetime import datetime, timedelta

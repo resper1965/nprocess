@@ -1,5 +1,5 @@
 """
-Process versioning endpoints for ComplianceEngine.
+Process versioning endpoints for n.process.
 """
 import logging
 from typing import List

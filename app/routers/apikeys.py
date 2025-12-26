@@ -1,5 +1,5 @@
 """
-API Key management endpoints for ComplianceEngine.
+API Key management endpoints for n.process.
 """
 import logging
 from typing import List, Optional

@@ -1,5 +1,5 @@
 """
-Backup and restore service for ComplianceEngine.
+Backup and restore service for n.process.
 """
 import logging
 import json

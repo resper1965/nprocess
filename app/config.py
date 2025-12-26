@@ -1,5 +1,5 @@
 """
-Configuration management for ComplianceEngine API.
+Configuration management for n.process API.
 """
 import os
 from typing import Optional
@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """Application settings with environment variable support."""
 
     # Application
-    app_name: str = "ComplianceEngine"
+    app_name: str = "n.process"
     app_version: str = "1.0.0"
     app_env: str = "development"
     debug: bool = False

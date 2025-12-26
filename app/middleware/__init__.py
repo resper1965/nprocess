@@ -1,4 +1,4 @@
 """
-Authentication middleware for ComplianceEngine API.
+Authentication middleware for n.process API.
 """
 
