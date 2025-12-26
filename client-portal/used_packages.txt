@@ -1,0 +1,75 @@
++12% from last month
+./firebase-auth
+./firebase-config
+./firebase-config-validator
+./firebase-errors
+./ness-logo
+./providers
+@/components/admin-sidebar
+@/components/error-boundary
+@/components/help-dialog
+@/components/ness-logo
+@/components/page-header
+@/components/protected-route
+@/components/sidebar
+@/components/ui/avatar
+@/components/ui/badge
+@/components/ui/button
+@/components/ui/card
+@/components/ui/collapsible
+@/components/ui/dialog
+@/components/ui/dropdown-menu
+@/components/ui/input
+@/components/ui/separator
+@/components/ui/sheet
+@/components/ui/sidebar
+@/components/ui/skeleton
+@/components/ui/tabs
+@/components/ui/tooltip
+@/components/ui/use-toast
+@/hooks/use-api-keys
+@/hooks/use-mobile
+@/lib/api-client
+@/lib/auth-context
+@/lib/firebase-analytics
+@/lib/firebase-auth
+@/lib/firebase-config
+@/lib/firebase-crashlytics
+@/lib/utils
+@/types/auth
+@radix-ui/react-avatar
+@radix-ui/react-collapsible
+@radix-ui/react-dialog
+@radix-ui/react-dropdown-menu
+@radix-ui/react-separator
+@radix-ui/react-slot
+@radix-ui/react-tooltip
+@tanstack/react-query
+Create AI-powered notebooks from compliance documents
+High usage from Contracts App
+class-variance-authority
+clsx
+firebase/analytics
+firebase/app
+firebase/auth
+firebase/firestore
+firebase/messaging
+firebase/storage
+lucide-react
+next
+next-themes
+next/font/google
+next/link
+next/navigation
+react
+sonner
+src/app/admin/api-keys/page.tsx:            // Extract prefix from key_id for display
+src/app/admin/api-keys/page.tsx:  // Fetch API keys from backend
+src/app/admin/knowledge/page.tsx:              Ingest from Web URL
+src/app/admin/overview/page.tsx:        // In production, fetch from API:
+src/components/ui/sidebar.tsx:    // We use openProp and setOpenProp for control from outside the component.
+src/lib/firebase-auth.ts: * Get user profile from Firestore
+src/lib/firebase-errors.ts: * Get user-friendly error message from Firebase error code
+tailwind-merge
+text-green-500
+text-muted-foreground
