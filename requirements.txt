@@ -43,4 +43,12 @@ google-cloud-monitoring==2.19.0
 google-cloud-secret-manager==2.20.0
 
 # Firebase Admin SDK for token verification
-firebase-admin==6.4.0
+firebase-admin==6.6.0
+
+# Ingestion Engine
+langchain==0.3.0
+langchain-text-splitters==0.3.0
+beautifulsoup4==4.12.3
+pandas==2.2.0
+openpyxl==3.1.2
+requests==2.31.0

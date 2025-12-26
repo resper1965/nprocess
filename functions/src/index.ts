@@ -18,9 +18,11 @@ export { onProcessCreated } from './triggers/process-created';
 export { onAnalysisCompleted } from './triggers/analysis-completed';
 export { syncUserRoleToClaims } from './triggers/user-role-updated';
 
+// Storage triggers
+export { onEvidenceUpload } from './triggers/ingestion';
+
 // Notifications
 export { sendComplianceNotification } from './notifications/send';
 
 // Admin utilities
 export { syncAllUserClaims } from './triggers/user-role-updated';
-

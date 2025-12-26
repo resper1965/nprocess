@@ -1,44 +1,67 @@
-'use client'
+"use client"
 
-/**
- * Authentication context using Firebase Auth
- */
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase-config';
-import { loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout } from './firebase-auth';
-import { useRouter } from 'next/navigation';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState
+} from "react";
+import {
+  User,
+  onAuthStateChanged,
+  getIdTokenResult
+} from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { auth, loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout } from "./firebase-auth";
+import { LoginData, RegisterData } from "@/types/auth"; 
 
 interface AuthContextType {
   user: User | null;
+  role: string | null;
+  isAdmin: boolean;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (data: LoginData) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Don't set loading true here if we want seamless auth state restore
+      if (currentUser) {
+        setUser(currentUser);
+        try {
+          const tokenResult = await getIdTokenResult(currentUser);
+          const userRole = (tokenResult.claims.role as string) || 'user';
+          setRole(userRole);
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          setRole('user');
+        }
+      } else {
+        setUser(null);
+        setRole(null);
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (data: LoginData) => {
     try {
-      await loginWithEmail(email, password);
+      await loginWithEmail(data.email, data.password);
       router.push('/dashboard');
     } catch (error: any) {
       throw new Error(error.message || 'Erro ao fazer login');
@@ -54,9 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleRegister = async (email: string, password: string, name?: string) => {
+  const handleRegister = async (data: RegisterData) => {
     try {
-      await registerWithEmail(email, password, name);
+      await registerWithEmail(data.email, data.password, data.name);
       router.push('/dashboard');
     } catch (error: any) {
       throw new Error(error.message || 'Erro ao criar conta');
@@ -74,16 +97,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleLogout = async () => {
     try {
       await logout();
+      setUser(null);
+      setRole(null);
       router.push('/login');
     } catch (error: any) {
       throw new Error(error.message || 'Erro ao fazer logout');
     }
   };
 
+  const isAdmin = role === 'admin' || role === 'super_admin';
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        role,
+        isAdmin,
         loading,
         isAuthenticated: !!user,
         login: handleLogin,
@@ -105,4 +134,3 @@ export function useAuth() {
   }
   return context;
 }
-

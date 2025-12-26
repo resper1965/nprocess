@@ -28,6 +28,7 @@ const nextConfig = {
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-P6S9KBLDXH',
     NEXT_PUBLIC_FCM_VAPID_KEY: process.env.NEXT_PUBLIC_FCM_VAPID_KEY || '',
   },
+  // Security Headers (Check if compatible with 'export' - next export typically doesn't support headers config, must be done in firebase.json)
 }
 
 module.exports = nextConfig

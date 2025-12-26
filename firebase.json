@@ -21,8 +21,8 @@
   ],
   "hosting": [
     {
-      "target": "admin-dashboard",
-      "public": "admin-dashboard/out",
+      "target": "client-portal",
+      "public": "client-portal/out",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -35,6 +35,31 @@
         }
       ],
       "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=31536000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "1; mode=block"
+            },
+            {
+              "key": "Content-Security-Policy",
+              "value": "frame-ancestors 'none';"
+            }
+          ]
+        },
         {
           "source": "**/*.@(js|css)",
           "headers": [

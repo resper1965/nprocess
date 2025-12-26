@@ -11,6 +11,7 @@ def setup_test_environment():
     os.environ["GOOGLE_CLOUD_PROJECT"] = "test-project"
     os.environ["GCP_PROJECT_ID"] = "test-project"
     os.environ["APP_ENV"] = "test"
+    os.environ["ENABLE_AI"] = "false"  # Disable AI for tests
     yield
 
 
@@ -20,7 +21,6 @@ def sample_process_data():
     return {
         "name": "Processo de Teste",
         "description": "Processo usado em testes unitários",
-        "domain": "test",
         "mermaid_code": """
 graph TD
     start([Início])

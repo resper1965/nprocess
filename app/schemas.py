@@ -50,7 +50,7 @@ class DiagramGenerateResponse(BaseModel):
 
 
 # ============================================================================
-# Process Management Schemas
+# Process Definition Schemas
 # ============================================================================
 
 class ProcessNode(BaseModel):
@@ -74,8 +74,8 @@ class ProcessFlow(BaseModel):
     condition: Optional[str] = Field(None, description="Condição para o fluxo")
 
 
-class ProcessCreateRequest(BaseModel):
-    """Request para criar um novo processo validado."""
+class ProcessDefinition(BaseModel):
+    """Definição completa de um processo de negócio (Stateless)."""
 
     name: str = Field(
         ...,
@@ -87,10 +87,6 @@ class ProcessCreateRequest(BaseModel):
         ...,
         min_length=10,
         description="Descrição detalhada do processo"
-    )
-    domain: str = Field(
-        ...,
-        description="Domínio/área do processo (financeiro, RH, vendas, etc.)"
     )
     mermaid_code: str = Field(
         ...,
@@ -111,14 +107,6 @@ class ProcessCreateRequest(BaseModel):
     )
 
 
-class ProcessCreateResponse(BaseModel):
-    """Response após criação do processo."""
-
-    process_id: str = Field(..., description="ID do processo criado")
-    created_at: datetime = Field(..., description="Timestamp de criação")
-    message: str = Field(default="Processo criado com sucesso")
-
-
 # ============================================================================
 # Compliance Analysis Schemas
 # ============================================================================
@@ -126,15 +114,18 @@ class ProcessCreateResponse(BaseModel):
 class ComplianceAnalyzeRequest(BaseModel):
     """Request para análise de compliance de um processo."""
 
-    process_id: str = Field(
+    process: ProcessDefinition = Field(
         ...,
-        min_length=1,
-        description="ID do processo a ser analisado"
+        description="Definição completa do processo a ser analisado"
     )
     domain: str = Field(
         ...,
         min_length=1,
         description="Domínio regulatório (LGPD, SOX, GDPR, etc.)"
+    )
+    process_id: Optional[str] = Field(
+        None,
+        description="ID do processo externo (opcional, para referência nos logs)"
     )
     additional_context: Optional[str] = Field(
         None,
@@ -203,8 +194,8 @@ class ComplianceSuggestion(BaseModel):
 class ComplianceAnalyzeResponse(BaseModel):
     """Response da análise de compliance."""
 
-    analysis_id: str = Field(..., description="ID da análise realizada")
-    process_id: str = Field(..., description="ID do processo analisado")
+    analysis_id: str = Field(..., description="ID da análise realizada (Audit Log)")
+    process_id: Optional[str] = Field(None, description="ID do processo externo")
     domain: str = Field(..., description="Domínio analisado")
     analyzed_at: datetime = Field(..., description="Timestamp da análise")
     overall_score: Optional[float] = Field(

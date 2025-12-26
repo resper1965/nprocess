@@ -1,15 +1,16 @@
 """
-n.process API - Microsserviço de análise de compliance de processos.
+n.process API - Microsserviço de análise de compliance de processos (Stateless).
+Security Hardening: HSTS, CSP, HTTPS Redirect, Trusted Host.
 """
 import logging
+import os
 from contextlib import asynccontextmanager
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import JSONResponse, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.schemas import (
     ComplianceAnalyzeRequest,
@@ -18,20 +19,15 @@ from app.schemas import (
     DiagramGenerateResponse,
     ErrorResponse,
     HealthCheckResponse,
-    ProcessCreateRequest,
-    ProcessCreateResponse,
 )
 from app.services.ai_service import get_ai_service
 from app.services.db_service import get_db_service
-from app.services.webhook_service import get_webhook_service
-from app.middleware.auth import validate_api_key
+from app.services.compliance_service import get_compliance_service
+from app.services.modeling_service import get_modeling_service
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.logging import StructuredLoggingMiddleware
 from app.middleware.tracing import TracingMiddleware
-from app.schemas_webhooks import WebhookEventType
-from app.routers import webhooks, apikeys, apikeys_user, versions, templates, tags, approvals, search, dashboard, backup, ai_suggestions, realtime, marketplace
-import os
-
+from app.middleware.auth import require_admin
 
 # ============================================================================
 # Logging Configuration
@@ -45,33 +41,50 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
+# Security Middleware (Custom Headers)
+# ============================================================================
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # HSTS (Strict-Transport-Security): 1 Year
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # X-Content-Type-Options: nosniff
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # X-Frame-Options: DENY (Prevent Clickjacking)
+        response.headers["X-Frame-Options"] = "DENY"
+        # Content-Security-Policy
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; object-src 'none';"
+        # Referrer-Policy
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        
+        return response
+
+# ============================================================================
 # Application Lifespan
 # ============================================================================
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gerencia inicialização e shutdown da aplicação."""
-    # Startup
-    logger.info("🚀 Inicializando n.process API...")
+    logger.info("🚀 Inicializando n.process API (Stateless Engine)...")
 
-    # Inicializa serviços
     try:
-        # Database Service é obrigatório
-        db_service = get_db_service()
-        
-        # AI Service é opcional (pode ser desabilitado com ENABLE_AI=false)
+        # Inicializa serviços essenciais
+        db_service = get_db_service() # Para logs de auditoria
         ai_service = get_ai_service()
-        if ai_service:
-            logger.info("✅ Serviços inicializados: Database ✅ | AI ✅")
-        else:
-            logger.info("✅ Serviços inicializados: Database ✅ | AI ⚠️ (desabilitada ou não configurada)")
-    except Exception as e:
-        logger.error(f"❌ Erro ao inicializar serviços: {e}")
-        raise
 
+        if ai_service:
+            logger.info("✅ Services: DB (Audit) ✅ | AI ✅")
+        else:
+            logger.info("✅ Services: DB (Audit) ✅ | AI ⚠️ (disabled)")
+            
+    except Exception as e:
+        logger.error(f"❌ Erro na inicialização: {e}")
+        # Não impede o startup, mas loga erro
+        
     yield
 
-    # Shutdown
     logger.info("👋 Encerrando n.process API...")
 
 
@@ -81,35 +94,38 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="n.process API",
-    description="API REST para análise de compliance de processos de negócio",
-    version="1.0.0",
+    description="Motor de Compliance e Modelagem de Processos (Stateless)",
+    version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
 
-# CORS Configuration - use ALLOWED_ORIGINS env var in production
+# 1. Trusted Host Middleware (Prevents Host Header Injection)
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,nprocess.ness.com.br").split(",")
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
+
+# 2. CORS Configuration
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS", 
-    "http://localhost:3001,http://localhost:3000,https://nprocess.ness.com.br"
+    "http://localhost:3000,https://nprocess.ness.com.br"
 ).split(",")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"], # Explicit allow list, unsafe to use "*"
+    allow_headers=["Authorization", "Content-Type", "X-API-Key"],
 )
 
-# Rate Limiting Middleware
+# 3. Security Headers
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Middleware Stack
 redis_url = os.getenv("REDIS_URL", None)
 app.add_middleware(RateLimitMiddleware, redis_url=redis_url)
-
-# Structured Logging Middleware
 app.add_middleware(StructuredLoggingMiddleware)
-
-# Tracing Middleware (must be added before other middleware)
 app.add_middleware(TracingMiddleware)
 
 
@@ -119,7 +135,6 @@ app.add_middleware(TracingMiddleware)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc: HTTPException):
-    """Handler para HTTPException."""
     return JSONResponse(
         status_code=exc.status_code,
         content=ErrorResponse(
@@ -132,629 +147,134 @@ async def http_exception_handler(request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc: Exception):
-    """Handler para exceções gerais."""
     logger.error(f"Erro não tratado: {exc}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=ErrorResponse(
             error="InternalServerError",
             message="Erro interno do servidor",
-            details={"type": exc.__class__.__name__}
+            details="Ocultado por segurança" # Don't leak stack traces
         ).model_dump()
     )
 
 
 # ============================================================================
-# Include Routers
-# ============================================================================
-
-app.include_router(webhooks.router)
-app.include_router(apikeys.router)
-app.include_router(apikeys_user.router)
-app.include_router(versions.router)
-app.include_router(templates.router)
-app.include_router(tags.router)
-app.include_router(approvals.router)
-app.include_router(search.router)
-app.include_router(dashboard.router)
-app.include_router(backup.router)
-app.include_router(ai_suggestions.router)
-app.include_router(realtime.router)
-app.include_router(marketplace.router)
-
-# ============================================================================
-# Health Check Endpoints
+# Health Check
 # ============================================================================
 
 @app.get("/", response_model=HealthCheckResponse, tags=["Health"])
 async def root():
-    """Endpoint raiz com informações básicas do serviço."""
-    return HealthCheckResponse()
+    return HealthCheckResponse(service="n.process engine", version="2.0.0")
 
 
 @app.get("/health", response_model=HealthCheckResponse, tags=["Health"])
 async def health_check():
-    """Health check endpoint."""
-    return HealthCheckResponse()
+    return HealthCheckResponse(service="n.process engine", version="2.0.0")
 
 
 # ============================================================================
-# Diagram Generation Endpoints
+# Modeling Endpoints
 # ============================================================================
 
 @app.post(
-    "/v1/diagrams/generate",
+    "/v1/modeling/generate",
     response_model=DiagramGenerateResponse,
-    status_code=status.HTTP_200_OK,
-    tags=["Diagrams"],
-    summary="Gera diagrama BPMN a partir de descrição textual",
-    description="""
-    Recebe uma descrição textual de um processo de negócio e retorna:
-    - Texto normalizado e estruturado do processo
-    - Código Mermaid.js para visualização BPMN
-    """
+    tags=["Modeling"],
+    summary="Gera diagrama BPMN a partir de texto"
 )
 async def generate_diagram(request: DiagramGenerateRequest):
-    """
-    Gera diagrama BPMN usando Vertex AI Gemini.
-
-    Args:
-        request: Requisição com descrição do processo.
-
-    Returns:
-        DiagramGenerateResponse com processo normalizado e código Mermaid.
-    """
+    """Gera diagrama BPMN usando IA."""
     try:
-        logger.info("Recebida requisição para geração de diagrama")
-
-        ai_service = get_ai_service()
-        if not ai_service:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Serviço de IA não está disponível. Configure ENABLE_AI=true e Vertex AI para usar este endpoint."
-            )
-        
-        result = await ai_service.generate_diagram(
-            description=request.description,
-            context=request.context
-        )
-
-        logger.info("Diagrama gerado com sucesso")
-        return result
-
+        service = get_modeling_service()
+        return await service.generate_diagram(request)
     except ValueError as e:
-        logger.error(f"Erro de validação: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
         logger.error(f"Erro ao gerar diagrama: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao processar requisição de geração de diagrama"
-        )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Falha na geração")
 
 
 # ============================================================================
-# Process Management Endpoints
-# ============================================================================
-
-@app.post(
-    "/v1/processes",
-    response_model=ProcessCreateResponse,
-    status_code=status.HTTP_201_CREATED,
-    tags=["Processes"],
-    summary="Cria um novo processo validado",
-    description="""
-    Salva um processo de negócio completo no Firestore.
-    O processo deve incluir:
-    - Nome e descrição
-    - Código Mermaid.js
-    - Nós e fluxos estruturados
-    """
-)
-async def create_process(request: ProcessCreateRequest):
-    """
-    Cria um novo processo no banco de dados.
-
-    Args:
-        request: Dados completos do processo.
-
-    Returns:
-        ProcessCreateResponse com ID do processo criado.
-    """
-    try:
-        logger.info(f"Recebida requisição para criar processo: {request.name}")
-
-        db_service = get_db_service()
-
-        # Converte request para dict e salva
-        process_data = request.model_dump()
-        process_id = await db_service.create_process(process_data)
-
-        logger.info(f"Processo criado com sucesso: {process_id}")
-
-        # Trigger webhook event (if API key provided)
-        api_key = await validate_api_key()
-        if api_key and api_key.key_id:
-            try:
-                webhook_service = get_webhook_service()
-                await webhook_service.trigger_event(
-                    api_key_id=api_key.key_id,
-                    event_type=WebhookEventType.PROCESS_CREATED,
-                    event_id=process_id,
-                    payload={
-                        "process_id": process_id,
-                        "name": request.name,
-                        "category": request.category,
-                        "created_at": datetime.utcnow().isoformat(),
-                    }
-                )
-            except Exception as e:
-                logger.warning(f"Failed to trigger webhook for process.created: {e}")
-
-        return ProcessCreateResponse(
-            process_id=process_id,
-            created_at=datetime.utcnow(),
-            message="Processo criado com sucesso"
-        )
-
-    except Exception as e:
-        logger.error(f"Erro ao criar processo: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao salvar processo no banco de dados"
-        )
-
-
-@app.get(
-    "/v1/processes/{process_id}",
-    response_model=Dict,
-    tags=["Processes"],
-    summary="Recupera um processo pelo ID"
-)
-async def get_process(process_id: str):
-    """
-    Recupera os dados de um processo.
-
-    Args:
-        process_id: ID do processo.
-
-    Returns:
-        Dados completos do processo.
-    """
-    try:
-        db_service = get_db_service()
-        process_data = await db_service.get_process(process_id)
-
-        if not process_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Processo não encontrado: {process_id}"
-            )
-
-        return process_data
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Erro ao recuperar processo: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao recuperar processo"
-        )
-
-
-@app.get(
-    "/v1/processes",
-    response_model=List[Dict],
-    tags=["Processes"],
-    summary="Lista processos"
-)
-async def list_processes(
-    limit: int = 100,
-    domain: str = None
-):
-    """
-    Lista processos com filtros opcionais.
-
-    Args:
-        limit: Número máximo de resultados (padrão: 100).
-        domain: Filtrar por domínio (opcional).
-
-    Returns:
-        Lista de processos.
-    """
-    try:
-        db_service = get_db_service()
-        processes = await db_service.list_processes(limit=limit, domain=domain)
-        return processes
-
-    except Exception as e:
-        logger.error(f"Erro ao listar processos: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao listar processos"
-        )
-
-
-# ============================================================================
-# Compliance Analysis Endpoints
+# Compliance Endpoints
 # ============================================================================
 
 @app.post(
     "/v1/compliance/analyze",
     response_model=ComplianceAnalyzeResponse,
-    status_code=status.HTTP_200_OK,
     tags=["Compliance"],
-    summary="Analisa compliance de um processo",
-    description="""
-    Analisa um processo contra regulamentações do domínio especificado.
-
-    Fluxo:
-    1. Recupera o processo do Firestore
-    2. Busca regulamentos aplicáveis (RAG - mock implementado)
-    3. Analisa com Vertex AI Gemini
-    4. Retorna gaps e sugestões de compliance
-    5. Salva análise no Firestore
-    """
+    summary="Analisa compliance de um processo (Stateless)"
 )
 async def analyze_compliance(request: ComplianceAnalyzeRequest):
     """
-    Analisa compliance de um processo.
-
-    Args:
-        request: Requisição com process_id e domain.
-
-    Returns:
-        ComplianceAnalyzeResponse com gaps e sugestões.
+    Analisa um processo fornecido no corpo da requisição.
+    Não persiste o processo, apenas registra o log da auditoria.
     """
     try:
-        logger.info(
-            f"Recebida requisição de análise: process_id={request.process_id}, "
-            f"domain={request.domain}"
-        )
-
-        db_service = get_db_service()
-        ai_service = get_ai_service()
-        
-        if not ai_service:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Serviço de IA não está disponível. Configure ENABLE_AI=true e Vertex AI para usar este endpoint."
-            )
-
-        # 1. Buscar processo no Firestore
-        process_data = await db_service.get_process(request.process_id)
-        if not process_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Processo não encontrado: {request.process_id}"
-            )
-
-        logger.info(f"Processo recuperado: {process_data.get('name')}")
-
-        # 2. Buscar regulamentos aplicáveis (Mock/Stub - RAG)
-        # TODO: Implement Vertex AI Search Retrieval here
-        retrieved_regulations = _mock_retrieve_regulations(request.domain)
-        logger.info(f"Recuperados {len(retrieved_regulations)} regulamentos (mock)")
-
-        # 3. Analisar com Gemini
-        overall_score, summary, gaps, suggestions = await ai_service.analyze_compliance(
-            process_data=process_data,
-            retrieved_regulations=retrieved_regulations,
-            domain=request.domain,
-            additional_context=request.additional_context
-        )
-
-        # 4. Criar objeto de resposta
-        analysis_response = ComplianceAnalyzeResponse(
-            analysis_id="",  # Será preenchido após salvar
-            process_id=request.process_id,
-            domain=request.domain,
-            analyzed_at=datetime.utcnow(),
-            overall_score=overall_score,
-            gaps=gaps,
-            suggestions=suggestions,
-            summary=summary
-        )
-
-        # 5. Salvar análise no Firestore
-        analysis_data = analysis_response.model_dump()
-        analysis_data.pop("analysis_id")  # Remove temporário
-        analysis_id = await db_service.create_analysis(analysis_data)
-
-        # Atualiza o ID na resposta
-        analysis_response.analysis_id = analysis_id
-
-        logger.info(f"Análise concluída: {analysis_id}")
-
-        # Trigger webhook event (if API key provided)
-        api_key = await validate_api_key()
-        if api_key and api_key.key_id:
-            try:
-                webhook_service = get_webhook_service()
-                await webhook_service.trigger_event(
-                    api_key_id=api_key.key_id,
-                    event_type=WebhookEventType.ANALYSIS_COMPLETED,
-                    event_id=analysis_id,
-                    payload={
-                        "analysis_id": analysis_id,
-                        "process_id": request.process_id,
-                        "domain": request.domain,
-                        "overall_score": overall_score,
-                        "completed_at": datetime.utcnow().isoformat(),
-                    }
-                )
-            except Exception as e:
-                logger.warning(f"Failed to trigger webhook for analysis.completed: {e}")
-        
-        # TODO: Implement real-time score updates
-        # Requires BackgroundTasks dependency injection
-
-        return analysis_response
-
-    except HTTPException:
-        raise
+        service = get_compliance_service()
+        return await service.analyze_compliance(request)
     except ValueError as e:
-        logger.error(f"Erro de validação: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
-        logger.error(f"Erro ao analisar compliance: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao processar análise de compliance"
-        )
-
-
-@app.get(
-    "/v1/compliance/analyses/{analysis_id}",
-    response_model=Dict,
-    tags=["Compliance"],
-    summary="Recupera uma análise pelo ID"
-)
-async def get_analysis(analysis_id: str):
-    """
-    Recupera os dados de uma análise de compliance.
-
-    Args:
-        analysis_id: ID da análise.
-
-    Returns:
-        Dados completos da análise.
-    """
-    try:
-        db_service = get_db_service()
-        analysis_data = await db_service.get_analysis(analysis_id)
-
-        if not analysis_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Análise não encontrada: {analysis_id}"
-            )
-
-        return analysis_data
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Erro ao recuperar análise: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao recuperar análise"
-        )
+        logger.error(f"Erro na análise: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Falha na análise")
 
 
 # ============================================================================
-# Documentation Endpoints
+# Knowledge Ingestion Endpoints (Admin Only)
 # ============================================================================
 
-@app.get(
-    "/v1/docs/prompts",
-    response_class=PlainTextResponse,
-    tags=["Documentation"],
-    summary="Retorna exemplos de prompts para ferramentas de IA",
-    description="""
-    Retorna o conteúdo completo do arquivo PROMPTS_EXAMPLES.md com exemplos de prompts
-    para usar em Cursor, Claude Code, Antigravity e outras ferramentas de IA de desenvolvimento.
-    """
+from pydantic import BaseModel
+from typing import Optional, Dict, Any as TypingAny
+
+class IngestRequest(BaseModel):
+    source_type: str  # 'legal' | 'technical' | 'web'
+    source: str  # URL, File Path, or Raw Text
+    source_id: str  # Unique identifier (e.g., 'lgpd_br')
+    metadata: Optional[Dict[str, TypingAny]] = None
+
+class IngestResponse(BaseModel):
+    status: str
+    source_id: Optional[str] = None
+    chunks_generated: Optional[int] = None
+    chunks_saved: Optional[int] = None
+    reason: Optional[str] = None
+    sample_chunk: Optional[str] = None
+
+@app.post(
+    "/v1/admin/ingest",
+    response_model=IngestResponse,
+    tags=["Admin"],
+    summary="Ingere conhecimento para o Vector Store (Admin)"
 )
-async def get_prompts():
-    """Retorna exemplos de prompts para ferramentas de IA."""
-    try:
-        # Caminho relativo ao diretório raiz do projeto
-        prompts_path = Path(__file__).parent.parent / "docs" / "PROMPTS_EXAMPLES.md"
-        
-        if not prompts_path.exists():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Arquivo de prompts não encontrado"
-            )
-        
-        content = prompts_path.read_text(encoding="utf-8")
-        return PlainTextResponse(content, media_type="text/markdown")
+async def ingest_knowledge(
+    request: IngestRequest,
+    current_user: dict = Depends(require_admin)  # Admin auth required
+):
+    """
+    Ingere documentos regulatórios no sistema RAG.
+    Requer autenticação de Admin.
+    """
+    logger.info(f"Ingestion requested by: {current_user.get('uid', 'unknown')}")
     
-    except Exception as e:
-        logger.error(f"Erro ao ler arquivo de prompts: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao recuperar prompts"
-        )
-
-
-@app.get(
-    "/v1/docs/integration",
-    response_class=PlainTextResponse,
-    tags=["Documentation"],
-    summary="Retorna manual de integração",
-    description="""
-    Retorna o conteúdo completo do arquivo INTEGRATION.md com guia completo
-    de como integrar a n.process API em outras aplicações.
-    """
-)
-async def get_integration_guide():
-    """Retorna manual de integração."""
     try:
-        integration_path = Path(__file__).parent.parent / "docs" / "INTEGRATION.md"
+        from app.services.ingestion import ingest_command_handler
         
-        if not integration_path.exists():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Manual de integração não encontrado"
-            )
+        result = ingest_command_handler({
+            "source_type": request.source_type,
+            "source": request.source,
+            "source_id": request.source_id,
+            "metadata": request.metadata or {}
+        })
         
-        content = integration_path.read_text(encoding="utf-8")
-        return PlainTextResponse(content, media_type="text/markdown")
-    
+        return IngestResponse(**result)
+        
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
-        logger.error(f"Erro ao ler manual de integração: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao recuperar manual de integração"
-        )
+        logger.error(f"Erro na ingestão: {e}", exc_info=True)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Falha na ingestão")
 
-
-@app.get(
-    "/v1/docs",
-    response_model=Dict,
-    tags=["Documentation"],
-    summary="Lista documentação disponível",
-    description="""
-    Retorna lista de documentação disponível na API com links para acessar.
-    """
-)
-async def list_documentation():
-    """Lista documentação disponível."""
-    base_url = "/v1/docs"
-    
-    return {
-        "available_docs": [
-            {
-                "name": "Prompts Examples",
-                "description": "Exemplos de prompts para Cursor, Claude Code, Antigravity",
-                "endpoint": f"{base_url}/prompts",
-                "format": "markdown"
-            },
-            {
-                "name": "Integration Guide",
-                "description": "Manual completo de integração da API",
-                "endpoint": f"{base_url}/integration",
-                "format": "markdown"
-            },
-            {
-                "name": "API Documentation",
-                "description": "Documentação interativa da API (Swagger)",
-                "endpoint": "/docs",
-                "format": "swagger"
-            },
-            {
-                "name": "ReDoc Documentation",
-                "description": "Documentação alternativa da API",
-                "endpoint": "/redoc",
-                "format": "redoc"
-            }
-        ],
-        "note": "Acesse os endpoints acima para obter a documentação completa"
-    }
-
-
-# ============================================================================
-# Mock/Stub Functions
-# ============================================================================
-
-def _mock_retrieve_regulations(domain: str) -> List[Dict]:
-    """
-    Mock para recuperação de regulamentos via RAG.
-
-    TODO: Implement Vertex AI Search Retrieval here
-
-    Esta função deve ser substituída por integração real com:
-    - Vertex AI Search (para RAG sobre base de regulamentos)
-    - Ou outro sistema de busca vetorial/semântica
-
-    Args:
-        domain: Domínio regulatório (LGPD, SOX, GDPR, etc.)
-
-    Returns:
-        Lista de regulamentos recuperados.
-    """
-    # Dados mock baseados no domínio
-    mock_regulations = {
-        "LGPD": [
-            {
-                "title": "LGPD - Lei Geral de Proteção de Dados",
-                "article": "Art. 6º",
-                "content": (
-                    "As atividades de tratamento de dados pessoais deverão observar "
-                    "a boa-fé e os seguintes princípios: I - finalidade; II - adequação; "
-                    "III - necessidade; IV - livre acesso; V - qualidade dos dados; "
-                    "VI - transparência; VII - segurança; VIII - prevenção; "
-                    "IX - não discriminação; X - responsabilização e prestação de contas."
-                )
-            },
-            {
-                "title": "LGPD - Lei Geral de Proteção de Dados",
-                "article": "Art. 46",
-                "content": (
-                    "Os agentes de tratamento devem adotar medidas de segurança, "
-                    "técnicas e administrativas aptas a proteger os dados pessoais "
-                    "de acessos não autorizados e de situações acidentais ou ilícitas."
-                )
-            }
-        ],
-        "SOX": [
-            {
-                "title": "Sarbanes-Oxley Act - Section 404",
-                "article": "Section 404",
-                "content": (
-                    "Management must assess the effectiveness of internal controls "
-                    "over financial reporting. This includes establishing procedures "
-                    "for the preparation of financial statements, maintaining records, "
-                    "and ensuring proper authorization of transactions."
-                )
-            }
-        ],
-        "GDPR": [
-            {
-                "title": "GDPR - General Data Protection Regulation",
-                "article": "Article 32",
-                "content": (
-                    "Taking into account the state of the art, the controller and "
-                    "processor shall implement appropriate technical and organizational "
-                    "measures to ensure a level of security appropriate to the risk."
-                )
-            }
-        ]
-    }
-
-    # Retorna regulamentos do domínio ou lista vazia
-    return mock_regulations.get(domain.upper(), [
-        {
-            "title": f"Regulamento Genérico - {domain}",
-            "article": "Artigo Geral",
-            "content": (
-                f"Este é um regulamento mock para o domínio {domain}. "
-                "Implementar busca real via RAG/Vertex AI Search."
-            )
-        }
-    ])
-
-
-# ============================================================================
-# Main
-# ============================================================================
 
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8080,
-        reload=True,
-        log_level="info"
-    )
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8080, reload=True)

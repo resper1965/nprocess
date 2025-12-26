@@ -1,0 +1,7 @@
+Contact: mailto:security@nprocess.com
+Expires: 2026-12-31T23:59:00.000Z
+Preferred-Languages: en, pt-br
+Canonical: https://nprocess.ness.com.br/.well-known/security.txt
+Policy: https://nprocess.ness.com.br/security
+Encryption: https://nprocess.ness.com.br/pgp-key.txt
+Acknowledgments: https://nprocess.ness.com.br/hall-of-fame
