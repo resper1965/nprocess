@@ -1,15 +1,18 @@
 # Deployment Log
 
-**Data**: 2025-12-25  
-**Status**: 🔄 Em Progresso
+**Data**: 2025-12-26  
+**Status**: ✅ Deploy Completo
 
 ---
 
 ## ✅ Deployment Realizado
 
 ### Firebase Hosting
-- ✅ Admin Dashboard deployado
+- ✅ Admin Dashboard deployado (2025-12-26 02:09 UTC)
+- ✅ Build estático gerado com sucesso (11 páginas)
 - ✅ URL: https://nprocess.ness.com.br
+- ✅ HTTP 200 - Funcionando corretamente
+- ✅ Problema de hidratação resolvido
 
 ### Cloud Run Services
 - ⏳ Verificando serviços para deploy
