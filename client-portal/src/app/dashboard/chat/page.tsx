@@ -5,8 +5,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Send, Bot, User, Sparkles } from 'lucide-react'
+import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/lib/auth-context'
 
 interface Message {
   id: string
@@ -15,18 +16,58 @@ interface Message {
   timestamp: Date
 }
 
+interface ChatStats {
+  messagesUsed: number
+  messagesLimit: number
+}
+
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello! I\'m your ComplianceEngine AI assistant powered by Gemini. I can help you with compliance questions, analyze documents, and guide you through regulatory requirements. How can I assist you today?',
-      timestamp: new Date(),
-    },
-  ])
+  const { user } = useAuth()
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [chatStats, setChatStats] = useState<ChatStats | null>(null)
+  const [loadingStats, setLoadingStats] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const loadChatData = async () => {
+      try {
+        setLoadingStats(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/chat/stats')
+        // const data = await response.json()
+
+        setChatStats({
+          messagesUsed: 0,
+          messagesLimit: 100
+        })
+
+        // Load chat history
+        // const historyResponse = await fetch('/api/chat/history')
+        // const history = await historyResponse.json()
+        // setMessages(history)
+
+        // For now, start with welcome message
+        setMessages([
+          {
+            id: '1',
+            role: 'assistant',
+            content: 'Hello! I\'m your n.process AI assistant powered by Gemini. I can help you with compliance questions, analyze documents, and guide you through regulatory requirements. How can I assist you today?',
+            timestamp: new Date(),
+          },
+        ])
+      } catch (err) {
+        console.error('Failed to load chat data:', err)
+      } finally {
+        setLoadingStats(false)
+      }
+    }
+
+    if (user) {
+      loadChatData()
+    }
+  }, [user])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -47,21 +88,42 @@ export default function ChatPage() {
     }
 
     setMessages(prev => [...prev, userMessage])
+    const currentInput = input
     setInput('')
     setIsLoading(true)
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
+    try {
+      // TODO: Replace with actual API call to Gemini
+      // const response = await fetch('/api/chat/send', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ message: currentInput })
+      // })
+      // const data = await response.json()
+
+      // Temporary: Show message that API needs to be connected
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I understand your question about compliance. Let me help you with that. [This is a simulated response. In production, this would connect to the Gemini API through your backend.]',
+        content: 'Chat API integration pending. Connect the Gemini API endpoint at /api/chat/send to enable AI responses.',
         timestamp: new Date(),
       }
 
       setMessages(prev => [...prev, assistantMessage])
+
+      // Update stats
+      if (chatStats) {
+        setChatStats({
+          ...chatStats,
+          messagesUsed: chatStats.messagesUsed + 1
+        })
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      toast.error('Failed to send message. Please try again.')
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   const suggestedQuestions = [
@@ -70,6 +132,14 @@ export default function ChatPage() {
     'Explain ISO 27001 certification process',
     'What is required for FDA 510(k) clearance?',
   ]
+
+  if (loadingStats) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col space-y-4">
@@ -89,9 +159,11 @@ export default function ChatPage() {
             Get instant answers to your compliance questions
           </p>
         </div>
-        <Badge variant="glass" className="text-sm px-4 py-2">
-          67 / 100 messages used
-        </Badge>
+        {chatStats && (
+          <Badge variant="glass" className="text-sm px-4 py-2">
+            {chatStats.messagesUsed} / {chatStats.messagesLimit} messages used
+          </Badge>
+        )}
       </div>
 
       {/* Chat Container */}
