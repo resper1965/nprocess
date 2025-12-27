@@ -1,29 +1,54 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Key, Plus, Copy, Trash2, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { Key, Plus, Copy, Trash2, Eye, EyeOff, CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/lib/auth-context'
+
+interface APIKey {
+  id: string
+  name: string
+  key: string
+  created: string
+  lastUsed?: string
+  status: string
+}
 
 export default function APIKeysPage() {
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [apiKeys, setApiKeys] = useState<APIKey[]>([])
   const [showNewKeyDialog, setShowNewKeyDialog] = useState(false)
   const [newKeyName, setNewKeyName] = useState('')
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
 
-  // Mock data - will be replaced with real API
-  const apiKeys = [
-    {
-      id: 'key_abc123',
-      name: 'Production Key',
-      key: 'ce_live_sk_1234567890abcdefghijklmnopqrstuvwxyz',
-      created: '2024-01-15',
-      lastUsed: '2 hours ago',
-      status: 'active',
-    },
-  ]
+  useEffect(() => {
+    const fetchAPIKeys = async () => {
+      try {
+        setLoading(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/api-keys')
+        // const data = await response.json()
+        // setApiKeys(data)
+
+        // For now, return empty array
+        setApiKeys([])
+      } catch (err) {
+        console.error('Failed to load API keys:', err)
+        toast.error('Failed to load API keys')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user) {
+      fetchAPIKeys()
+    }
+  }, [user])
 
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key)
@@ -58,6 +83,14 @@ export default function APIKeysPage() {
     const prefix = key.slice(0, 12)
     const suffix = key.slice(-4)
     return `${prefix}${'•'.repeat(20)}${suffix}`
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -144,8 +177,25 @@ export default function APIKeysPage() {
       )}
 
       {/* API Keys List */}
-      <div className="space-y-4">
-        {apiKeys.map((apiKey) => {
+      {apiKeys.length === 0 && !showNewKeyDialog ? (
+        <Card glass>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Key className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No API Keys Yet
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center max-w-md">
+              Create your first API key to start using the n.process API in your applications
+            </p>
+            <Button onClick={() => setShowNewKeyDialog(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create Your First API Key
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {apiKeys.map((apiKey) => {
           const isRevealed = revealedKeys.has(apiKey.id)
 
           return (
@@ -225,8 +275,9 @@ export default function APIKeysPage() {
               </CardContent>
             </Card>
           )
-        })}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Documentation */}
       <Card glass>

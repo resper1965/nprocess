@@ -1,76 +1,131 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Activity, Key, FileText, MessageSquare, TrendingUp, AlertCircle } from 'lucide-react'
+import { Activity, Key, FileText, MessageSquare, TrendingUp, AlertCircle, Loader2 } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+
+interface Stat {
+  name: string
+  value: string
+  limit: string
+  percentage: number
+  icon: any
+  trend: string
+  color: string
+}
+
+interface ActivityItem {
+  action: string
+  document: string
+  time: string
+  status: string
+}
+
+interface DashboardData {
+  stats: Stat[]
+  recentActivity: ActivityItem[]
+  plan: {
+    name: string
+    price: number
+  }
+}
 
 export default function DashboardPage() {
-  // Mock data - will be replaced with real API calls
-  const stats = [
-    {
-      name: 'API Calls',
-      value: '847',
-      limit: '1,000',
-      percentage: 84.7,
-      icon: Activity,
-      trend: '+12% from last month',
-      color: 'text-blue-500',
-    },
-    {
-      name: 'Documents Analyzed',
-      value: '23',
-      limit: '50',
-      percentage: 46,
-      icon: FileText,
-      trend: '+5 this month',
-      color: 'text-green-500',
-    },
-    {
-      name: 'Active API Keys',
-      value: '1',
-      limit: '1',
-      percentage: 100,
-      icon: Key,
-      trend: 'Starter plan limit',
-      color: 'text-purple-500',
-    },
-    {
-      name: 'Chat Messages',
-      value: '67',
-      limit: '100',
-      percentage: 67,
-      icon: MessageSquare,
-      trend: '+23 this week',
-      color: 'text-cyan-500',
-    },
-  ]
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const recentActivity = [
-    {
-      action: 'Document analyzed',
-      document: 'LGPD Compliance Policy v2.pdf',
-      time: '2 hours ago',
-      status: 'success',
-    },
-    {
-      action: 'API key created',
-      document: 'Production Key',
-      time: '1 day ago',
-      status: 'success',
-    },
-    {
-      action: 'Chat session',
-      document: 'HIPAA Requirements Discussion',
-      time: '2 days ago',
-      status: 'success',
-    },
-    {
-      action: 'Integration configured',
-      document: 'Google Drive',
-      time: '3 days ago',
-      status: 'success',
-    },
-  ]
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true)
+        // TODO: Replace with actual API endpoint
+        // const response = await fetch('/api/dashboard/stats')
+        // const data = await response.json()
+
+        // For now, return empty/zero data until API is connected
+        setData({
+          stats: [
+            {
+              name: 'API Calls',
+              value: '0',
+              limit: '1,000',
+              percentage: 0,
+              icon: Activity,
+              trend: 'No data yet',
+              color: 'text-blue-500',
+            },
+            {
+              name: 'Documents Analyzed',
+              value: '0',
+              limit: '50',
+              percentage: 0,
+              icon: FileText,
+              trend: 'No data yet',
+              color: 'text-green-500',
+            },
+            {
+              name: 'Active API Keys',
+              value: '0',
+              limit: '1',
+              percentage: 0,
+              icon: Key,
+              trend: 'Create your first key',
+              color: 'text-purple-500',
+            },
+            {
+              name: 'Chat Messages',
+              value: '0',
+              limit: '100',
+              percentage: 0,
+              icon: MessageSquare,
+              trend: 'Start chatting',
+              color: 'text-cyan-500',
+            },
+          ],
+          recentActivity: [],
+          plan: {
+            name: 'Starter',
+            price: 99
+          }
+        })
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err)
+        setError('Failed to load dashboard data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user) {
+      fetchDashboardData()
+    }
+  }, [user])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card glass>
+          <CardContent className="p-6">
+            <p className="text-red-500">{error || 'No data available'}</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const { stats, recentActivity, plan } = data
 
   return (
     <div className="space-y-8">
@@ -90,10 +145,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Badge variant="glass" className="text-base px-4 py-2">
-                Starter Plan
+                {plan.name} Plan
               </Badge>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                3 frameworks included • $99/month
+                3 frameworks included • ${plan.price}/month
               </p>
             </div>
             <button className="text-sm text-primary hover:underline font-medium">
@@ -166,31 +221,40 @@ export default function DashboardPage() {
           <CardDescription>Your latest compliance operations</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-3 border-b border-white/10 dark:border-gray-800/30 last:border-0"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {activity.action}
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {activity.document}
-                  </p>
+          {recentActivity.length === 0 ? (
+            <div className="text-center py-8">
+              <Activity className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                No recent activity yet. Start by analyzing a document or chatting with AI.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentActivity.map((activity, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-3 border-b border-white/10 dark:border-gray-800/30 last:border-0"
+                >
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {activity.action}
+                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {activity.document}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {activity.time}
+                    </span>
+                    <Badge variant="success" className="text-xs">
+                      {activity.status}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {activity.time}
-                  </span>
-                  <Badge variant="success" className="text-xs">
-                    {activity.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
