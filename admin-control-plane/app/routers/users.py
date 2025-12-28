@@ -1,23 +1,19 @@
 """User Management Router"""
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
-from sqlalchemy.orm import Session
 from app.schemas import UserCreate, UserResponse, UserUpdate, UserRole, UserStatus
 from app.middleware.auth import get_current_user
-from app.services.db import get_db
 from app.services.user_service import UserService
-from datetime import datetime
 
 router = APIRouter()
 
 @router.post("/", response_model=UserResponse)
 async def create_user(
     request: UserCreate,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user)
 ):
     """Create a new user"""
-    user_service = UserService(db)
+    user_service = UserService()
     
     try:
         user_data = user_service.create_user(
@@ -32,7 +28,7 @@ async def create_user(
             email=user_data["email"],
             name=user_data["name"],
             role=UserRole(user_data["role"]),
-            status=UserStatus.ACTIVE if user_data["is_active"] else UserStatus.INACTIVE,
+            status=UserStatus.ACTIVE if user_data.get("is_active", True) else UserStatus.INACTIVE,
             created_at=user_data["created_at"],
             updated_at=user_data["updated_at"],
             last_login_at=user_data.get("last_login")
@@ -43,12 +39,11 @@ async def create_user(
 @router.get("/", response_model=List[UserResponse])
 async def list_users(
     current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db),
     limit: int = 100,
     offset: int = 0
 ):
     """List all users"""
-    user_service = UserService(db)
+    user_service = UserService()
     users = user_service.list_users(limit=limit, offset=offset)
     
     return [
@@ -57,7 +52,7 @@ async def list_users(
             email=u["email"],
             name=u["name"],
             role=UserRole(u["role"]),
-            status=UserStatus.ACTIVE if u["is_active"] else UserStatus.INACTIVE,
+            status=UserStatus.ACTIVE if u.get("is_active", True) else UserStatus.INACTIVE,
             created_at=u["created_at"],
             updated_at=u["updated_at"],
             last_login_at=u.get("last_login")
@@ -68,11 +63,10 @@ async def list_users(
 @router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: str,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user)
 ):
     """Get user by ID"""
-    user_service = UserService(db)
+    user_service = UserService()
     user_data = user_service.get_user_by_id(user_id)
     
     if not user_data:
@@ -83,7 +77,7 @@ async def get_user(
         email=user_data["email"],
         name=user_data["name"],
         role=UserRole(user_data["role"]),
-        status=UserStatus.ACTIVE if user_data["is_active"] else UserStatus.INACTIVE,
+        status=UserStatus.ACTIVE if user_data.get("is_active", True) else UserStatus.INACTIVE,
         created_at=user_data["created_at"],
         updated_at=user_data["updated_at"],
         last_login_at=user_data.get("last_login")
@@ -93,11 +87,10 @@ async def get_user(
 async def update_user(
     user_id: str,
     request: UserUpdate,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user)
 ):
     """Update user"""
-    user_service = UserService(db)
+    user_service = UserService()
     
     user_data = user_service.update_user(
         user_id=user_id,
@@ -114,7 +107,7 @@ async def update_user(
         email=user_data["email"],
         name=user_data["name"],
         role=UserRole(user_data["role"]),
-        status=UserStatus.ACTIVE if user_data["is_active"] else UserStatus.INACTIVE,
+        status=UserStatus.ACTIVE if user_data.get("is_active", True) else UserStatus.INACTIVE,
         created_at=user_data["created_at"],
         updated_at=user_data["updated_at"],
         last_login_at=user_data.get("last_login")
@@ -123,11 +116,10 @@ async def update_user(
 @router.delete("/{user_id}")
 async def delete_user(
     user_id: str,
-    current_user: dict = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: dict = Depends(get_current_user)
 ):
     """Delete user (soft delete)"""
-    user_service = UserService(db)
+    user_service = UserService()
     
     user_data = user_service.get_user_by_id(user_id)
     if not user_data:
@@ -136,3 +128,4 @@ async def delete_user(
     user_service.delete_user(user_id)
     
     return {"success": True, "message": f"User {user_id} deleted"}
+

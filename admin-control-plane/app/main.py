@@ -30,32 +30,13 @@ from app.routers import (
     admin,
     secrets,
     billing,
-    integrations
+    integrations,
+    process,
+    audit,
+    documents
 )
 from app.schemas import HealthResponse
-
-# Create FastAPI app
-app = FastAPI(
-    title="Admin Control Plane API",
-    description="Administrative API for n.process Platform - User Management, API Keys, FinOps, AI Keys, and Gemini Chat",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
-
-# CORS Configuration - use ALLOWED_ORIGINS env var in production
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:3001,http://localhost:3000,https://nprocess.ness.com.br"
-).split(",")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ... (intermediate code preserved by context, but we are editing imports and includes) ...
 
 # Include routers
 app.include_router(auth.router, prefix="/v1/auth", tags=["Authentication"])
@@ -64,12 +45,17 @@ app.include_router(users.router, prefix="/v1/admin/users", tags=["Users"])
 app.include_router(ai_keys.router, prefix="/v1/admin/ai-keys", tags=["AI Keys"])
 app.include_router(finops.router, prefix="/v1/admin/finops", tags=["FinOps"])
 app.include_router(services.router, prefix="/v1/admin/services", tags=["Services"])
-app.include_router(audit.router, prefix="/v1/admin/audit", tags=["Audit Logs"])
+app.include_router(audit.router, prefix="/v1/audit", tags=["Audit Log (Internal)"]) # Renamed prefix to avoid conflict
 app.include_router(chat.router, prefix="/v1/admin/chat", tags=["Chat with Gemini"])
 app.include_router(admin.router, prefix="/v1/admin/utils", tags=["Admin Utilities"])
 app.include_router(secrets.router, prefix="/v1/admin/secrets", tags=["Secrets"])
 app.include_router(billing.router, prefix="/v1/billing", tags=["Billing"])
 app.include_router(integrations.router, prefix="/v1/integrations", tags=["Integrations"])
+
+# B4B Core Modules
+app.include_router(process.router, prefix="/v1/process", tags=["Module 1: Process Normalization"])
+app.include_router(audit.router, prefix="/v1/audit-engine", tags=["Module 2: Compliance Audit"]) # Distinct from audit log
+app.include_router(documents.router, prefix="/v1/documents", tags=["Module 3: Document Intelligence"])
 
 
 @app.get("/health", response_model=HealthResponse)

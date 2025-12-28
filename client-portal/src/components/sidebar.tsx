@@ -19,6 +19,7 @@ import {
   Users,
   Settings,
   LogOut,
+  BookOpen,
 } from 'lucide-react'
 
 export function Sidebar() {
@@ -36,6 +37,7 @@ export function Sidebar() {
     { name: t.navigation.chat, href: '/dashboard/chat', icon: MessageSquare },
     { name: t.navigation.billing, href: '/dashboard/billing', icon: CreditCard },
     { name: t.navigation.team, href: '/dashboard/team', icon: Users },
+    { name: "Manual", href: '/dashboard/manual', icon: BookOpen },
   ]
 
   const bottomNavigation = [

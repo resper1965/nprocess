@@ -1,0 +1,30 @@
+{
+  "name": "nprocess",
+  "version": "1.0.0",
+  "private": true,
+  "description": "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)](https://fastapi.tiangolo.com/) [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"No tests specified yet\" && exit 0",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/resper1965/nprocess.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/resper1965/nprocess/issues"
+  },
+  "homepage": "https://github.com/resper1965/nprocess#readme",
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "^4.1.2",
+    "husky": "^8.0.0"
+  }
+}

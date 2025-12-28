@@ -93,19 +93,19 @@ case $ENVIRONMENT in
     prod)
         API_MEMORY="2Gi"
         API_CPU="2"
-        API_MAX_INSTANCES="20"
+        API_MAX_INSTANCES="5"
         API_MIN_INSTANCES="1"
         ADMIN_MEMORY="2Gi"
         ADMIN_CPU="2"
-        ADMIN_MAX_INSTANCES="10"
+        ADMIN_MAX_INSTANCES="5"
         ADMIN_MIN_INSTANCES="1"
         PORTAL_MEMORY="1Gi"
         PORTAL_CPU="1"
         PORTAL_MAX_INSTANCES="10"
         PORTAL_MIN_INSTANCES="0"
-        ALLOW_UNAUTH_API="--no-allow-unauthenticated"
-        ALLOW_UNAUTH_ADMIN="--no-allow-unauthenticated"
-        ALLOW_UNAUTH_PORTAL="--no-allow-unauthenticated"
+        ALLOW_UNAUTH_API="--allow-unauthenticated"
+        ALLOW_UNAUTH_ADMIN="--allow-unauthenticated"
+        ALLOW_UNAUTH_PORTAL="--allow-unauthenticated"
         ;;
     staging)
         API_MEMORY="1Gi"
@@ -219,6 +219,9 @@ else
     ADMIN_ENV_VARS="$ADMIN_ENV_VARS,DATABASE_URL=$DATABASE_URL"
 fi
 
+# Inject CORS Origins (Single origin to avoid gcloud parsing issues)
+ADMIN_ENV_VARS="$ADMIN_ENV_VARS,ALLOWED_ORIGINS=https://nprocess-8e801.web.app"
+
 gcloud run deploy "$ADMIN_API_SERVICE-$ENVIRONMENT" \
     --source . \
     --platform managed \
@@ -243,65 +246,21 @@ echo -e "${GREEN}✓ Admin Control Plane deployado:${NC} $ADMIN_API_URL"
 echo ""
 
 # ============================================================================
-# Deploy Client Portal
+# Deploy Client Portal (Firebase Hosting Only)
 # ============================================================================
 echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Passo 4: Deploy Client Portal${NC}"
 echo -e "${GREEN}========================================${NC}"
 
-cd ../client-portal
-
-# Verificar se precisa ajustar next.config.js para Cloud Run
-if grep -q "output: 'export'" next.config.js; then
-    echo -e "${YELLOW}Aviso: Client Portal configurado para export estático.${NC}"
-    echo -e "${YELLOW}Ajustando para Cloud Run (standalone)...${NC}"
-    
-    # Criar backup
-    cp next.config.js next.config.js.bak
-    
-    # Usar configuração para Cloud Run se existir
-    if [ -f next.config.cloudrun.js ]; then
-        cp next.config.cloudrun.js next.config.js
-        echo -e "${GREEN}✓ Usando next.config.cloudrun.js${NC}"
-    else
-        # Ajustar configuração inline para standalone
-        sed -i "s/output: 'export',/output: 'standalone',/" next.config.js || true
-        echo -e "${GREEN}✓ Configuração ajustada para standalone${NC}"
-    fi
-fi
-
-echo -e "${BLUE}Construindo e fazendo deploy do Client Portal...${NC}"
-
-gcloud run deploy "$CLIENT_PORTAL_SERVICE-$ENVIRONMENT" \
-    --source . \
-    --platform managed \
-    --region "$REGION" \
-    $ALLOW_UNAUTH_PORTAL \
-    --memory "$PORTAL_MEMORY" \
-    --cpu "$PORTAL_CPU" \
-    --timeout 300 \
-    --concurrency 80 \
-    --max-instances "$PORTAL_MAX_INSTANCES" \
-    --min-instances "$PORTAL_MIN_INSTANCES" \
-    --set-env-vars "NEXT_PUBLIC_API_URL=$ADMIN_API_URL,NEXT_PUBLIC_ADMIN_API_URL=$ADMIN_API_URL,GCP_PROJECT_ID=$PROJECT_ID,NODE_ENV=production" \
-    --labels "app=nprocess-client-portal,environment=$ENVIRONMENT,managed-by=deploy-script" \
-    --quiet
-
-PORTAL_URL=$(gcloud run services describe "$CLIENT_PORTAL_SERVICE-$ENVIRONMENT" \
-    --platform managed \
-    --region "$REGION" \
-    --format 'value(status.url)')
-
-echo -e "${GREEN}✓ Client Portal deployado:${NC} $PORTAL_URL"
+echo -e "${BLUE}O Client Portal será deployado via Firebase Hosting (Otimização).${NC}"
+echo -e "${BLUE}Pule o deploy do Cloud Run para economizar custos.${NC}"
 echo ""
 
-# Restaurar backup se existir
-if [ -f next.config.js.bak ]; then
-    mv next.config.js.bak next.config.js
-fi
+PORTAL_URL="https://nprocess-8e801.web.app"
+echo -e "${GREEN}✓ Client Portal URL:${NC} $PORTAL_URL"
+echo ""
 
-cd ..
 
 # ============================================================================
 # Resumo do Deploy

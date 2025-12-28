@@ -7,15 +7,14 @@ currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.0.x   | :white_check_mark: |
-| 1.0.x   | :x:                |
+| 1.0.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
 We take security seriously. If you discover a vulnerability, please follow these steps:
 
 1.  **Do NOT create a public GitHub issue.**
-2.  Email our security team at `security@nprocess.com`.
+2.  Email our security team at `security@ness.com.br`.
 3.  Include a proof of concept (PoC) if possible.
 4.  We will respond within 24 hours.
 
