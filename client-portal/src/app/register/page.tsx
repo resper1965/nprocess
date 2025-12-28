@@ -25,7 +25,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await register(email, password, name)
+      await register({ email, password, name })
     } catch (error: any) {
       alert(error.message || 'Erro ao criar conta')
     }
@@ -44,12 +44,12 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <NessLogo size="xl" className="inline-block mb-4" />
           <p className="text-gray-600 dark:text-gray-400">
-            Create your n.process account
+            Create your Process & Compliance Engine account
           </p>
         </div>
 
         {/* Register Card */}
-        <Card glass>
+        <Card className="glass">
           <CardHeader>
             <CardTitle>Sign up</CardTitle>
             <CardDescription>
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                   Full Name
                 </label>
                 <Input
-                  glass
+                  className="glass"
                   type="text"
                   placeholder="John Doe"
                   value={name}
@@ -80,7 +80,7 @@ export default function RegisterPage() {
                   Email
                 </label>
                 <Input
-                  glass
+                  className="glass"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
@@ -96,7 +96,7 @@ export default function RegisterPage() {
                   Password
                 </label>
                 <Input
-                  glass
+                  className="glass"
                   type="password"
                   placeholder="••••••••"
                   value={password}
@@ -113,7 +113,7 @@ export default function RegisterPage() {
                   Confirm Password
                 </label>
                 <Input
-                  glass
+                  className="glass"
                   type="password"
                   placeholder="••••••••"
                   value={confirmPassword}
@@ -153,7 +153,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
-          n.process · powered by <span className="font-medium">ness</span><span className="text-[#00ade8]">.</span>
+          © 2024 ness. Process & Compliance Engine. All rights reserved.
         </p>
       </div>
     </div>

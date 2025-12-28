@@ -1,58 +1,32 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
+import { useI18n } from '@/lib/i18n/context'
 import { Key, Plus, Copy, Trash2, Eye, EyeOff, CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useAuth } from '@/lib/auth-context'
-
-interface APIKey {
-  id: string
-  name: string
-  key: string
-  created: string
-  lastUsed?: string
-  status: string
-}
+import { useAPIKeysList, useCreateAPIKey, useRevokeAPIKey } from '@/hooks/use-api-keys'
+import { formatDate } from '@/lib/utils'
 
 export default function APIKeysPage() {
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [apiKeys, setApiKeys] = useState<APIKey[]>([])
+  const { t } = useI18n()
   const [showNewKeyDialog, setShowNewKeyDialog] = useState(false)
   const [newKeyName, setNewKeyName] = useState('')
+  const [newKeyValue, setNewKeyValue] = useState<string | null>(null)
   const [revealedKeys, setRevealedKeys] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    const fetchAPIKeys = async () => {
-      try {
-        setLoading(true)
-        // TODO: Replace with actual API endpoint
-        // const response = await fetch('/api/api-keys')
-        // const data = await response.json()
-        // setApiKeys(data)
-
-        // For now, return empty array
-        setApiKeys([])
-      } catch (err) {
-        console.error('Failed to load API keys:', err)
-        toast.error('Failed to load API keys')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (user) {
-      fetchAPIKeys()
-    }
-  }, [user])
+  // Fetch API keys from API
+  const { data: apiKeys, isLoading, error } = useAPIKeysList()
+  const createKeyMutation = useCreateAPIKey()
+  const revokeKeyMutation = useRevokeAPIKey()
 
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key)
-    toast.success('API key copied to clipboard')
+    toast.success(t.apiKeys.keyCopied)
   }
 
   const toggleKeyVisibility = (keyId: string) => {
@@ -67,16 +41,33 @@ export default function APIKeysPage() {
     })
   }
 
-  const handleCreateKey = () => {
+  const handleCreateKey = async () => {
     if (!newKeyName.trim()) {
-      toast.error('Please enter a key name')
+      toast.error(t.apiKeys.enterKeyName)
       return
     }
 
-    // TODO: Call API to create key
-    toast.success('API key created successfully')
+    try {
+      const result = await createKeyMutation.mutateAsync({
+        name: newKeyName,
+        consumer_app_id: 'default',
+        quotas: {
+          requests_per_day: 10000,
+        },
+        permissions: ['read', 'write'],
+      })
+      
+      setNewKeyValue(result.api_key)
+      toast.success(t.apiKeys.newKeyCreated)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create API key')
+    }
+  }
+
+  const handleCloseDialog = () => {
     setShowNewKeyDialog(false)
     setNewKeyName('')
+    setNewKeyValue(null)
   }
 
   const maskKey = (key: string) => {
@@ -85,121 +76,168 @@ export default function APIKeysPage() {
     return `${prefix}${'•'.repeat(20)}${suffix}`
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            API Keys
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your API keys for accessing the ComplianceEngine API
-          </p>
-        </div>
+    <>
+      <PageHeader 
+        title={t.apiKeys.title} 
+        description={t.apiKeys.subtitle}
+      >
         <Button
           onClick={() => setShowNewKeyDialog(true)}
           className="gap-2"
         >
           <Plus className="h-4 w-4" />
-          Create API Key
+          {t.apiKeys.create}
         </Button>
-      </div>
+      </PageHeader>
+      <div className="p-6 lg:p-8 space-y-8">
 
       {/* Usage Info */}
-      <Card glass>
+      <Card className="glass">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Key className="h-8 w-8 text-primary" />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">
-                  {apiKeys.length} / 1 API Key Used
+                  {isLoading ? t.common.loading : `${apiKeys?.length || 0} / 1 ${t.apiKeys.used}`}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Starter plan allows 1 active API key
+                  {t.apiKeys.starterPlanAllows}
                 </p>
               </div>
             </div>
             <button className="text-sm text-primary hover:underline font-medium">
-              Upgrade for more keys
+              {t.apiKeys.upgradeForMore}
             </button>
           </div>
         </CardContent>
       </Card>
 
-      {/* New Key Dialog */}
-      {showNewKeyDialog && (
-        <Card glass className="border-2 border-primary/50">
-          <CardHeader>
-            <CardTitle>Create New API Key</CardTitle>
-            <CardDescription>
-              Give your API key a descriptive name to identify it later
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                Key Name
-              </label>
-              <Input
-                glass
-                placeholder="e.g., Production Key, Development Key"
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateKey()}
-              />
-            </div>
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowNewKeyDialog(false)
-                  setNewKeyName('')
-                }}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleCreateKey}>
-                Create Key
-              </Button>
+      {/* Error State */}
+      {error && (
+        <Card className="glass border-red-500/50">
+          <CardContent className="p-6">
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {error}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {isLoading && (
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t.apiKeys.loading}</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* API Keys List */}
-      {apiKeys.length === 0 && !showNewKeyDialog ? (
-        <Card glass>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Key className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No API Keys Yet
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center max-w-md">
-              Create your first API key to start using the n.process API in your applications
-            </p>
-            <Button onClick={() => setShowNewKeyDialog(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Your First API Key
-            </Button>
+      {/* New Key Dialog */}
+      {showNewKeyDialog && (
+        <Card className="glass border-2 border-primary/50">
+          <CardHeader>
+            <CardTitle>
+              {newKeyValue ? t.apiKeys.createdSuccessfully : t.apiKeys.createNew}
+            </CardTitle>
+            <CardDescription>
+              {newKeyValue 
+                ? t.apiKeys.saveKeyNow
+                : t.apiKeys.giveDescriptiveName}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {newKeyValue ? (
+              <>
+                <div className="p-4 bg-gray-100 dark:bg-gray-900/60 rounded-lg space-y-2">
+                  <p className="text-sm font-medium">{t.apiKeys.yourNewApiKey}</p>
+                  <code className="block p-3 bg-white dark:bg-gray-950 rounded text-xs font-mono break-all">
+                    {newKeyValue}
+                  </code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      navigator.clipboard.writeText(newKeyValue)
+                      toast.success(t.apiKeys.keyCopied)
+                    }}
+                  >
+                    <Copy className="h-3 w-3 mr-2" />
+                    {t.apiKeys.copyToClipboard}
+                  </Button>
+                </div>
+                <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <p className="text-sm text-yellow-600 dark:text-yellow-500">
+                    ⚠️ <strong>{t.apiKeys.important}:</strong> {t.apiKeys.keyShownOnce}
+                  </p>
+                </div>
+                <Button onClick={handleCloseDialog} className="w-full">
+                  {t.apiKeys.close}
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-900 dark:text-white">
+                    {t.apiKeys.name}
+                  </label>
+                  <Input
+                    className="glass"
+                    placeholder="e.g., Production Key, Development Key"
+                    value={newKeyName}
+                    onChange={(e) => setNewKeyName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateKey()}
+                    disabled={createKeyMutation.isPending}
+                  />
+                </div>
+                <div className="flex gap-3 justify-end">
+                  <Button
+                    variant="ghost"
+                    onClick={handleCloseDialog}
+                    disabled={createKeyMutation.isPending}
+                  >
+                    {t.common.cancel}
+                  </Button>
+                  <Button 
+                    onClick={handleCreateKey}
+                    disabled={!newKeyName.trim() || createKeyMutation.isPending}
+                  >
+                    {createKeyMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        {t.common.loading}
+                      </>
+                    ) : (
+                      t.apiKeys.create
+                    )}
+                  </Button>
+                </div>
+                {createKeyMutation.error && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-500">
+                      Error: {createKeyMutation.error.message}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
-      ) : (
+      )}
+
+      {/* API Keys List */}
+      {!isLoading && !error && (
         <div className="space-y-4">
-          {apiKeys.map((apiKey) => {
+          {apiKeys && apiKeys.length > 0 ? apiKeys.map((apiKey) => {
           const isRevealed = revealedKeys.has(apiKey.id)
 
           return (
-            <Card key={apiKey.id} glass>
+            <Card key={apiKey.id} className="glass">
               <CardContent className="p-6">
                 <div className="space-y-4">
                   {/* Header */}
@@ -213,7 +251,7 @@ export default function APIKeysPage() {
                           {apiKey.name}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Created {apiKey.created}
+                          {t.apiKeys.created} {formatDate(apiKey.created_at)}
                         </p>
                       </div>
                     </div>
@@ -224,12 +262,23 @@ export default function APIKeysPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
-                          // TODO: Implement delete
-                          toast.success('API key revoked')
+                        onClick={async () => {
+                          if (confirm(t.apiKeys.revoke + '?')) {
+                            try {
+                              await revokeKeyMutation.mutateAsync(apiKey.id || apiKey.key_id || '')
+                              toast.success(t.apiKeys.revoked)
+                            } catch (error: any) {
+                              toast.error(error.message || 'Failed to revoke API key')
+                            }
+                          }
                         }}
+                        disabled={revokeKeyMutation.isPending || apiKey.status === 'revoked'}
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        {revokeKeyMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                        ) : (
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -237,14 +286,14 @@ export default function APIKeysPage() {
                   {/* API Key */}
                   <div className="space-y-2">
                     <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                      API Key
+                      {t.apiKeys.title}
                     </label>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-900/60 rounded-lg text-sm font-mono border border-gray-200 dark:border-gray-800">
-                        {isRevealed ? apiKey.key : maskKey(apiKey.key)}
+                        {isRevealed ? (apiKey.key || apiKey.key_id || apiKey.id) : maskKey(apiKey.key || apiKey.key_id || apiKey.id)}
                       </code>
                       <Button
-                        variant="glass"
+                        variant="outline"
                         size="icon"
                         onClick={() => toggleKeyVisibility(apiKey.id)}
                       >
@@ -255,7 +304,7 @@ export default function APIKeysPage() {
                         )}
                       </Button>
                       <Button
-                        variant="glass"
+                        variant="outline"
                         size="icon"
                         onClick={() => handleCopyKey(apiKey.key)}
                       >
@@ -268,19 +317,37 @@ export default function APIKeysPage() {
                   <div className="flex items-center gap-6 text-sm">
                     <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      Last used {apiKey.lastUsed}
+                      Last used {apiKey.last_used_at ? formatDate(apiKey.last_used_at) : 'Never'}
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )
-          })}
+          }) : (
+            <Card className="glass">
+              <CardContent className="py-12">
+                  <div className="text-center space-y-4">
+                  <Key className="w-12 h-12 text-gray-400 mx-auto" />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{t.apiKeys.title}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {t.apiKeys.create}
+                    </p>
+                  </div>
+                  <Button onClick={() => setShowNewKeyDialog(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t.apiKeys.create}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
       {/* Documentation */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
           <CardTitle>Using Your API Key</CardTitle>
           <CardDescription>
@@ -303,6 +370,7 @@ export default function APIKeysPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }

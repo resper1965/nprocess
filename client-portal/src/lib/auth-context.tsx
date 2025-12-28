@@ -12,7 +12,8 @@ import {
   getIdTokenResult
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { auth, loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout } from "./firebase-auth";
+import { loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout } from "./firebase-auth";
+import { auth } from "./firebase-config";
 import { LoginData, RegisterData } from "@/types/auth"; 
 
 interface AuthContextType {
@@ -37,6 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       // Don't set loading true here if we want seamless auth state restore
       if (currentUser) {
@@ -45,6 +51,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const tokenResult = await getIdTokenResult(currentUser);
           const userRole = (tokenResult.claims.role as string) || 'user';
           setRole(userRole);
+          
+          // If we're on login page and user just logged in, redirect to dashboard
+          if (typeof window !== 'undefined') {
+            const currentPath = window.location.pathname;
+            if (currentPath === '/login' || currentPath === '/register') {
+              // Use both router.push and window.location for reliability
+              router.push('/dashboard');
+              // Fallback: force navigation if router.push doesn't work
+              setTimeout(() => {
+                if (window.location.pathname === currentPath) {
+                  window.location.href = '/dashboard';
+                }
+              }, 100);
+            }
+          }
         } catch (error) {
           console.error("Error fetching user role:", error);
           setRole('user');
@@ -57,23 +78,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   const handleLogin = async (data: LoginData) => {
     try {
       await loginWithEmail(data.email, data.password);
       router.push('/dashboard');
     } catch (error: any) {
-      throw new Error(error.message || 'Erro ao fazer login');
+      // Extract meaningful error message
+      let errorMessage = 'Erro ao fazer login';
+      
+      if (error?.userMessage) {
+        // AuthenticationError from firebase-errors
+        errorMessage = error.userMessage;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      console.error('Login failed:', error);
+      throw new Error(errorMessage);
     }
   };
 
   const handleLoginWithGoogle = async () => {
     try {
-      await loginWithGoogle();
-      router.push('/dashboard');
+      const userCredential = await loginWithGoogle();
+      // Immediately redirect after successful login
+      if (userCredential?.user) {
+        // Force redirect to dashboard
+        router.push('/dashboard');
+        // Also use window.location as fallback for immediate navigation
+        if (typeof window !== 'undefined') {
+          window.location.href = '/dashboard';
+        }
+      }
     } catch (error: any) {
-      throw new Error(error.message || 'Erro ao fazer login com Google');
+      // Extract meaningful error message
+      let errorMessage = 'Erro ao fazer login com Google';
+      
+      if (error?.userMessage) {
+        errorMessage = error.userMessage;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('Google login failed:', error);
+      throw new Error(errorMessage);
     }
   };
 

@@ -26,11 +26,16 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log error to Firebase Crashlytics/Analytics
-    logError(error, {
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true,
-    })
+    // Log error to Firebase Crashlytics/Analytics (only if available)
+    try {
+      logError(error, {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true,
+      })
+    } catch (logError) {
+      // If logging fails, just log to console
+      console.error('Error in ErrorBoundary:', error, errorInfo)
+    }
   }
 
   render() {

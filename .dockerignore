@@ -1,54 +1,11 @@
-# Git
-.git
+client-portal/
+admin-control-plane/
+.git/
 .gitignore
-.gitattributes
-
-# Python
-__pycache__
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-.venv
-pip-log.txt
-pip-delete-this-directory.txt
-.pytest_cache/
-.coverage
-htmlcov/
-dist/
-build/
-*.egg-info/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Documentation
 *.md
 docs/
-
-# CI/CD
-.github/
-.gitlab-ci.yml
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Logs
-*.log
-
-# Docker
-Dockerfile*
-docker-compose*.yml
+scripts/
+.env*
+node_modules/
+__pycache__/
+*.pyc

@@ -4,23 +4,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
 import { User, Bell, Shield, Palette } from 'lucide-react'
+import { useAuth } from '@/lib/auth-context'
+import { useI18n } from '@/lib/i18n/context'
 
 export default function SettingsPage() {
+  const { user, role, isAdmin } = useAuth()
+  const { t } = useI18n()
+  
+  const getRoleDisplayName = (role: string | null) => {
+    switch (role) {
+      case 'super_admin': return 'Super Admin'
+      case 'admin': return 'Admin'
+      case 'finops_manager': return 'FinOps Manager'
+      case 'auditor': return 'Auditor'
+      case 'viewer': return 'Viewer'
+      case 'user': return 'User'
+      default: return 'User'
+    }
+  }
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Settings
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Manage your account settings and preferences
-        </p>
-      </div>
-
-      {/* Profile */}
-      <Card glass>
+    <>
+      <PageHeader title={t.settings.title} />
+      <div className="p-6 lg:p-8 space-y-8">
+        {/* Profile */}
+      <Card className="glass">
         <CardHeader>
           <div className="flex items-center gap-3">
             <User className="h-5 w-5 text-primary" />
@@ -33,28 +42,48 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-900 dark:text-white">
-              Full Name
+              {t.settings.fullName}
             </label>
-            <Input glass defaultValue="User Name" />
+            <Input className="glass" defaultValue={user?.displayName || "User Name"} />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-900 dark:text-white">
-              Email
+              {t.settings.email}
             </label>
-            <Input glass type="email" defaultValue="user@example.com" />
+            <Input className="glass" type="email" defaultValue={user?.email || "user@example.com"} disabled />
           </div>
-          <Button>Save Changes</Button>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-900 dark:text-white">
+              {t.settings.role}
+            </label>
+            <div className="flex items-center gap-2">
+              <Badge variant={isAdmin ? "default" : "outline"} className="text-sm">
+                {getRoleDisplayName(role)}
+              </Badge>
+              {isAdmin && (
+                <Badge variant="default" className="text-xs bg-green-500/20 text-green-600 dark:text-green-400">
+                  {t.settings.adminAccess}
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+              {isAdmin 
+                ? t.settings.adminAccessDesc
+                : t.settings.currentAccessLevel}
+            </p>
+          </div>
+          <Button>{t.settings.saveChanges}</Button>
         </CardContent>
       </Card>
 
       {/* Notifications */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
           <div className="flex items-center gap-3">
             <Bell className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>Configure your notification preferences</CardDescription>
+              <CardTitle>{t.settings.notifications}</CardTitle>
+              <CardDescription>{t.settings.notifications}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -62,10 +91,10 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between py-2">
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Email notifications
+                {t.settings.emailNotifications}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400">
-                Receive updates via email
+                {t.settings.emailNotificationsDesc}
               </p>
             </div>
             <input
@@ -77,10 +106,10 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between py-2">
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Compliance alerts
+                {t.settings.complianceAlerts}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400">
-                Get notified about compliance gaps
+                {t.settings.complianceAlertsDesc}
               </p>
             </div>
             <input
@@ -92,10 +121,10 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between py-2">
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                Usage alerts
+                {t.settings.usageAlerts}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400">
-                Alert when approaching plan limits
+                {t.settings.usageAlertsDesc}
               </p>
             </div>
             <input
@@ -108,7 +137,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Appearance */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
           <div className="flex items-center gap-3">
             <Palette className="h-5 w-5 text-primary" />
@@ -136,13 +165,13 @@ export default function SettingsPage() {
       </Card>
 
       {/* Security */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
           <div className="flex items-center gap-3">
             <Shield className="h-5 w-5 text-primary" />
             <div>
-              <CardTitle>Security</CardTitle>
-              <CardDescription>Manage your account security</CardDescription>
+              <CardTitle>{t.settings.security}</CardTitle>
+              <CardDescription>{t.settings.manageAccountSecurity}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -155,6 +184,7 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }

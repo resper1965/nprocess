@@ -109,7 +109,7 @@ if os.getenv("ENVIRONMENT") == "production" or os.getenv("GOOGLE_CLOUD_PROJECT")
     ALLOWED_HOSTS = ["*"]
 else:
     # Local development - restrict to localhost
-    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 
 # 2. CORS Configuration
@@ -160,7 +160,7 @@ async def general_exception_handler(request, exc: Exception):
         content=ErrorResponse(
             error="InternalServerError",
             message="Erro interno do servidor",
-            details="Ocultado por segurança" # Don't leak stack traces
+            details={"error": "Ocultado por segurança"} # Don't leak stack traces
         ).model_dump()
     )
 

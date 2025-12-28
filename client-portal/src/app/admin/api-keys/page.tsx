@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Copy, MoreVertical, Trash2, Key, Loader2, AlertCircle } from "lucide-react"
 import { cn, formatDate } from "@/lib/utils"
-import { useAPIKeys, useCreateAPIKey, useRevokeAPIKey } from "@/hooks/use-api-keys"
+import { useAPIKeysList, useCreateAPIKey, useRevokeAPIKey } from "@/hooks/use-api-keys"
 import { APIKeyCreate } from "@/lib/api-client"
 
 export default function APIKeysPage() {
@@ -22,7 +22,7 @@ export default function APIKeysPage() {
   const [description, setDescription] = useState("")
 
   // Fetch API keys from backend
-  const { data: apiKeys, isLoading, error } = useAPIKeys()
+  const { data: apiKeys, isLoading, error } = useAPIKeysList()
   const createKeyMutation = useCreateAPIKey()
   const revokeKeyMutation = useRevokeAPIKey()
 
@@ -156,15 +156,15 @@ export default function APIKeysPage() {
       {!isLoading && (
         <div className="space-y-4">
           {filteredKeys.map((apiKey) => {
-            const usagePercent = apiKey.usage
-              ? (apiKey.usage.requests_today / apiKey.quotas.requests_per_day) * 100
+            const usagePercent = apiKey.usage && apiKey.quotas?.requests_per_day
+              ? ((apiKey.usage.requests_today || 0) / apiKey.quotas.requests_per_day) * 100
               : 0
 
-            // Extract prefix from key_id for display
-            const keyPrefix = apiKey.key_id.substring(0, 12)
+            // Extract prefix from key for display
+            const keyPrefix = apiKey.key.substring(0, 12)
 
             return (
-              <Card key={apiKey.key_id}>
+              <Card key={apiKey.id}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -177,7 +177,7 @@ export default function APIKeysPage() {
                         <span>{apiKey.consumer_app_id}</span>
                         <span>•</span>
                         <Badge variant="outline" className="capitalize">
-                          {apiKey.status}
+                          {apiKey.status || (apiKey.active ? 'active' : 'revoked')}
                         </Badge>
                       </CardDescription>
                     </div>
@@ -208,7 +208,7 @@ export default function APIKeysPage() {
                     <div>
                       <p className="text-muted-foreground">Requests Today</p>
                       <p className="font-medium mt-1">
-                        {apiKey.usage?.requests_today.toLocaleString() || 0} / {apiKey.quotas.requests_per_day.toLocaleString()}
+                        {(apiKey.usage?.requests_today || 0).toLocaleString()} / {(apiKey.quotas?.requests_per_day || 0).toLocaleString()}
                       </p>
                     </div>
                     <div>
@@ -242,7 +242,7 @@ export default function APIKeysPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCopyKey(apiKey.key_id)}
+                      onClick={() => handleCopyKey(apiKey.key_id || apiKey.key)}
                     >
                       <Copy className="w-3 h-3 mr-2" />
                       Copy ID
@@ -254,7 +254,7 @@ export default function APIKeysPage() {
                       variant="outline"
                       size="sm"
                       className="text-red-500 hover:text-red-600"
-                      onClick={() => handleRevokeKey(apiKey.key_id)}
+                      onClick={() => handleRevokeKey(apiKey.key_id || apiKey.id)}
                       disabled={revokeKeyMutation.isPending || apiKey.status === "revoked"}
                     >
                       {revokeKeyMutation.isPending ? (

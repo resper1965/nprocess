@@ -1,20 +1,18 @@
 {
   "projects": {
-    "default": "nprocess-33a44"
+    "default": "nprocess-8e801",
+    "prod": "nprocess-prod"
   },
   "targets": {
     "hosting": {
-      "admin-dashboard": [
-        "nprocess"
-      ],
       "client-portal": [
-        "nprocess"
+        "nprocess-8e801"
       ]
     },
-    "nprocess-33a44": {
+    "nprocess-8e801": {
       "hosting": {
         "client-portal": [
-          "nprocess-33a44"
+          "nprocess-8e801"
         ]
       }
     }

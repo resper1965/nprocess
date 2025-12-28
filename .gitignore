@@ -213,3 +213,4 @@ gcp-key*.json
 local/
 dev/
 *.local
+tsconfig.tsbuildinfo

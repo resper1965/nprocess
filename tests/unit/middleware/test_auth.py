@@ -1,5 +1,6 @@
 import pytest
 from fastapi import HTTPException
+from unittest.mock import patch, MagicMock
 from app.middleware.auth import require_admin, validate_api_key
 
 @pytest.mark.asyncio

@@ -3,6 +3,7 @@ Structured logging middleware for Cloud Logging integration.
 """
 import logging
 import json
+import os
 from typing import Dict, Any
 from datetime import datetime
 
@@ -29,8 +30,10 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         
         if CLOUD_LOGGING_AVAILABLE:
             try:
-                self.cloud_logger = cloud_logging.Client().logger("compliance-engine")
-                logger.info("Cloud Logging initialized")
+                # Explicitly use the project ID from env to avoid stale ADC
+                project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("GCP_PROJECT_ID")
+                self.cloud_logger = cloud_logging.Client(project=project_id).logger("compliance-engine")
+                logger.info(f"Cloud Logging initialized for project: {project_id}")
             except Exception as e:
                 logger.warning(f"Failed to initialize Cloud Logging: {e}")
                 self.cloud_logger = None

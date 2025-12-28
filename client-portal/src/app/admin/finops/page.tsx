@@ -2,32 +2,41 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DollarSign, TrendingUp, TrendingDown, AlertCircle } from "lucide-react"
+import { DollarSign, TrendingUp, TrendingDown, AlertCircle, Loader2 } from "lucide-react"
+import { useCostSummary, useUsageMetrics } from "@/hooks/use-finops"
 
 export default function FinOpsPage() {
-  // Mock data - replace with actual BigQuery analytics
-  const costs = {
-    monthToDate: 1847.32,
-    projected: 2450.00,
-    budget: 3000.00,
-    lastMonth: 1923.45,
-    perCall: 0.012
+  const { data: costData, isLoading: costsLoading } = useCostSummary('current_month')
+  const { data: usageData, isLoading: usageLoading } = useUsageMetrics('current_month')
+  
+  const isLoading = costsLoading || usageLoading
+  
+  // Transform API data
+  const costs = costData ? {
+    monthToDate: costData.total_cost,
+    projected: costData.forecast_month_end,
+    budget: costData.budget,
+    lastMonth: costData.total_cost * 0.96, // TODO: Get from API
+    perCall: costData.total_cost / (usageData?.total_requests || 1)
+  } : {
+    monthToDate: 0,
+    projected: 0,
+    budget: 0,
+    lastMonth: 0,
+    perCall: 0
   }
 
-  const costByService = [
-    { service: "ComplianceEngine API", cost: 1234.56, calls: 102880, percentage: 66.8 },
-    { service: "RegulatoryRAG API", cost: 412.76, calls: 34397, percentage: 22.3 },
-    { service: "Cloud Run", cost: 125.00, calls: 0, percentage: 6.8 },
-    { service: "Firestore", cost: 50.00, calls: 0, percentage: 2.7 },
-    { service: "Vertex AI Search", cost: 25.00, calls: 0, percentage: 1.4 },
-  ]
+  // Transform API data
+  const costByService = costData?.cost_by_service ? Object.entries(costData.cost_by_service).map(([service, cost]) => {
+    const calls = usageData?.requests_by_service?.[service] || 0
+    const percentage = costs.monthToDate > 0 ? (Number(cost) / costs.monthToDate) * 100 : 0
+    return { service, cost: Number(cost), calls, percentage }
+  }) : []
 
-  const costByConsumer = [
-    { consumer: "Contracts App", cost: 923.45, calls: 76954 },
-    { consumer: "Audit Portal", cost: 654.32, calls: 54527 },
-    { consumer: "Internal Tools", cost: 187.55, calls: 15632 },
-    { consumer: "Test Suite", cost: 82.00, calls: 6834 },
-  ]
+  const costByConsumer = costData?.cost_by_consumer ? Object.entries(costData.cost_by_consumer).map(([consumer, cost]) => {
+    const calls = usageData?.requests_by_consumer?.[consumer] || 0
+    return { consumer, cost: Number(cost), calls }
+  }) : []
 
   const recommendations = [
     {

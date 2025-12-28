@@ -10,7 +10,7 @@ export default function SettingsPage() {
   // Mock data - replace with actual settings data
   const settings = {
     general: {
-      platformName: "ComplianceEngine Platform",
+      platformName: "Process & Compliance Engine Platform",
       adminEmail: "admin@company.com",
       supportEmail: "support@company.com",
       timezone: "America/Sao_Paulo",
@@ -100,7 +100,7 @@ export default function SettingsPage() {
               <label className="text-sm font-medium">Platform Name</label>
               <Input
                 defaultValue={settings.general.platformName}
-                placeholder="ComplianceEngine Platform"
+                placeholder="Process & Compliance Engine Platform"
               />
             </div>
             <div className="space-y-2">

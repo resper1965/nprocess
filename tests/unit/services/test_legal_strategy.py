@@ -3,11 +3,7 @@ from app.services.ingestion.legal_strategy import LegalTextStrategy
 
 def test_article_splitting():
     strategy = LegalTextStrategy()
-    source_text = """
-    Preamble
-    Art. 1º Estaf lei dispõe sobre...
-    Art. 2º A disciplina da proteção...
-    """
+    source_text = "Preamble\nArt. 1º Estaf lei dispõe sobre...\nArt. 2º A disciplina da proteção..."
     chunks = strategy.ingest(source_text, metadata={"test": True})
     
     assert len(chunks) == 3

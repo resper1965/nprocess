@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/page-header"
-import { Activity, DollarSign, Key, TrendingUp, CheckCircle, Loader2 } from "lucide-react"
+import { Activity, DollarSign, Key, TrendingUp, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
 
 interface Stats {
   apiCallsToday: number
@@ -31,10 +31,33 @@ export default function OverviewPage() {
     const loadData = async () => {
       try {
         setLoading(true)
-        // TODO: Replace with actual API call to /v1/admin/stats
-        // const response = await fetch('/api/admin/stats')
-        // const data = await response.json()
-
+        
+        // Load stats and services in parallel
+        const [statsResponse, servicesResponse] = await Promise.all([
+          import('@/lib/api-client').then(m => m.getAdminStats()),
+          import('@/lib/api-client').then(m => m.getServices())
+        ])
+        
+        if (statsResponse.data) {
+          setStats(statsResponse.data)
+        }
+        
+        if (servicesResponse.data) {
+          setServices(servicesResponse.data.map((s: any) => ({
+            name: s.service_name || s.name || s.service_id,
+            status: s.status || "healthy",
+            uptime: s.uptime_percent || s.uptime || 99.9,
+            latency: s.response_time_ms || s.latency || 0
+          })))
+        } else if (servicesResponse.error) {
+          // Fallback to default service if API fails
+          setServices([
+            { name: "n.process API", status: "healthy", uptime: 99.99, latency: 0 },
+          ])
+        }
+      } catch (error) {
+        console.error("Failed to load stats:", error)
+        // Set defaults on error
         setStats({
           apiCallsToday: 0,
           apiCallsChange: "-",
@@ -43,17 +66,14 @@ export default function OverviewPage() {
           activeKeys: 0,
           uptime: 99.9
         })
-
         setServices([
           { name: "n.process API", status: "healthy", uptime: 99.99, latency: 0 },
         ])
-      } catch (error) {
-        console.error("Failed to load stats:", error)
       } finally {
         setLoading(false)
       }
     }
-
+    
     loadData()
   }, [])
 
@@ -67,8 +87,8 @@ export default function OverviewPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader
-        title="Overview"
+      <PageHeader 
+        title="Overview" 
         description="Monitor your n.process platform at a glance"
       />
 
@@ -187,9 +207,9 @@ export default function OverviewPage() {
                 <p className="text-xs text-muted-foreground mt-1">Download monthly costs</p>
               </button>
               <button className="p-4 text-left border rounded-md hover:bg-accent transition-colors">
-                <Activity className="w-5 h-5 mb-2 text-primary" />
-                <p className="font-medium text-sm">System Status</p>
-                <p className="text-xs text-muted-foreground mt-1">Check platform health</p>
+                <AlertCircle className="w-5 h-5 mb-2 text-primary" />
+                <p className="font-medium text-sm">View Alerts</p>
+                <p className="text-xs text-muted-foreground mt-1">Check system alerts</p>
               </button>
             </CardContent>
           </Card>

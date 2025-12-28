@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
 import {
   Cloud,
   MessageSquare,
@@ -14,8 +15,10 @@ import {
   XCircle,
   Settings,
   ExternalLink,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useIntegrations } from '@/hooks/use-integrations'
 
 interface Integration {
   id: string
@@ -30,79 +33,74 @@ interface Integration {
 }
 
 export default function IntegrationsPage() {
+  const { integrations, isLoading, connect, disconnect, updateConfig, isConnecting, isDisconnecting } = useIntegrations()
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null)
+  const [configData, setConfigData] = useState({
+    folder_id: '',
+    folder_name: 'Process & Compliance Engine Documents',
+    auto_upload: false,
+    share_with_emails: '',
+  })
 
-  const integrations: Integration[] = [
-    {
-      id: 'google_drive',
-      name: 'Google Drive',
-      description: 'Automatically save analyzed documents to Google Drive',
-      icon: Cloud,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-      status: 'connected',
-      configurable: true,
-    },
-    {
-      id: 'sharepoint',
-      name: 'SharePoint',
-      description: 'Sync compliance documents with Microsoft SharePoint',
-      icon: Cloud,
-      color: 'text-cyan-500',
-      bgColor: 'bg-cyan-500/10',
-      status: 'disconnected',
-      requiresPlan: 'Professional',
-      configurable: true,
-    },
-    {
-      id: 'onedrive',
-      name: 'OneDrive',
-      description: 'Store documents in Microsoft OneDrive',
-      icon: Cloud,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-600/10',
-      status: 'disconnected',
-      requiresPlan: 'Professional',
-      configurable: true,
-    },
-    {
-      id: 'slack',
-      name: 'Slack',
-      description: 'Get notifications about compliance status in Slack',
-      icon: MessageSquare,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
-      status: 'disconnected',
-      configurable: true,
-    },
-    {
-      id: 'notebooklm',
-      name: 'NotebookLM',
-      description: 'Create AI-powered notebooks from compliance documents',
-      icon: Brain,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10',
-      status: 'disconnected',
-      requiresPlan: 'Enterprise',
-      configurable: true,
-    },
-  ]
+  // Icon mapping
+  const iconMap: Record<string, any> = {
+    google_drive: Cloud,
+    sharepoint: Cloud,
+    onedrive: Cloud,
+    slack: MessageSquare,
+    notebooklm: Brain,
+  }
 
-  const handleConnect = (integrationId: string) => {
-    const integration = integrations.find(i => i.id === integrationId)
+  const colorMap: Record<string, string> = {
+    google_drive: 'text-blue-500',
+    sharepoint: 'text-cyan-500',
+    onedrive: 'text-blue-600',
+    slack: 'text-purple-500',
+    notebooklm: 'text-orange-500',
+  }
+
+  const bgColorMap: Record<string, string> = {
+    google_drive: 'bg-blue-500/10',
+    sharepoint: 'bg-cyan-500/10',
+    onedrive: 'bg-blue-600/10',
+    slack: 'bg-purple-500/10',
+    notebooklm: 'bg-orange-500/10',
+  }
+
+  // Fallback mock data if loading
+  const integrationsData: Integration[] = integrations.length > 0 ? integrations.map(integration => ({
+    id: integration.id,
+    name: integration.name,
+    description: integration.description,
+    icon: iconMap[integration.id] || Cloud,
+    color: colorMap[integration.id] || 'text-gray-500',
+    bgColor: bgColorMap[integration.id] || 'bg-gray-500/10',
+    status: integration.status,
+    requiresPlan: integration.requires_plan,
+    configurable: integration.configurable,
+  })) : []
+
+  const handleConnect = async (integrationId: string) => {
+    const integration = integrationsData.find(i => i.id === integrationId)
 
     if (integration?.requiresPlan) {
       toast.error(`${integration.name} requires ${integration.requiresPlan} plan or higher`)
       return
     }
 
-    // TODO: Implement OAuth flow
-    toast.success(`${integration?.name} connected successfully`)
+    try {
+      await connect(integrationId)
+    } catch (error) {
+      // Error handled by mutation
+    }
   }
 
-  const handleDisconnect = (integrationId: string) => {
-    const integration = integrations.find(i => i.id === integrationId)
-    toast.success(`${integration?.name} disconnected`)
+  const handleDisconnect = async (integrationId: string) => {
+    try {
+      await disconnect(integrationId)
+    } catch (error) {
+      // Error handled by mutation
+    }
   }
 
   const handleConfigure = (integrationId: string) => {
@@ -110,27 +108,27 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Integrations
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Connect ComplianceEngine with your favorite tools and services
-        </p>
-      </div>
+    <>
+      <PageHeader 
+        title="Integrations" 
+        description="Connect Process & Compliance Engine with your favorite tools and services"
+      />
+      <div className="p-6 lg:p-8 space-y-8">
 
       {/* Connected Count */}
-      <Card glass>
+      <Card className="glass">
         <CardContent className="p-6">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6 text-primary" />
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              ) : (
+                <CheckCircle2 className="h-6 w-6 text-primary" />
+              )}
             </div>
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                1 integration active
+                {isLoading ? 'Loading...' : `${integrationsData.filter(i => i.status === 'connected').length} integration${integrationsData.filter(i => i.status === 'connected').length !== 1 ? 's' : ''} active`}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Connect more tools to enhance your workflow
@@ -141,13 +139,23 @@ export default function IntegrationsPage() {
       </Card>
 
       {/* Integrations Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {integrations.map((integration) => {
+      {isLoading ? (
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading integrations...</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {integrationsData.map((integration) => {
           const Icon = integration.icon
           const isConnected = integration.status === 'connected'
 
           return (
-            <Card key={integration.id} glass>
+            <Card key={integration.id} className="glass">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -157,14 +165,14 @@ export default function IntegrationsPage() {
                     <div>
                       <CardTitle className="text-lg">{integration.name}</CardTitle>
                       {integration.requiresPlan && (
-                        <Badge variant="glass" className="text-xs mt-1">
+                        <Badge variant="outline" className="text-xs mt-1">
                           {integration.requiresPlan}+ plan
                         </Badge>
                       )}
                     </div>
                   </div>
                   <Badge
-                    variant={isConnected ? 'success' : 'glass'}
+                    variant="outline"
                     className="text-xs"
                   >
                     {isConnected ? (
@@ -205,8 +213,16 @@ export default function IntegrationsPage() {
                         size="sm"
                         onClick={() => handleDisconnect(integration.id)}
                         className="flex-1"
+                        disabled={isDisconnecting}
                       >
-                        Disconnect
+                        {isDisconnecting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Disconnecting...
+                          </>
+                        ) : (
+                          'Disconnect'
+                        )}
                       </Button>
                     </>
                   ) : (
@@ -214,10 +230,19 @@ export default function IntegrationsPage() {
                       size="sm"
                       onClick={() => handleConnect(integration.id)}
                       className="flex-1 gap-2"
-                      disabled={!!integration.requiresPlan}
+                      disabled={!!integration.requiresPlan || isConnecting}
                     >
-                      <ExternalLink className="h-4 w-4" />
-                      Connect
+                      {isConnecting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="h-4 w-4" />
+                          Connect
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
@@ -225,11 +250,12 @@ export default function IntegrationsPage() {
             </Card>
           )
         })}
-      </div>
+        </div>
+      )}
 
       {/* Configuration Panel */}
       {selectedIntegration === 'google_drive' && (
-        <Card glass className="border-2 border-primary/50">
+        <Card className="glass border-2 border-primary/50">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -254,9 +280,10 @@ export default function IntegrationsPage() {
                 Destination Folder ID (Optional)
               </label>
               <Input
-                glass
+                className="glass"
                 placeholder="Leave empty to save to root folder"
-                defaultValue=""
+                value={configData.folder_id}
+                onChange={(e) => setConfigData({ ...configData, folder_id: e.target.value })}
               />
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 You can find the folder ID in the folder URL
@@ -269,8 +296,9 @@ export default function IntegrationsPage() {
                 Folder Name
               </label>
               <Input
-                glass
-                defaultValue="ComplianceEngine Documents"
+                className="glass"
+                value={configData.folder_name}
+                onChange={(e) => setConfigData({ ...configData, folder_name: e.target.value })}
               />
             </div>
 
@@ -286,7 +314,8 @@ export default function IntegrationsPage() {
               </div>
               <input
                 type="checkbox"
-                defaultChecked={false}
+                checked={configData.auto_upload}
+                onChange={(e) => setConfigData({ ...configData, auto_upload: e.target.checked })}
                 className="h-4 w-4 text-primary rounded"
               />
             </div>
@@ -297,8 +326,10 @@ export default function IntegrationsPage() {
                 Share with emails (comma-separated)
               </label>
               <Input
-                glass
+                className="glass"
                 placeholder="user1@example.com, user2@example.com"
+                value={configData.share_with_emails}
+                onChange={(e) => setConfigData({ ...configData, share_with_emails: e.target.value })}
               />
             </div>
 
@@ -306,9 +337,21 @@ export default function IntegrationsPage() {
               <Button variant="outline" onClick={() => setSelectedIntegration(null)}>
                 Cancel
               </Button>
-              <Button onClick={() => {
-                toast.success('Google Drive configuration saved')
-                setSelectedIntegration(null)
+              <Button onClick={async () => {
+                try {
+                  await updateConfig({
+                    integrationId: 'google_drive',
+                    config: {
+                      folder_id: configData.folder_id || undefined,
+                      folder_name: configData.folder_name,
+                      auto_upload: configData.auto_upload,
+                      share_with_emails: configData.share_with_emails ? configData.share_with_emails.split(',').map(e => e.trim()) : undefined,
+                    }
+                  })
+                  setSelectedIntegration(null)
+                } catch (error) {
+                  // Error handled by mutation
+                }
               }}>
                 Save Configuration
               </Button>
@@ -318,7 +361,7 @@ export default function IntegrationsPage() {
       )}
 
       {/* Coming Soon */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
           <CardTitle>More Integrations Coming Soon</CardTitle>
           <CardDescription>
@@ -327,16 +370,17 @@ export default function IntegrationsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            <Badge variant="glass">Jira</Badge>
-            <Badge variant="glass">Confluence</Badge>
-            <Badge variant="glass">Microsoft Teams</Badge>
-            <Badge variant="glass">Asana</Badge>
-            <Badge variant="glass">Monday.com</Badge>
-            <Badge variant="glass">Dropbox</Badge>
-            <Badge variant="glass">Box</Badge>
+            <Badge variant="outline">Jira</Badge>
+            <Badge variant="outline">Confluence</Badge>
+            <Badge variant="outline">Microsoft Teams</Badge>
+            <Badge variant="outline">Asana</Badge>
+            <Badge variant="outline">Monday.com</Badge>
+            <Badge variant="outline">Dropbox</Badge>
+            <Badge variant="outline">Box</Badge>
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }

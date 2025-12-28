@@ -12,6 +12,9 @@ export const uploadFile = async (
   path: string,
   metadata?: { contentType?: string; customMetadata?: Record<string, string> }
 ): Promise<string> => {
+  if (!storage) {
+    throw new Error('Firebase Storage is not initialized. Please check your configuration.');
+  }
   const storageRef = ref(storage, path);
   const snapshot = await uploadBytes(storageRef, file, {
     contentType: metadata?.contentType || file.type,
@@ -80,6 +83,9 @@ export const uploadTemplate = async (
  * Get download URL for a file
  */
 export const getFileUrl = async (path: string): Promise<string> => {
+  if (!storage) {
+    throw new Error('Firebase Storage is not initialized. Please check your configuration.');
+  }
   const storageRef = ref(storage, path);
   return await getDownloadURL(storageRef);
 };
@@ -88,6 +94,9 @@ export const getFileUrl = async (path: string): Promise<string> => {
  * Delete a file
  */
 export const deleteFile = async (path: string): Promise<void> => {
+  if (!storage) {
+    throw new Error('Firebase Storage is not initialized. Please check your configuration.');
+  }
   const storageRef = ref(storage, path);
   await deleteObject(storageRef);
 };
@@ -96,6 +105,9 @@ export const deleteFile = async (path: string): Promise<void> => {
  * List files in a directory
  */
 export const listFiles = async (path: string): Promise<string[]> => {
+  if (!storage) {
+    throw new Error('Firebase Storage is not initialized. Please check your configuration.');
+  }
   const storageRef = ref(storage, path);
   const result = await listAll(storageRef);
   return result.items.map(item => item.fullPath);

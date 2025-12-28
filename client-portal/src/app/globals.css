@@ -108,6 +108,3 @@
     @apply bg-gray-900/50 border-gray-800/60;
   }
 }
-
-/* Font import */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');

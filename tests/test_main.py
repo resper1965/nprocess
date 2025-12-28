@@ -18,10 +18,12 @@ def test_root():
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
 
-def test_analyze_compliance_no_ai(sample_process_data):
+def test_analyze_compliance_no_ai(sample_process_data, monkeypatch):
     """Testa falha graciosa quando IA está desabilitada."""
+    monkeypatch.setattr("app.services.ai_service.is_ai_enabled", lambda: False)
+    
     payload = {
-        "process": sample_process_data,
+        "process": sample_process_data["process"],
         "domain": "LGPD",
         "process_id": "proc-123"
     }
@@ -31,8 +33,10 @@ def test_analyze_compliance_no_ai(sample_process_data):
     assert response.status_code == 422
     assert "Serviço de IA não está disponível" in response.json()["message"]
 
-def test_generate_diagram_no_ai():
+def test_generate_diagram_no_ai(monkeypatch):
     """Testa falha graciosa na geração de diagrama sem IA."""
+    monkeypatch.setattr("app.services.ai_service.is_ai_enabled", lambda: False)
+    
     payload = {
         "description": "Um processo de compras simples."
     }

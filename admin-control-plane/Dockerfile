@@ -33,12 +33,15 @@ COPY app/ ./app/
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Health check
+# Health check (Cloud Run uses PORT env var)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8008/health || exit 1
+  CMD curl -f http://localhost:${PORT:-8080}/health || exit 1
 
-# Expose port
-EXPOSE 8008
+# Expose port (Cloud Run will set PORT env var)
+EXPOSE 8080
 
-# Run with uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8008"]
+# Set default PORT for Cloud Run
+ENV PORT=8080
+
+# Run with uvicorn (use PORT env var via shell)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

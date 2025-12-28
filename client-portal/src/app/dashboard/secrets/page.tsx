@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Lock, Plus, Trash2, Eye, EyeOff, Cloud, Github, Loader2 } from 'lucide-react'
+import { PageHeader } from '@/components/page-header'
+import { Lock, Plus, Trash2, Eye, EyeOff, Cloud, Github, Database, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useSecrets } from '@/hooks/use-secrets'
 
 type IntegrationType = 'google_cloud' | 'aws' | 'azure' | 'github'
 
@@ -47,8 +49,7 @@ const integrationConfig = {
 }
 
 export default function SecretsPage() {
-  const [loading, setLoading] = useState(true)
-  const [secrets, setSecrets] = useState<Secret[]>([])
+  const { secrets, isLoading, createSecret, deleteSecret, isCreating, isDeleting } = useSecrets()
   const [showNewSecretDialog, setShowNewSecretDialog] = useState(false)
   const [revealedSecrets, setRevealedSecrets] = useState<Set<string>>(new Set())
   const [formData, setFormData] = useState({
@@ -57,26 +58,6 @@ export default function SecretsPage() {
     secret_value: '',
     description: '',
   })
-
-  useEffect(() => {
-    const fetchSecrets = async () => {
-      try {
-        setLoading(true)
-        // TODO: Replace with actual API endpoint
-        // const response = await fetch('/api/secrets')
-        // const data = await response.json()
-        // setSecrets(data)
-
-        setSecrets([])
-      } catch (err) {
-        console.error('Failed to load secrets:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchSecrets()
-  }, [])
 
   const toggleSecretVisibility = (secretId: string) => {
     setRevealedSecrets(prev => {
@@ -90,51 +71,46 @@ export default function SecretsPage() {
     })
   }
 
-  const handleCreateSecret = () => {
+  const handleCreateSecret = async () => {
     if (!formData.secret_name.trim() || !formData.secret_value.trim()) {
       toast.error('Please fill in all required fields')
       return
     }
 
-    // TODO: Call API to create secret
-    toast.success('Secret created successfully')
-    setShowNewSecretDialog(false)
-    setFormData({
-      integration_type: 'google_cloud',
-      secret_name: '',
-      secret_value: '',
-      description: '',
-    })
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
+    try {
+      await createSecret({
+        secret_name: formData.secret_name,
+        secret_value: formData.secret_value,
+        integration_type: formData.integration_type,
+        description: formData.description || undefined,
+      })
+      setShowNewSecretDialog(false)
+      setFormData({
+        integration_type: 'google_cloud',
+        secret_name: '',
+        secret_value: '',
+        description: '',
+      })
+    } catch (error) {
+      // Error handled by mutation
+    }
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Secrets Management
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Securely store API keys and credentials for external integrations
-          </p>
-        </div>
+    <>
+      <PageHeader 
+        title="Secrets Management" 
+        description="Securely store API keys and credentials for external integrations"
+      >
         <Button onClick={() => setShowNewSecretDialog(true)} className="gap-2">
           <Plus className="h-4 w-4" />
           Add Secret
         </Button>
-      </div>
+      </PageHeader>
+      <div className="p-6 lg:p-8 space-y-8">
 
       {/* Security Notice */}
-      <Card glass className="border-yellow-500/50">
+      <Card className="glass border-yellow-500/50">
         <CardContent className="p-6">
           <div className="flex gap-4">
             <Lock className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
@@ -153,7 +129,7 @@ export default function SecretsPage() {
 
       {/* New Secret Dialog */}
       {showNewSecretDialog && (
-        <Card glass className="border-2 border-primary/50">
+        <Card className="glass border-2 border-primary/50">
           <CardHeader>
             <CardTitle>Add New Secret</CardTitle>
             <CardDescription>
@@ -184,7 +160,7 @@ export default function SecretsPage() {
                 Secret Name
               </label>
               <Input
-                glass
+                className="glass"
                 placeholder="e.g., GEMINI_API_KEY, AWS_ACCESS_KEY_ID"
                 value={formData.secret_name}
                 onChange={(e) => setFormData({ ...formData, secret_name: e.target.value })}
@@ -197,7 +173,7 @@ export default function SecretsPage() {
                 Secret Value
               </label>
               <Input
-                glass
+                className="glass"
                 type="password"
                 placeholder="Enter the secret value"
                 value={formData.secret_value}
@@ -211,7 +187,7 @@ export default function SecretsPage() {
                 Description (Optional)
               </label>
               <Input
-                glass
+                className="glass"
                 placeholder="What is this secret used for?"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -233,40 +209,50 @@ export default function SecretsPage() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreateSecret}>
-                Create Secret
+              <Button onClick={handleCreateSecret} disabled={isCreating}>
+                {isCreating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Secret'
+                )}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Secrets List */}
-      {secrets.length === 0 && !showNewSecretDialog ? (
-        <Card glass>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Lock className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No Secrets Yet
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center max-w-md">
-              Store your API keys and credentials securely for external integrations
-            </p>
-            <Button onClick={() => setShowNewSecretDialog(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Your First Secret
-            </Button>
+      {/* Loading State */}
+      {isLoading && (
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading secrets...</p>
+            </div>
           </CardContent>
         </Card>
-      ) : (
+      )}
+
+      {/* Secrets List */}
+      {!isLoading && (
         <div className="space-y-4">
-          {secrets.map((secret) => {
+          {secrets.length === 0 ? (
+            <Card className="glass">
+              <CardContent className="p-6 text-center">
+                <p className="text-gray-600 dark:text-gray-400">No secrets found. Create your first secret above.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            secrets.map((secret) => {
           const isRevealed = revealedSecrets.has(secret.id)
-          const config = integrationConfig[secret.integration_type]
+          const config = integrationConfig[secret.integration_type as keyof typeof integrationConfig]
           const Icon = config.icon
 
           return (
-            <Card key={secret.id} glass>
+            <Card key={secret.id} className="glass">
               <CardContent className="p-6">
                 <div className="space-y-4">
                   {/* Header */}
@@ -280,7 +266,7 @@ export default function SecretsPage() {
                           <h3 className="font-semibold text-gray-900 dark:text-white">
                             {secret.secret_name}
                           </h3>
-                          <Badge variant="glass" className="text-xs">
+                          <Badge variant="outline" className="text-xs">
                             {config.name}
                           </Badge>
                         </div>
@@ -292,12 +278,22 @@ export default function SecretsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        // TODO: Implement delete
-                        toast.success('Secret deleted')
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to delete this secret?')) {
+                          try {
+                            await deleteSecret(secret.id)
+                          } catch (error) {
+                            // Error handled by mutation
+                          }
+                        }
                       }}
+                      disabled={isDeleting}
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      {isDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      )}
                     </Button>
                   </div>
 
@@ -311,7 +307,7 @@ export default function SecretsPage() {
                         {isRevealed ? '*********************' : '•'.repeat(40)}
                       </code>
                       <Button
-                        variant="glass"
+                        variant="outline"
                         size="icon"
                         onClick={() => toggleSecretVisibility(secret.id)}
                       >
@@ -326,11 +322,11 @@ export default function SecretsPage() {
 
                   {/* Metadata */}
                   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    <span>Created {secret.created}</span>
-                    {secret.lastUsed && (
+                    <span>Created {new Date(secret.created_at).toLocaleDateString()}</span>
+                    {secret.last_used_at && (
                       <>
                         <span>•</span>
-                        <span>Last used {secret.lastUsed}</span>
+                        <span>Last used {new Date(secret.last_used_at).toLocaleDateString()}</span>
                       </>
                     )}
                   </div>
@@ -338,12 +334,12 @@ export default function SecretsPage() {
               </CardContent>
             </Card>
           )
-          })}
+        }))}
         </div>
       )}
 
       {/* Integration Examples */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
           <CardTitle>Common Integration Secrets</CardTitle>
           <CardDescription>
@@ -376,6 +372,7 @@ export default function SecretsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   )
 }

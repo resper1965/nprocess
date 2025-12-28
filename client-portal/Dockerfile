@@ -18,6 +18,8 @@ COPY . .
 
 # Build Next.js application
 ENV NEXT_TELEMETRY_DISABLED 1
+# Skip prebuild script if it causes issues in Cloud Build
+ENV SKIP_PREBUILD=true
 RUN npm run build
 
 # Runner stage
@@ -41,10 +43,11 @@ RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-EXPOSE 3001
+# Cloud Run uses PORT env var
+EXPOSE 8080
 
-ENV PORT 3001
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=8080
+ENV HOSTNAME="0.0.0.0"
 
-# Run Next.js
-CMD ["node", "server.js"]
+# Run Next.js (use PORT env var)
+CMD ["sh", "-c", "node server.js"]

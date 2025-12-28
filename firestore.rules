@@ -28,7 +28,10 @@ service cloud.firestore {
       // Admins can update any user
       allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']))
                     || isAdmin();
-      allow create: if isAdmin();
+      // Allow users to create their own profile on first login
+      // Admins can create any user profile
+      allow create: if (isAuthenticated() && request.auth.uid == userId && 
+                       request.resource.data.role == 'user') || isAdmin();
       allow delete: if isAdmin();
     }
     

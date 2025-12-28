@@ -1,7 +1,6 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
 
 interface PageHeaderProps {
   title: string
@@ -10,28 +9,22 @@ interface PageHeaderProps {
   className?: string
 }
 
-/**
- * PageHeader - Sticky header component for page titles
- * Stays fixed at the top of the content area without scrolling
- */
-export function PageHeader({ title, description, children, className }: PageHeaderProps) {
+export function PageHeader({ title, description, children, className = '' }: PageHeaderProps) {
   return (
-    <div 
-      className={cn(
-        "sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        "border-b border-border px-6 py-4",
-        className
-      )}
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+    <div className={`sticky top-0 z-10 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 border-b border-white/20 dark:border-gray-800/50 backdrop-blur-sm ${className}`}>
+      <div className="flex items-center justify-between h-16 px-6 lg:px-8">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+            {title}
+          </h1>
           {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">
+              {description}
+            </p>
           )}
         </div>
         {children && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 ml-4">
             {children}
           </div>
         )}

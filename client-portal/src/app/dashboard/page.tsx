@@ -1,171 +1,129 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
+import { useI18n } from '@/lib/i18n/context'
 import { Activity, Key, FileText, MessageSquare, TrendingUp, AlertCircle, Loader2 } from 'lucide-react'
-import { useAuth } from '@/lib/auth-context'
-
-interface Stat {
-  name: string
-  value: string
-  limit: string
-  percentage: number
-  icon: any
-  trend: string
-  color: string
-}
-
-interface ActivityItem {
-  action: string
-  document: string
-  time: string
-  status: string
-}
-
-interface DashboardData {
-  stats: Stat[]
-  recentActivity: ActivityItem[]
-  plan: {
-    name: string
-    price: number
-  }
-}
+import { useDashboardStats } from '@/hooks/use-dashboard-stats'
+import { useAuditLogs, transformAuditLogToActivity } from '@/hooks/use-audit-logs'
 
 export default function DashboardPage() {
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { t } = useI18n()
+  const { data: statsData, isLoading } = useDashboardStats()
+  const { data: auditLogs, isLoading: logsLoading } = useAuditLogs(10)
+  
+  // Transform API data to stats format
+  const stats = statsData ? [
+    {
+      name: t.dashboard.stats.apiCalls,
+      value: statsData.apiCallsToday.toLocaleString(),
+      limit: '1,000',
+      percentage: Math.min((statsData.apiCallsToday / 1000) * 100, 100),
+      icon: Activity,
+      trend: statsData.apiCallsChange || '+0%',
+      color: 'text-blue-500',
+    },
+    {
+      name: t.dashboard.stats.documentsAnalyzed,
+      value: statsData.documentsAnalyzed.toString(),
+      limit: '50',
+      percentage: Math.min((statsData.documentsAnalyzed / 50) * 100, 100),
+      icon: FileText,
+      trend: statsData.documentsChange || '+0%',
+      color: 'text-green-500',
+    },
+    {
+      name: t.dashboard.stats.activeApiKeys,
+      value: statsData.activeApiKeys.toString(),
+      limit: '1',
+      percentage: Math.min((statsData.activeApiKeys / 1) * 100, 100),
+      icon: Key,
+      trend: statsData.activeApiKeysChange || '+0%',
+      color: 'text-purple-500',
+    },
+    {
+      name: t.dashboard.stats.chatMessages,
+      value: statsData.chatMessages.toString(),
+      limit: '100',
+      percentage: Math.min((statsData.chatMessages / 100) * 100, 100),
+      icon: MessageSquare,
+      trend: statsData.chatMessagesChange || '+0%',
+      color: 'text-cyan-500',
+    },
+  ] : []
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true)
-        // TODO: Replace with actual API endpoint
-        // const response = await fetch('/api/dashboard/stats')
-        // const data = await response.json()
-
-        // For now, return empty/zero data until API is connected
-        setData({
-          stats: [
-            {
-              name: 'API Calls',
-              value: '0',
-              limit: '1,000',
-              percentage: 0,
-              icon: Activity,
-              trend: 'No data yet',
-              color: 'text-blue-500',
-            },
-            {
-              name: 'Documents Analyzed',
-              value: '0',
-              limit: '50',
-              percentage: 0,
-              icon: FileText,
-              trend: 'No data yet',
-              color: 'text-green-500',
-            },
-            {
-              name: 'Active API Keys',
-              value: '0',
-              limit: '1',
-              percentage: 0,
-              icon: Key,
-              trend: 'Create your first key',
-              color: 'text-purple-500',
-            },
-            {
-              name: 'Chat Messages',
-              value: '0',
-              limit: '100',
-              percentage: 0,
-              icon: MessageSquare,
-              trend: 'Start chatting',
-              color: 'text-cyan-500',
-            },
-          ],
-          recentActivity: [],
-          plan: {
-            name: 'Starter',
-            price: 99
-          }
-        })
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err)
-        setError('Failed to load dashboard data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (user) {
-      fetchDashboardData()
-    }
-  }, [user])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  if (error || !data) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card glass>
-          <CardContent className="p-6">
-            <p className="text-red-500">{error || 'No data available'}</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  const { stats, recentActivity, plan } = data
+  // Transform audit logs to activity format
+  const recentActivity = auditLogs && auditLogs.length > 0
+    ? auditLogs.slice(0, 4).map(log => transformAuditLogToActivity(log, t))
+    : [
+        // Fallback mock data if no logs available
+        {
+          action: t.dashboard.activity.documentAnalyzed,
+          document: 'LGPD Compliance Policy v2.pdf',
+          time: `2 ${t.dashboard.activity.hoursAgo}`,
+          status: t.dashboard.activity.success,
+        },
+        {
+          action: t.dashboard.activity.apiKeyCreated,
+          document: 'Production Key',
+          time: `1 ${t.dashboard.activity.dayAgo}`,
+          status: t.dashboard.activity.success,
+        },
+        {
+          action: t.dashboard.activity.chatSession,
+          document: 'HIPAA Requirements Discussion',
+          time: `2 ${t.dashboard.activity.daysAgo}`,
+          status: t.dashboard.activity.success,
+        },
+        {
+          action: t.dashboard.activity.integrationConfigured,
+          document: 'Google Drive',
+          time: `3 ${t.dashboard.activity.daysAgo}`,
+          status: t.dashboard.activity.success,
+        },
+      ]
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome back
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Here's what's happening with your compliance engine today
-        </p>
-      </div>
+    <>
+      <PageHeader 
+        title={t.dashboard.title} 
+        description={t.dashboard.subtitle}
+      />
+      <div className="p-6 lg:p-8 space-y-8">
 
       {/* Plan Badge */}
-      <Card glass>
+      <Card className="glass">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Badge variant="glass" className="text-base px-4 py-2">
-                {plan.name} Plan
+              <Badge variant="outline" className="text-base px-4 py-2">
+                {t.dashboard.plan.starter}
               </Badge>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                3 frameworks included • ${plan.price}/month
+                3 {t.dashboard.plan.frameworksIncluded} • $99/{t.dashboard.plan.perMonth}
               </p>
             </div>
             <button className="text-sm text-primary hover:underline font-medium">
-              Upgrade Plan
+              {t.dashboard.plan.upgrade}
             </button>
           </div>
         </CardContent>
       </Card>
 
       {/* Stats Grid */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => {
           const Icon = stat.icon
           const isNearLimit = stat.percentage >= 80
 
           return (
-            <Card key={stat.name} glass className="relative overflow-hidden">
+            <Card key={stat.name} className="glass relative overflow-hidden">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardDescription className="text-xs uppercase tracking-wide font-semibold">
@@ -198,7 +156,7 @@ export default function DashboardPage() {
                     {isNearLimit && (
                       <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-500 text-xs">
                         <AlertCircle className="h-3 w-3" />
-                        <span>Approaching limit</span>
+                        <span>{t.dashboard.trends.approachingLimit}</span>
                       </div>
                     )}
                   </div>
@@ -213,74 +171,67 @@ export default function DashboardPage() {
           )
         })}
       </div>
+      )}
 
       {/* Recent Activity */}
-      <Card glass>
+      <Card className="glass">
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Your latest compliance operations</CardDescription>
+          <CardTitle>{t.dashboard.recentActivity}</CardTitle>
+          <CardDescription>{t.dashboard.recentActivityDescription}</CardDescription>
         </CardHeader>
         <CardContent>
-          {recentActivity.length === 0 ? (
-            <div className="text-center py-8">
-              <Activity className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                No recent activity yet. Start by analyzing a document or chatting with AI.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between py-3 border-b border-white/10 dark:border-gray-800/30 last:border-0"
-                >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {activity.action}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      {activity.document}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {activity.time}
-                    </span>
-                    <Badge variant="success" className="text-xs">
-                      {activity.status}
-                    </Badge>
-                  </div>
+          <div className="space-y-4">
+            {recentActivity.map((activity, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between py-3 border-b border-white/10 dark:border-gray-800/30 last:border-0"
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {activity.action}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {activity.document}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {activity.time}
+                  </span>
+                  <Badge variant="success" className="text-xs">
+                    {activity.status}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card glass className="hover:scale-[1.02] transition-transform cursor-pointer">
+        <Card className="glass hover:scale-[1.02] transition-transform cursor-pointer">
           <CardHeader>
-            <CardTitle className="text-lg">Analyze Document</CardTitle>
-            <CardDescription>Upload a document for compliance analysis</CardDescription>
+            <CardTitle className="text-lg">{t.dashboard.quickActions.analyzeDocument}</CardTitle>
+            <CardDescription>{t.dashboard.quickActions.analyzeDocumentDesc}</CardDescription>
           </CardHeader>
         </Card>
 
-        <Card glass className="hover:scale-[1.02] transition-transform cursor-pointer">
+        <Card className="glass hover:scale-[1.02] transition-transform cursor-pointer">
           <CardHeader>
-            <CardTitle className="text-lg">Chat with AI</CardTitle>
-            <CardDescription>Get instant compliance guidance</CardDescription>
+            <CardTitle className="text-lg">{t.dashboard.quickActions.chatWithAI}</CardTitle>
+            <CardDescription>{t.dashboard.quickActions.chatWithAIDesc}</CardDescription>
           </CardHeader>
         </Card>
 
-        <Card glass className="hover:scale-[1.02] transition-transform cursor-pointer">
+        <Card className="glass hover:scale-[1.02] transition-transform cursor-pointer">
           <CardHeader>
-            <CardTitle className="text-lg">Generate Report</CardTitle>
-            <CardDescription>Create compliance status report</CardDescription>
+            <CardTitle className="text-lg">{t.dashboard.quickActions.generateReport}</CardTitle>
+            <CardDescription>{t.dashboard.quickActions.generateReportDesc}</CardDescription>
           </CardHeader>
         </Card>
       </div>
     </div>
+    </>
   )
 }

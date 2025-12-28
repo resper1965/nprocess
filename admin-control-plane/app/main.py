@@ -26,7 +26,11 @@ from app.routers import (
     finops,
     services,
     audit,
-    chat
+    chat,
+    admin,
+    secrets,
+    billing,
+    integrations
 )
 from app.schemas import HealthResponse
 
@@ -62,6 +66,10 @@ app.include_router(finops.router, prefix="/v1/admin/finops", tags=["FinOps"])
 app.include_router(services.router, prefix="/v1/admin/services", tags=["Services"])
 app.include_router(audit.router, prefix="/v1/admin/audit", tags=["Audit Logs"])
 app.include_router(chat.router, prefix="/v1/admin/chat", tags=["Chat with Gemini"])
+app.include_router(admin.router, prefix="/v1/admin/utils", tags=["Admin Utilities"])
+app.include_router(secrets.router, prefix="/v1/admin/secrets", tags=["Secrets"])
+app.include_router(billing.router, prefix="/v1/billing", tags=["Billing"])
+app.include_router(integrations.router, prefix="/v1/integrations", tags=["Integrations"])
 
 
 @app.get("/health", response_model=HealthResponse)

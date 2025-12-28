@@ -11,6 +11,48 @@ const PUBLIC_DIR = path.join(__dirname, '../public');
 const SW_TEMPLATE = path.join(PUBLIC_DIR, 'firebase-messaging-sw.template.js');
 const SW_OUTPUT = path.join(PUBLIC_DIR, 'firebase-messaging-sw.js');
 
+// Load .env.production if it exists (for Next.js build)
+// Next.js loads .env files automatically, but this script runs before Next.js
+// So we need to manually load it here
+try {
+  const fs = require('fs');
+  const path = require('path');
+  let envPath = path.join(__dirname, '../.env.production');
+  let loadedEnvFileName = '.env.production';
+
+  // Fallback to .env if .env.production doesn't exist
+  if (!fs.existsSync(envPath)) {
+    envPath = path.join(__dirname, '../.env');
+    loadedEnvFileName = '.env';
+  }
+
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      // Skip comments and empty lines
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+
+      // Match KEY=VALUE pattern
+      const match = trimmed.match(/^([^#=]+)=(.*)$/);
+      if (match) {
+        const key = match[1].trim();
+        let value = match[2].trim();
+        // Remove quotes if present
+        value = value.replace(/^["']|["']$/g, '');
+        // Only set if not already in process.env (env vars take precedence)
+        if (!process.env[key] && value) {
+          process.env[key] = value;
+        }
+      }
+    });
+    console.log('✅ Loaded .env.production file');
+  }
+} catch (error) {
+  // Ignore errors loading .env - Next.js will handle it
+  console.warn('⚠️  Could not load .env.production:', error.message);
+}
+
 // Read environment variables
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
