@@ -26,5 +26,5 @@ sphinx==7.2.6
 sphinx-rtd-theme==2.0.0
 
 # Development Tools
-ipython==8.20.0
+ipython==9.8.0
 ipdb==0.13.13
