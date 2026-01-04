@@ -13,6 +13,9 @@
       "hosting": {
         "client-portal": [
           "nprocess-8e801"
+        ],
+        "nprocess-frontend": [
+          "nprocess-frontend"
         ]
       }
     }

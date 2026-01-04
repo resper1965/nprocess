@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nprocess"]
+      test: [ "CMD-SHELL", "pg_isready -U nprocess" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -31,7 +31,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -122,6 +122,25 @@ services:
     networks:
       - nprocess-network
 
+  # API Gateway (Unified Entry Point)
+  gateway:
+    image: nginx:alpine
+    container_name: nprocess-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx.gateway.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - admin-api
+    networks:
+      - nprocess-network
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "--spider", "http://localhost/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   nprocess-network:
     driver: bridge
@@ -129,3 +148,5 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+
+

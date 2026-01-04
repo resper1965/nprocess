@@ -717,3 +717,178 @@ class NotebookLMConfig(BaseModel):
     enabled: bool = False
     auto_create_notebooks: bool = False
     notebook_title_template: str = "Compliance - {framework} - {date}"
+
+
+# ============================================================================
+# Knowledge Base Marketplace Schemas
+# ============================================================================
+
+class KBStatus(str, Enum):
+    """Knowledge Base status"""
+    DRAFT = "draft"
+    ACTIVE = "active"
+    ARCHIVED = "archived"
+
+
+class KBUpdateFrequency(str, Enum):
+    """KB update frequency"""
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    ON_DEMAND = "on_demand"
+
+
+class KBCategory(str, Enum):
+    """Knowledge Base categories"""
+    LGPD = "lgpd"
+    GDPR = "gdpr"
+    SOX = "sox"
+    ISO_27001 = "iso_27001"
+    ISO_27701 = "iso_27701"
+    HIPAA = "hipaa"
+    ANEEL = "aneel"
+    CVM = "cvm"
+    BACEN = "bacen"
+    CUSTOM = "custom"
+
+
+class KBCreate(BaseModel):
+    """Schema for creating a Knowledge Base"""
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(..., min_length=1, max_length=1000)
+    category: KBCategory
+    price_monthly_cents: int = Field(..., ge=0)  # Price in cents (0 = free)
+    update_frequency: KBUpdateFrequency = KBUpdateFrequency.WEEKLY
+    tags: List[str] = Field(default_factory=list)
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class KBUpdate(BaseModel):
+    """Schema for updating a Knowledge Base"""
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = Field(None, min_length=1, max_length=1000)
+    price_monthly_cents: Optional[int] = Field(None, ge=0)
+    status: Optional[KBStatus] = None
+    update_frequency: Optional[KBUpdateFrequency] = None
+    tags: Optional[List[str]] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class KBResponse(BaseModel):
+    """Schema for Knowledge Base response"""
+    kb_id: str
+    name: str
+    description: str
+    category: KBCategory
+    status: KBStatus
+    price_monthly_cents: int
+    update_frequency: KBUpdateFrequency
+    document_count: int = 0
+    chunk_count: int = 0
+    last_updated_at: Optional[datetime] = None
+    created_at: datetime
+    created_by: str
+    tags: List[str] = Field(default_factory=list)
+    metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
+class KBMarketplaceItem(BaseModel):
+    """KB item for marketplace listing (public view)"""
+    kb_id: str
+    name: str
+    description: str
+    category: KBCategory
+    price_monthly_cents: int
+    update_frequency: KBUpdateFrequency
+    document_count: int
+    last_updated_at: Optional[datetime]
+    tags: List[str]
+    is_subscribed: bool = False  # Populated based on current user
+
+
+class KBIngestRequest(BaseModel):
+    """Request to ingest documents into a Knowledge Base"""
+    kb_id: str
+    documents: List[Dict[str, Any]]  # List of {content, source, metadata}
+    replace_existing: bool = False  # If true, clears existing docs first
+
+
+class KBIngestResponse(BaseModel):
+    """Response from KB ingestion"""
+    kb_id: str
+    documents_ingested: int
+    chunks_created: int
+    processing_time_ms: float
+    errors: List[str] = Field(default_factory=list)
+
+
+# ============================================================================
+# KB Subscription Schemas
+# ============================================================================
+
+class KBSubscriptionStatus(str, Enum):
+    """KB Subscription status"""
+    ACTIVE = "active"
+    CANCELED = "canceled"
+    EXPIRED = "expired"
+
+
+class KBSubscriptionCreate(BaseModel):
+    """Schema for subscribing to a Knowledge Base"""
+    kb_id: str
+
+
+class KBSubscriptionResponse(BaseModel):
+    """Schema for KB subscription response"""
+    subscription_id: str
+    kb_id: str
+    kb_name: str
+    tenant_id: str
+    status: KBSubscriptionStatus
+    price_monthly_cents: int
+    started_at: datetime
+    expires_at: datetime
+    canceled_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class KBSubscriptionList(BaseModel):
+    """List of KB subscriptions for a tenant"""
+    subscriptions: List[KBSubscriptionResponse]
+    total_monthly_cost_cents: int
+
+
+# ============================================================================
+# KB Search Schemas (with subscription filtering)
+# ============================================================================
+
+class KBSearchRequest(BaseModel):
+    """Request to search across subscribed Knowledge Bases"""
+    query: str = Field(..., min_length=1, max_length=1000)
+    kb_ids: Optional[List[str]] = None  # If None, searches all subscribed
+    top_k: int = Field(5, ge=1, le=20)
+    include_metadata: bool = True
+
+
+class KBSearchResult(BaseModel):
+    """Single search result"""
+    content: str
+    source: str
+    kb_id: str
+    kb_name: str
+    score: float
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class KBSearchResponse(BaseModel):
+    """Response from KB search"""
+    query: str
+    results: List[KBSearchResult]
+    kb_searched: List[str]
+    processing_time_ms: float
+

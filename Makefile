@@ -49,7 +49,7 @@ deploy-api: ## Deploy API to Cloud Run
 	SHORT_SHA=$${COMMIT_SHA:0:7} && \
 	gcloud builds submit \
 		--config=cloudbuild.yaml \
-		--project=nprocess \
+		--project=$${GCP_PROJECT_ID:-nprocess} \
 		--region=us-central1 \
 		--substitutions=COMMIT_SHA=$$COMMIT_SHA,SHORT_SHA=$$SHORT_SHA
 
@@ -59,7 +59,7 @@ deploy-admin: ## Deploy Admin Dashboard to Cloud Run
 	cd admin-dashboard && \
 	gcloud builds submit \
 		--config=cloudbuild.yaml \
-		--project=nprocess \
+		--project=$${GCP_PROJECT_ID:-nprocess} \
 		--region=us-central1 \
 		--substitutions=COMMIT_SHA=$$COMMIT_SHA,SHORT_SHA=$$SHORT_SHA
 

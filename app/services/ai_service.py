@@ -316,6 +316,87 @@ Fluxos:
             raise
 
 
+    async def generate_rag_answer(
+        self,
+        query: str,
+        context: str
+    ) -> str:
+        """
+        Generates a RAG answer based on retrieved context.
+        Strictly grounds the answer in the provided context.
+        """
+        system_prompt = """You are a Compliance Assistant.
+        Answer the user's question STRICTLY based on the provided Context.
+        If the answer is not in the context, say "I cannot answer based on the available information."
+        Do not hallucinate outside of the context.
+        """
+        
+        user_prompt = f"""Context:
+        {context}
+        
+        Question: 
+        {query}
+        """
+        
+        try:
+            model = GenerativeModel(
+                model_name="gemini-1.5-pro-latest",
+                system_instruction=[system_prompt],
+                generation_config=self.generation_config,
+                safety_settings=self.safety_settings
+            )
+            
+            response = model.generate_content(user_prompt)
+            return response.text
+        except Exception as e:
+            logger.error(f"RAG Generation failed: {e}")
+            return "Error generating answer."
+
+    async def generate_document(
+        self,
+        doc_type: str,
+        context: str
+    ) -> Dict:
+        """
+        Generates a structured document (Title + Sections).
+        """
+        system_prompt = """You are a Legal & Compliance Document Expert.
+        Generate a structured JSON document based on the request.
+        
+        Output Format:
+        {
+            "title": "Document Title",
+            "sections": [
+                {
+                    "heading": "1. Introduction",
+                    "content": "Full content of the section..."
+                },
+                ...
+            ]
+        }
+        Do not include Markdown. Return only JSON.
+        """
+        
+        user_prompt = f"Type: {doc_type}\nContext: {context}"
+        
+        try:
+            model = GenerativeModel(
+                model_name="gemini-1.5-pro-latest",
+                system_instruction=[system_prompt],
+                generation_config=self.generation_config,
+                safety_settings=self.safety_settings
+            )
+            
+            response = model.generate_content(user_prompt)
+            
+            # Clean JSON
+            text = response.text.replace("```json", "").replace("```", "").strip()
+            return json.loads(text)
+            
+        except Exception as e:
+            logger.error(f"Document Generation failed: {e}")
+            raise ValueError("Failed to generate document")
+
 # ============================================================================
 # Singleton Instance
 # ============================================================================

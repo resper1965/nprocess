@@ -13,11 +13,29 @@ import json
 mcp = FastMCP("n.process B4B")
 logger = logging.getLogger(__name__)
 
-# Service Instances
-chat_service = GeminiChatService()
-process_service = ProcessService()
-audit_service = AuditService()
-document_service = DocumentService()
+# Service Instances (Lazy Loaded)
+_chat_service = None
+_process_service = None
+_audit_service = None
+_document_service = None
+
+def get_process_service():
+    global _process_service
+    if not _process_service:
+        _process_service = ProcessService()
+    return _process_service
+
+def get_audit_service():
+    global _audit_service
+    if not _audit_service:
+        _audit_service = AuditService()
+    return _audit_service
+
+def get_document_service():
+    global _document_service
+    if not _document_service:
+        _document_service = DocumentService()
+    return _document_service
 
 @mcp.tool()
 async def normalize_process_workflow(description: str) -> str:
@@ -35,10 +53,11 @@ async def normalize_process_workflow(description: str) -> str:
     
     try:
         # Use the dedicated ProcessService logic
-        result = await process_service.normalize_text(description)
+        result = await get_process_service().normalize_text(description)
         return json.dumps(result, indent=2)
     except Exception as e:
         return f"Error processing normalization: {str(e)}"
+
 
 @mcp.tool()
 async def audit_workflow_compliance(process_text: str, regulation: str = "General Best Practices") -> str:
@@ -55,7 +74,7 @@ async def audit_workflow_compliance(process_text: str, regulation: str = "Genera
     logger.info(f"MCP Tool called: audit_workflow_compliance for {regulation}")
     
     try:
-        result = await audit_service.audit_text(process_text, regulation)
+        result = await get_audit_service().audit_text(process_text, regulation)
         return json.dumps(result, indent=2)
     except Exception as e:
         return f"Error execution audit: {str(e)}"
@@ -75,7 +94,7 @@ async def suggest_compliance_documents(process_description: str, audit_findings:
     logger.info(f"MCP Tool called: suggest_compliance_documents")
     
     try:
-        result = await document_service.analyze_gaps(process_description, audit_findings)
+        result = await get_document_service().analyze_gaps(process_description, audit_findings)
         return json.dumps(result, indent=2)
     except Exception as e:
         return f"Error analyzing documents: {str(e)}"
@@ -95,12 +114,122 @@ async def generate_document_template(document_type: str, context: str) -> str:
     logger.info(f"MCP Tool called: generate_document_template for {document_type}")
     
     try:
-        return await document_service.generate_template(document_type, context)
+        return await get_document_service().generate_template(document_type, context)
     except Exception as e:
         return f"Error generating template: {str(e)}"
 
+
+# ============================================
+# Knowledge Base Tools (RAG)
+# ============================================
+
+_search_service = None
+
+def get_search_service():
+    global _search_service
+    if not _search_service:
+        from app.services.search_service import SearchService
+        _search_service = SearchService()
+    return _search_service
+
+
+@mcp.tool()
+async def search_knowledge_base(query: str, top_k: int = 5, domain: str = "") -> str:
+    """
+    Searches the regulatory knowledge base using semantic search.
+    Returns relevant documents/passages for the query.
+    
+    Args:
+        query: The search query (e.g. "prazo retenção dados LGPD").
+        top_k: Number of results to return (default: 5).
+        domain: Optional filter by domain (e.g. "lgpd", "gdpr", "aneel").
+        
+    Returns:
+        JSON string with search results containing content, source, and relevance score.
+    """
+    logger.info(f"MCP Tool called: search_knowledge_base for '{query}' (top_k={top_k})")
+    
+    try:
+        service = get_search_service()
+        results = await service.search(query, top_k=top_k, domain=domain or None)
+        
+        return json.dumps({
+            "query": query,
+            "results": [
+                {
+                    "content": r.get("content", ""),
+                    "source": r.get("source", ""),
+                    "score": r.get("score", 0),
+                    "metadata": r.get("metadata", {})
+                }
+                for r in results
+            ]
+        }, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Error in search_knowledge_base: {e}")
+        return json.dumps({"error": str(e), "results": []})
+
+
+@mcp.tool()
+async def chat_with_knowledge(message: str, session_id: str = "") -> str:
+    """
+    Sends a message to the AI assistant that has access to the knowledge base.
+    The assistant will search relevant documents and provide an informed response.
+    
+    Args:
+        message: The user's question or request.
+        session_id: Optional session ID to maintain conversation context.
+        
+    Returns:
+        JSON string with the assistant's response and any actions performed.
+    """
+    logger.info(f"MCP Tool called: chat_with_knowledge for '{message[:50]}...'")
+    
+    try:
+        global _chat_service
+        if not _chat_service:
+            _chat_service = GeminiChatService()
+        
+        response = await _chat_service.chat(message, session_id or None)
+        
+        return json.dumps({
+            "message": response.get("message", ""),
+            "session_id": response.get("session_id", ""),
+            "sources": response.get("sources", []),
+            "actions_performed": response.get("actions_performed", [])
+        }, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.error(f"Error in chat_with_knowledge: {e}")
+        return json.dumps({"error": str(e), "message": ""})
+
+
+@mcp.tool()
+async def list_available_regulations() -> str:
+    """
+    Lists all regulations and frameworks available in the knowledge base.
+    
+    Returns:
+        JSON string with list of available domains/regulations.
+    """
+    logger.info("MCP Tool called: list_available_regulations")
+    
+    try:
+        service = get_search_service()
+        domains = await service.list_domains()
+        
+        return json.dumps({
+            "regulations": domains,
+            "count": len(domains)
+        }, indent=2)
+    except Exception as e:
+        return json.dumps({
+            "regulations": ["lgpd", "gdpr", "sox", "iso27001", "aneel"],
+            "count": 5,
+            "note": "Default list returned due to error"
+        })
 
 
 if __name__ == "__main__":
     # Entry point for running the MCP server directly
     mcp.run()
+

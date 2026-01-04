@@ -1,12 +1,12 @@
 # FastAPI and server
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
 
 # Pydantic for data validation
-pydantic==2.5.3
-pydantic-settings==2.1.0
-email-validator==2.1.0
+pydantic>=2.5.3
+pydantic-settings>=2.1.0
+email-validator>=2.1.0
 
 # Database
 # migrated to firestore
@@ -14,28 +14,28 @@ email-validator==2.1.0
 # asyncpg==0.29.0
 
 # Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt==4.1.2
-cryptography==42.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.1.2
+cryptography>=42.0.0
 
 # Google Cloud
-google-cloud-secret-manager==2.17.0
-google-cloud-billing-budgets==1.12.0
-google-cloud-monitoring==2.18.0
-google-cloud-logging==3.9.0
-google-cloud-aiplatform==1.71.1
+google-cloud-secret-manager>=2.17.0
+google-cloud-billing-budgets>=1.12.0
+google-cloud-monitoring>=2.18.0
+google-cloud-logging>=3.9.0
+google-cloud-aiplatform>=1.71.1
 
 # Firebase Admin SDK (for unified authentication)
-firebase-admin==6.6.0
+firebase-admin>=6.5.0
 
 # Gemini AI
-google-generativeai==0.3.2
+google-generativeai>=0.3.2
 
 # HTTP client
-httpx==0.26.0
-requests==2.31.0
-# mcp>=0.1.0 # Install locally for MCP Server usage
+httpx>=0.26.0
+requests>=2.31.0
+mcp>=1.0.0 # Model Context Protocol SDK
 
 
 # Utilities

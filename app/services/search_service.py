@@ -46,85 +46,73 @@ class SearchService:
     async def search_regulations(
         self, 
         query: str, 
-        domain: str, 
+        tenant_id: str,
+        include_private: bool = False,
         limit: int = 5
     ) -> List[Dict[str, str]]:
         """
-        Busca regulamentos relevantes usando Firestore Vector Search.
+        Multi-tenant Vector Search using Firestore.
         
         Args:
-            query: Texto da consulta.
-            domain: Domínio regulatório (ex: LGPD, SOX) - usado para filtrar resultados.
-            limit: Número máximo de resultados (KNN).
-            
-        Returns:
-            Lista de chunks encontrados com conteúdo e score de similaridade.
+            query: User question.
+            tenant_id: The authenticated user's tenant ID.
+            include_private: If True, searches Private + Global. Else Only Global.
+            limit: Max results.
         """
         if not self.db or not self.embedding_model:
-            logger.warning("Search Client ou Modelo Embedding não inicializado. Retornando lista vazia.")
             return []
 
         try:
-            # 1. Gerar Embedding da Query
+            # 1. Embedding
             query_embedding = self._generate_embedding(query)
             if not query_embedding:
                 return []
 
-            # 2. Buscar no source_id específico se domain for conhecido
-            # Mapeamento de domínios para source_ids
-            domain_to_source = {
-                "LGPD": "lgpd_br",
-                "GDPR": "gdpr_eu",
-                "SOX": "sox_us",
-                "NIST": "nist_csf",
-                "CIS": "cis_controls",
-                "ISO27001": "iso_27001",
-            }
+            # 2. Define Scope (Filter)
+            # Firestore Vector Search supports pre-filtering.
+            # We must construct a query that targets the 'vectors' collection
+            # and filters by the allowed tenant_ids.
             
-            source_id = domain_to_source.get(domain.upper())
+            base_ref = self.db.collection("vectors")
             
-            if source_id:
-                # Busca específica na coleção do source
-                chunks_ref = self.db.collection("global_standards").document(source_id).collection("chunks")
-                logger.info(f"Buscando em source específico: {source_id}")
-            else:
-                # Fallback: Busca em todos os chunks via Collection Group
-                chunks_ref = self.db.collection_group("chunks")
-                logger.info(f"Buscando em todos os sources (domain '{domain}' não mapeado)")
+            # Logic:
+            # If include_private: tenant_id IN ['system', tenant_id]
+            # Else: tenant_id == 'system'
             
-            # 3. Executar Vector Search
-            vector_query = chunks_ref.find_nearest(
+            allowed_tenants = ["system"]
+            if include_private and tenant_id:
+                allowed_tenants.append(tenant_id)
+                
+            # Note: Firestore 'in' query supports up to 10 values.
+            # We filter for documents where tenant_id is in our allowed list.
+            vector_query = base_ref.where(field_path="tenant_id", op_string="in", value=allowed_tenants)
+            
+            # 3. Execute Vector Search on the Filtered Query
+            results = vector_query.find_nearest(
                 vector_field="embedding_vector",
                 query_vector=Vector(query_embedding),
                 distance_measure=DistanceMeasure.COSINE,
                 limit=limit
-            )
-            
-            docs = vector_query.get()
+            ).get()
 
-            results = []
-            for doc in docs:
+            # 4. Parse Results
+            parsed_results = []
+            for doc in results:
                 data = doc.to_dict()
-                metadata = data.get("metadata", {})
-                
-                # Filtro adicional por domain nos metadados (pós-busca)
-                # Útil quando usando collection_group
-                chunk_domain = metadata.get("domain", "").upper()
-                if source_id is None and domain and chunk_domain and chunk_domain != domain.upper():
-                    continue  # Skip se domain não bate
-                
-                title = data.get("standard_title", metadata.get("name", "Regulamento"))
-                content = data.get("content", "")
-                
-                results.append({
-                    "title": title,
-                    "content": content,
-                    "source": f"Firestore:{doc.reference.path}",
-                    "hierarchy": metadata.get("hierarchy", ""),
-                    "relevance_score": 0.0  # Firestore retorna ordenado por relevância
+                parsed_results.append({
+                    "title": data.get("metadata", {}).get("name", "Unknown"),
+                    "content": data.get("content", ""),
+                    "source": f"Firestore:{doc.id}",
+                    "scope": data.get("scope", "unknown"),
+                    "tenant_id": data.get("tenant_id", "unknown"),
+                    "score": 0.0 
                 })
                 
-            return results
+            return parsed_results
+
+        except Exception as e:
+            logger.error(f"Vector Search Failed: {e}")
+            return []
 
         except Exception as e:
             logger.error(f"Erro na busca vetorial Firestore: {e}")

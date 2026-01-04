@@ -14,11 +14,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuração
-ENVIRONMENT=${1:-dev}
-AUTO_CONFIRM=${2:-false}
-PROJECT_ID=${GCP_PROJECT_ID:-nprocess}
+PROJECT_ID=${GCP_PROJECT_ID:-nprocess-8e801}
 REGION=${GCP_REGION:-us-central1}
+DATASTORE_ID=${VERTEX_DATASTORE_ID}
+GEMINI_KEY=${GEMINI_API_KEY}
+
 
 # Nomes dos serviços
 API_SERVICE="nprocess-api"
@@ -81,6 +81,7 @@ gcloud services enable \
     firestore.googleapis.com \
     storage.googleapis.com \
     secretmanager.googleapis.com \
+    discoveryengine.googleapis.com \
     logging.googleapis.com \
     monitoring.googleapis.com \
     --quiet
@@ -166,7 +167,7 @@ gcloud run deploy "$API_SERVICE-$ENVIRONMENT" \
     --concurrency 80 \
     --max-instances "$API_MAX_INSTANCES" \
     --min-instances "$API_MIN_INSTANCES" \
-    --set-env-vars "GCP_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,APP_ENV=$ENVIRONMENT,VERTEX_AI_LOCATION=$REGION,VERTEX_AI_MODEL=gemini-1.5-pro-002,FIRESTORE_DATABASE=(default)" \
+    --set-env-vars "GCP_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,APP_ENV=$ENVIRONMENT,VERTEX_AI_LOCATION=$REGION,VERTEX_AI_MODEL=gemini-1.5-pro-002,FIRESTORE_DATABASE=(default)$([ -n "$DATASTORE_ID" ] && echo ",VERTEX_DATASTORE_ID=$DATASTORE_ID")$([ -n "$GEMINI_KEY" ] && echo ",GEMINI_API_KEY=$GEMINI_KEY")" \
     --labels "app=nprocess-api,environment=$ENVIRONMENT,managed-by=deploy-script" \
     --quiet
 
@@ -181,49 +182,14 @@ echo ""
 # ============================================================================
 # Deploy Admin Control Plane
 # ============================================================================
-echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Passo 3: Deploy Admin Control Plane${NC}"
 echo -e "${GREEN}========================================${NC}"
 
-cd admin-control-plane
-
 echo -e "${BLUE}Construindo e fazendo deploy do Admin Control Plane...${NC}"
 
-# Admin Control Plane precisa de DATABASE_URL
-# Para Cloud Run, podemos usar Cloud SQL ou um banco externo
-ADMIN_ENV_VARS="GCP_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,APP_ENV=$ENVIRONMENT"
-
-# Se DATABASE_URL não estiver definida, usar um placeholder (será necessário configurar depois)
-if [ -z "$DATABASE_URL" ]; then
-    echo -e "${YELLOW}Aviso: DATABASE_URL não definida.${NC}"
-    echo -e "${YELLOW}Admin Control Plane requer PostgreSQL.${NC}"
-    echo -e "${YELLOW}Configure DATABASE_URL antes do deploy ou use Cloud SQL.${NC}"
-    echo ""
-    echo -e "${BLUE}Exemplo de DATABASE_URL:${NC}"
-    echo "  postgresql://user:pass@host:5432/dbname"
-    echo "  ou para Cloud SQL:"
-    echo "  postgresql://user:pass@/dbname?host=/cloudsql/PROJECT:REGION:INSTANCE"
-    echo ""
-    read -p "Deseja continuar sem DATABASE_URL? (y/n) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${YELLOW}Deploy do Admin Control Plane cancelado.${NC}"
-        echo -e "${YELLOW}Configure DATABASE_URL e execute novamente.${NC}"
-        SKIP_ADMIN=true
-    else
-        ADMIN_ENV_VARS="$ADMIN_ENV_VARS,DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder"
-        echo -e "${RED}⚠️  ATENÇÃO: Admin Control Plane não funcionará sem DATABASE_URL válida!${NC}"
-    fi
-else
-    ADMIN_ENV_VARS="$ADMIN_ENV_VARS,DATABASE_URL=$DATABASE_URL"
-fi
-
-# Inject CORS Origins (Single origin to avoid gcloud parsing issues)
-ADMIN_ENV_VARS="$ADMIN_ENV_VARS,ALLOWED_ORIGINS=https://nprocess-8e801.web.app"
-
 gcloud run deploy "$ADMIN_API_SERVICE-$ENVIRONMENT" \
-    --source . \
+    --source ./admin-control-plane \
     --platform managed \
     --region "$REGION" \
     $ALLOW_UNAUTH_ADMIN \
@@ -233,7 +199,7 @@ gcloud run deploy "$ADMIN_API_SERVICE-$ENVIRONMENT" \
     --concurrency 80 \
     --max-instances "$ADMIN_MAX_INSTANCES" \
     --min-instances "$ADMIN_MIN_INSTANCES" \
-    --set-env-vars "$ADMIN_ENV_VARS" \
+    --set-env-vars "GCP_PROJECT_ID=$PROJECT_ID,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,APP_ENV=$ENVIRONMENT,FIRESTORE_DATABASE=(default)$([ -n "$DATASTORE_ID" ] && echo ",VERTEX_DATASTORE_ID=$DATASTORE_ID")$([ -n "$GEMINI_KEY" ] && echo ",GEMINI_API_KEY=$GEMINI_KEY")" \
     --labels "app=nprocess-admin-api,environment=$ENVIRONMENT,managed-by=deploy-script" \
     --quiet
 
@@ -242,24 +208,14 @@ ADMIN_API_URL=$(gcloud run services describe "$ADMIN_API_SERVICE-$ENVIRONMENT" \
     --region "$REGION" \
     --format 'value(status.url)')
 
-echo -e "${GREEN}✓ Admin Control Plane deployado:${NC} $ADMIN_API_URL"
+echo -e "${GREEN}✓ Admin API deployada:${NC} $ADMIN_API_URL"
 echo ""
 
 # ============================================================================
-# Deploy Client Portal (Firebase Hosting Only)
+# Deploy Client Portal (Legacy/Not in Scope)
 # ============================================================================
-echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}Passo 4: Deploy Client Portal${NC}"
-echo -e "${GREEN}========================================${NC}"
-
-echo -e "${BLUE}O Client Portal será deployado via Firebase Hosting (Otimização).${NC}"
-echo -e "${BLUE}Pule o deploy do Cloud Run para economizar custos.${NC}"
-echo ""
-
-PORTAL_URL="https://nprocess-8e801.web.app"
-echo -e "${GREEN}✓ Client Portal URL:${NC} $PORTAL_URL"
-echo ""
+# ... commented out ...
+PORTAL_URL="not-deployed"
 
 
 # ============================================================================

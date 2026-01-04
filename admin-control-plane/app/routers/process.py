@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, Security
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from app.services.process_service import ProcessService
-from app.routers.auth import get_current_active_user
+from app.middleware.auth import get_current_user
 
 router = APIRouter()
 process_service = ProcessService()
@@ -19,7 +19,7 @@ class FeedbackRequest(BaseModel):
 @router.post("/normalize")
 async def normalize_process(
     req: NormalizeRequest,
-    current_user: dict = Security(get_current_active_user, scopes=["admin"])
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Normalize unstructured text into a standard BPMN 2.0 & Mermaid process structure.
@@ -33,7 +33,7 @@ async def normalize_process(
 @router.post("/refine")
 async def refine_process(
     req: FeedbackRequest,
-    current_user: dict = Security(get_current_active_user, scopes=["admin"])
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Refine an existing Mermaid diagram based on user feedback.

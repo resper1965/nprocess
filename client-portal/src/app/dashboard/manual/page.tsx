@@ -107,60 +107,65 @@ export default function ManualPage() {
         <TabsContent value="api" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle flex items-center gap-2>
                 <Server className="h-5 w-5 text-blue-500" />
-                Backend-for-Backends (B4B)
+                Guia de Uso Real: B4B & MCP
               </CardTitle>
               <CardDescription>
-                Consuma os 3 motores de inteligência do n.process diretamente em sua aplicação ou IDE.
+                Exemplos práticos de como utilizar as ferramentas em seu dia-a-dia.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2"><Cpu className="h-4 w-4" /> 1. MCP Server (Para Agentes de IA)</h3>
+                <h3 className="text-lg font-semibold flex items-center gap-2"><Bot className="h-4 w-4" /> 1. Chat de Compliance (Auditores & Gerentes)</h3>
                 <p className="text-sm">
-                  Conecte o <strong>Cursor</strong> ou <strong>Claude Desktop</strong> diretamente ao núcleo do n.process.
-                  Isso permite "Conversar" com seus processos e compliance.
+                  O módulo de chat (`/dashboard/chat`) não é apenas um chatbot. Ele tem acesso aos regulamentos (ISO27001, LGPD) e pode auditar textos colados.
                 </p>
                 <div className="bg-slate-950 text-slate-50 p-4 rounded-md font-mono text-sm">
-                  # Configuração do MCP (ex: claude_desktop_config.json)
-                  {`{
-  "mcpServers": {
-    "nprocess": {
-      "command": "python",
-      "args": ["-m", "nprocess.mcp_server"]
-    }
-  }
-}`}
+                  <strong>Exemplo Real:</strong><br/>
+                  1. Vá para <a href="/dashboard/chat" className="text-blue-400 hover:underline">Chat</a>.<br/>
+                  2. Cole o texto: "Nosso processo de RH envia planilhas de salário por email sem senha."<br/>
+                  3. Pergunte: "Isso viola a LGPD? Se sim, como corrigir?"<br/>
+                  4. Resultado: O agente citará os artigos específicos da lei e sugerirá criptografia.
                 </div>
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2"><Terminal className="h-4 w-4" /> 2. REST API (Para Aplicações)</h3>
-                
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="border p-4 rounded bg-muted/20">
-                    <strong className="block mb-2 text-primary">Normalização de Processo</strong>
-                    <code className="text-xs bg-slate-950 text-green-400 p-2 rounded block whitespace-pre-wrap">
-                      POST /v1/process/normalize
-                      {`{
-  "text": "Eu envio email pro Bob para comprar canetas"
-}`}
-                    </code>
+                <h3 className="text-lg font-semibold flex items-center gap-2"><Cpu className="h-4 w-4" /> 2. MCP no Cursor IDE (Desenvolvedores)</h3>
+                <p className="text-sm">
+                  Conecte seu IDE para validar código enquanto digita.
+                </p>
+                <ol className="list-decimal pl-5 text-sm space-y-2">
+                  <li>Gere sua chave em <a href="/dashboard/developers/api-keys" className="text-blue-400 hover:underline">API Keys</a>.</li>
+                  <li>Configure o `claude_desktop_config.json` com o snippet abaixo:</li>
+                  <div className="bg-slate-950 text-slate-50 p-3 rounded-md font-mono text-xs overflow-x-auto my-2">
+                    <pre>{`{
+  "mcpServers": {
+    "nprocess-b4b": {
+      "command": "",
+      "url": "https://nprocess-admin-api-prod-43006907338.us-central1.run.app/mcp/sse",
+      "transport": "sse",
+      "headers": {
+        "X-API-Key": "SUA_CHAVE_AQUI"
+      }
+    }
+  }
+}`}</pre>
                   </div>
+                  <li>No Chat do Cursor, digite: <code>@nprocess audite esta função de login quanto a OWASP Top 10</code>.</li>
+                </ol>
+              </div>
 
-                  <div className="border p-4 rounded bg-muted/20">
-                    <strong className="block mb-2 text-primary">Auditoria de Compliance</strong>
-                    <code className="text-xs bg-slate-950 text-green-400 p-2 rounded block whitespace-pre-wrap">
-                      POST /v1/audit/execute
-                      {`{
-  "regulation": "ISO27001",
-  "process_content": "graph TD..."
-}`}
-                    </code>
-                  </div>
-                </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2"><CreditCard className="h-4 w-4" /> 3. Monitoramento de Custos (FinOps)</h3>
+                <p className="text-sm">
+                  Evite surpresas na fatura da Cloud.
+                </p>
+                <ul className="list-disc pl-5 text-sm space-y-2">
+                  <li>Acesse <a href="/dashboard/billing" className="text-blue-400 hover:underline">Billing</a> para ver o consumo de API Tokens.</li>
+                  <li>Ative "Usage Alerts" para receber e-mail quando atingir 80% do plano.</li>
+                </ul>
               </div>
 
             </CardContent>
