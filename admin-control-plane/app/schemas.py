@@ -63,6 +63,16 @@ class ActionType(str, Enum):
 
 
 # ============================================================================
+# Shared Schemas
+# ============================================================================
+
+class AllowedStandards(BaseModel):
+    """Standards allowed for an API key (marketplace + custom)"""
+    marketplace: List[str] = Field(default_factory=list, description="IDs de standards do marketplace (e.g., ['lgpd_br', 'iso27001'])")
+    custom: List[str] = Field(default_factory=list, description="IDs de standards customizados do cliente")
+
+
+# ============================================================================
 # User Management Schemas
 # ============================================================================
 
@@ -123,7 +133,7 @@ class APIKeyCreate(BaseModel):
     environment: APIKeyEnvironment = APIKeyEnvironment.LIVE
     quotas: Optional[APIKeyQuotas] = None
     permissions: List[str] = Field(default_factory=lambda: ["read"])
-    allowed_standards: Optional[List[str]] = Field(default=None, description="List of standard IDs this API key can access (None = all)")
+    allowed_standards: Optional[AllowedStandards] = Field(default=None, description="Standards permitidos (marketplace + custom). None = todos os standards")
     expires_at: Optional[datetime] = None
 
 
@@ -138,7 +148,7 @@ class APIKeyResponse(BaseModel):
     status: APIKeyStatus
     quotas: APIKeyQuotas
     permissions: List[str]
-    allowed_standards: Optional[List[str]] = None
+    allowed_standards: Optional[AllowedStandards] = None
     created_at: datetime
     created_by: str
     expires_at: Optional[datetime] = None
@@ -158,7 +168,7 @@ class APIKeyInfo(BaseModel):
     status: APIKeyStatus
     quotas: APIKeyQuotas
     permissions: List[str]
-    allowed_standards: Optional[List[str]] = None
+    allowed_standards: Optional[AllowedStandards] = None
     created_at: datetime
     created_by: str
     expires_at: Optional[datetime] = None
@@ -179,16 +189,11 @@ class APIKeyValidationResponse(BaseModel):
     valid: bool
     key_id: Optional[str] = None
     consumer_app_id: Optional[str] = None
+    client_id: Optional[str] = None
     permissions: Optional[List[str]] = None
-    allowed_standards: Optional[List[str]] = None
+    allowed_standards: Optional[AllowedStandards] = None
     quota_remaining: Optional[Dict[str, int]] = None
     message: Optional[str] = None
-
-
-class AllowedStandards(BaseModel):
-    """Standards allowed for an API key (marketplace + custom)"""
-    marketplace: List[str] = Field(default_factory=list, description="IDs de standards do marketplace (e.g., ['lgpd_br', 'iso27001'])")
-    custom: List[str] = Field(default_factory=list, description="IDs de standards customizados do cliente")
 
 
 class StandardsUpdateRequest(BaseModel):
