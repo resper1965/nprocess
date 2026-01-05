@@ -33,7 +33,8 @@ from app.routers import (
     integrations,
     process,
     audit,
-    documents
+    documents,
+    standards
 )
 from app.schemas import HealthResponse
 # ... (intermediate code preserved by context, but we are editing imports and includes) ...
@@ -43,6 +44,7 @@ app.include_router(auth.router, prefix="/v1/auth", tags=["Authentication"])
 app.include_router(apikeys.router, prefix="/v1/admin/apikeys", tags=["API Keys"])
 app.include_router(users.router, prefix="/v1/admin/users", tags=["Users"])
 app.include_router(ai_keys.router, prefix="/v1/admin/ai-keys", tags=["AI Keys"])
+app.include_router(standards.router, prefix="/v1/admin/standards", tags=["Standards Management"])
 app.include_router(finops.router, prefix="/v1/admin/finops", tags=["FinOps"])
 app.include_router(services.router, prefix="/v1/admin/services", tags=["Services"])
 app.include_router(audit.router, prefix="/v1/audit", tags=["Audit Log (Internal)"]) # Renamed prefix to avoid conflict
