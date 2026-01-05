@@ -48,16 +48,20 @@ class SearchService:
         query: str,
         domain: str,
         limit: int = 5,
-        allowed_standards: Optional[List[str]] = None
+        client_id: Optional[str] = None,
+        allowed_standards: Optional[Dict[str, List[str]]] = None
     ) -> List[Dict[str, str]]:
         """
         Busca regulamentos relevantes usando Firestore Vector Search.
+        Busca em global_standards (marketplace) e client_standards (custom).
 
         Args:
             query: Texto da consulta.
             domain: Domínio regulatório (ex: LGPD, SOX) - usado para filtrar resultados.
             limit: Número máximo de resultados (KNN).
-            allowed_standards: Lista de standard IDs permitidos para esta API key (None = todos).
+            client_id: ID do cliente (para buscar em client_standards).
+            allowed_standards: Standards permitidos {"marketplace": [...], "custom": [...]}.
+                              None = todos os standards.
 
         Returns:
             Lista de chunks encontrados com conteúdo e score de similaridade.
@@ -85,11 +89,12 @@ class SearchService:
 
             source_id = domain_to_source.get(domain.upper())
 
-            # 2.1. Verificar se source_id está na lista de allowed_standards
+            # 2.1. Verificar se source_id está na lista de allowed_standards (marketplace)
             if allowed_standards is not None:
-                if source_id and source_id not in allowed_standards:
-                    logger.warning(f"Standard {source_id} não permitido para esta API key. Allowed: {allowed_standards}")
-                    return []  # API key não tem acesso a este standard
+                marketplace_allowed = allowed_standards.get("marketplace", [])
+                if source_id and marketplace_allowed and source_id not in marketplace_allowed:
+                    logger.warning(f"Marketplace standard {source_id} não permitido. Allowed: {marketplace_allowed}")
+                    return []  # API key não tem acesso a este standard do marketplace
 
             if source_id:
                 # Busca específica na coleção do source
@@ -115,15 +120,36 @@ class SearchService:
                 data = doc.to_dict()
                 metadata = data.get("metadata", {})
 
-                # Extrair source_id do path (ex: global_standards/lgpd_br/chunks/xxx)
+                # Extrair source_id e tipo do path
+                # Paths possíveis:
+                # - global_standards/lgpd_br/chunks/xxx (marketplace)
+                # - client_standards/{client_id}/custom_abc/chunks/xxx (custom)
                 path_parts = doc.reference.path.split('/')
-                doc_source_id = path_parts[1] if len(path_parts) > 1 else None
+
+                if path_parts[0] == "global_standards":
+                    # Marketplace standard
+                    doc_source_id = path_parts[1] if len(path_parts) > 1 else None
+                    source_type = "marketplace"
+                elif path_parts[0] == "client_standards":
+                    # Custom standard
+                    doc_source_id = path_parts[2] if len(path_parts) > 2 else None
+                    source_type = "custom"
+                else:
+                    # Unknown path format, skip
+                    continue
 
                 # Filtrar por allowed_standards se especificado
                 if allowed_standards is not None:
-                    if doc_source_id not in allowed_standards:
-                        logger.debug(f"Filtrando chunk de {doc_source_id} (não permitido)")
-                        continue  # Skip este resultado
+                    if source_type == "marketplace":
+                        marketplace_allowed = allowed_standards.get("marketplace", [])
+                        if marketplace_allowed and doc_source_id not in marketplace_allowed:
+                            logger.debug(f"Filtrando marketplace chunk de {doc_source_id} (não permitido)")
+                            continue
+                    elif source_type == "custom":
+                        custom_allowed = allowed_standards.get("custom", [])
+                        if custom_allowed and doc_source_id not in custom_allowed:
+                            logger.debug(f"Filtrando custom chunk de {doc_source_id} (não permitido)")
+                            continue
 
                 # Filtro adicional por domain nos metadados (pós-busca)
                 # Útil quando usando collection_group

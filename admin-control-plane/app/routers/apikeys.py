@@ -275,16 +275,24 @@ async def get_allowed_standards(
 
     allowed = api_keys_db[key_id].get("allowed_standards")
 
+    if allowed is None:
+        message = "All standards allowed (marketplace + custom)"
+    else:
+        marketplace_count = len(allowed.marketplace) if allowed.marketplace else 0
+        custom_count = len(allowed.custom) if allowed.custom else 0
+        message = f"{marketplace_count} marketplace + {custom_count} custom standards allowed"
+
     return StandardsResponse(
         key_id=key_id,
         allowed_standards=allowed,
-        message="All standards allowed" if allowed is None else f"{len(allowed)} standards allowed"
+        message=message
     )
 
 
-@router.delete("/{key_id}/standards/{standard_id}")
+@router.delete("/{key_id}/standards/{standard_type}/{standard_id}")
 async def remove_standard_from_key(
     key_id: str,
+    standard_type: str,  # "marketplace" ou "custom"
     standard_id: str,
     current_user: dict = Depends(get_current_user)
 ):
@@ -300,18 +308,32 @@ async def remove_standard_from_key(
             detail="Cannot remove standard: key has access to all standards. Set allowed_standards first."
         )
 
-    if standard_id not in allowed:
-        raise HTTPException(status_code=404, detail=f"Standard {standard_id} not in allowed list")
+    # Verificar tipo de standard
+    if standard_type not in ["marketplace", "custom"]:
+        raise HTTPException(status_code=400, detail="standard_type must be 'marketplace' or 'custom'")
 
-    allowed.remove(standard_id)
-    api_keys_db[key_id]["allowed_standards"] = allowed if allowed else None
+    # Remover do tipo correto
+    if standard_type == "marketplace":
+        if standard_id not in allowed.marketplace:
+            raise HTTPException(status_code=404, detail=f"Marketplace standard {standard_id} not in allowed list")
+        allowed.marketplace.remove(standard_id)
+    else:  # custom
+        if standard_id not in allowed.custom:
+            raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not in allowed list")
+        allowed.custom.remove(standard_id)
 
-    logger.info(f"Standard {standard_id} removed from API key {key_id} by user {current_user['user_id']}")
+    # Se ambas as listas ficarem vazias, set None (acesso a todos)
+    if not allowed.marketplace and not allowed.custom:
+        api_keys_db[key_id]["allowed_standards"] = None
+    else:
+        api_keys_db[key_id]["allowed_standards"] = allowed
+
+    logger.info(f"{standard_type.capitalize()} standard {standard_id} removed from API key {key_id} by user {current_user['user_id']}")
 
     return {
         "success": True,
-        "message": f"Standard {standard_id} removed from allowed list",
-        "remaining_standards": allowed
+        "message": f"{standard_type.capitalize()} standard {standard_id} removed",
+        "remaining_standards": api_keys_db[key_id]["allowed_standards"]
     }
 
 
