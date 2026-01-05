@@ -131,8 +131,7 @@ graph LR
     end
 
     subgraph "Frontend Services"
-        E[Admin Dashboard<br/>Port: 3000<br/>Next.js]
-        F[Client Portal<br/>Port: 3001<br/>Next.js]
+        E[Web Portal<br/>Port: 3000<br/>Next.js]
     end
 
     subgraph "MCP Services"
@@ -620,10 +619,9 @@ nprocess/
 │   ├── services/          # Business logic
 │   ├── schemas/           # Pydantic models
 │   └── middleware/       # Custom middleware
-├── admin-dashboard/       # Admin interface (Next.js)
+├── web-portal/            # Unified Frontend (Admin + Client)
 ├── admin-control-plane/  # Admin API
-├── client-portal/         # Client interface
-├── mcp-servers/          # MCP protocol servers
+├── mcp-servers/          # MCP protocol servers (TypeScript)
 ├── regulatory-rag-api/   # RAG service
 ├── docs/                 # Documentation
 ├── tests/                # Test suite

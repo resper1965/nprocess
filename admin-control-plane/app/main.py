@@ -147,25 +147,35 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "http://localhost:5173",
-        "https://nprocess-frontend-s7tmkmao2a-uc.a.run.app",
-        "https://*.run.app"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 # Add Rate Limiting Middleware (60 req/min per client)
 app.add_middleware(RateLimitMiddleware)
 
 # Add Logging Middleware (correlation IDs, request logging)
 app.add_middleware(LoggingMiddleware)
+
+# Configure CORS (Added LAST to be the OUTERMOST middleware)
+# Read ALLOWED_ORIGINS from env, default to known secure origins
+env_origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+default_origins = [
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://localhost:5173",
+    "https://nprocess-frontend-s7tmkmao2a-uc.a.run.app",
+    "https://nprocess-8e801.web.app",
+    "https://nprocess-8e801.firebaseapp.com"
+]
+allow_origins = [o for o in env_origins if o] + default_origins
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_origin_regex="https://.*\\.run\\.app", # Allow all Cloud Run services
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     import uvicorn

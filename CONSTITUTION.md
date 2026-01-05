@@ -26,7 +26,9 @@
 
 ## 4. MODULE DEFINITIONS
 
-- **nprocess (Core):** Stateless logic.
-- **Ingestion:** Parses PDFs/URLs -> Chunks -> Embeds -> Saves to Firestore (checking Tenant ID).
+- **Modules:**
+  - **nprocess (Core):** Stateless logic API.
+  - **web-portal:** Unified Frontend (Admin + Client) [Next.js].
+  - **mcp-servers:** AI Agent Interface [TypeScript].
 - **Compliance:** Retrieves Vectors (Global + Private if allowed) -> RAG Analysis.
 - **Documents:** Generates structure -> Fills content -> Returns JSON.

@@ -53,15 +53,8 @@ deploy-api: ## Deploy API to Cloud Run
 		--region=us-central1 \
 		--substitutions=COMMIT_SHA=$$COMMIT_SHA,SHORT_SHA=$$SHORT_SHA
 
-deploy-admin: ## Deploy Admin Dashboard to Cloud Run
-	COMMIT_SHA=$$(git rev-parse --short HEAD) && \
-	SHORT_SHA=$${COMMIT_SHA:0:7} && \
-	cd admin-dashboard && \
-	gcloud builds submit \
-		--config=cloudbuild.yaml \
-		--project=$${GCP_PROJECT_ID:-nprocess} \
-		--region=us-central1 \
-		--substitutions=COMMIT_SHA=$$COMMIT_SHA,SHORT_SHA=$$SHORT_SHA
+deploy-web-portal: ## Deploy Unified Web Portal
+	./scripts/fase3-deploy-web-portal.sh
 
 security-scan: ## Run security scans
 	bandit -r app/ -f json -o bandit-report.json

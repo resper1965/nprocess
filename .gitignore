@@ -213,4 +213,14 @@ gcp-key*.json
 local/
 dev/
 *.local
-tsconfig.tsbuildinfo
+
+# Web Portal
+nprocess/web-portal/.next/
+nprocess/web-portal/out/
+nprocess/web-portal/node_modules/
+
+# MCP Servers
+nprocess/mcp-servers/dist/
+nprocess/mcp-servers/node_modules/
+
+!web-portal/src/lib/

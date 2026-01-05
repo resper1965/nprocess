@@ -55,7 +55,7 @@ steps:
         "Dockerfile",
         ".",
       ]
-    dir: "secure-starter-kit/frontend"
+    dir: "web-portal"
 
   # 4. Push Frontend Container
   - name: "gcr.io/cloud-builders/docker"

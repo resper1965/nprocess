@@ -1,0 +1,267 @@
+{
+  "common": {
+    "signIn": "Entrar",
+    "signOut": "Sair",
+    "getStarted": "Começar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "close": "Fechar",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "actions": "Ações"
+  },
+  "auth": {
+    "login": {
+      "title": "Entrar na sua conta",
+      "subtitle": "Entre na sua conta Process & Compliance Engine",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Esqueceu a senha?",
+      "signInWithGoogle": "Entrar com Google",
+      "dontHaveAccount": "Não tem uma conta?",
+      "signUp": "Cadastre-se",
+      "errors": {
+        "invalidEmail": "Email inválido",
+        "userNotFound": "Usuário não encontrado",
+        "wrongPassword": "Senha incorreta",
+        "invalidCredential": "Email ou senha incorretos",
+        "tooManyRequests": "Muitas tentativas. Tente novamente mais tarde",
+        "networkError": "Erro de conexão. Verifique sua internet",
+        "generic": "Erro ao fazer login"
+      }
+    },
+    "register": {
+      "title": "Criar conta",
+      "subtitle": "Crie sua conta Process & Compliance Engine",
+      "name": "Nome completo",
+      "email": "Email",
+      "password": "Senha",
+      "confirmPassword": "Confirmar senha",
+      "alreadyHaveAccount": "Já tem uma conta?",
+      "signIn": "Entrar"
+    }
+  },
+  "dashboard": {
+    "title": "Bem-vindo de volta",
+    "subtitle": "Aqui está o que está acontecendo com seu motor de compliance hoje",
+    "stats": {
+      "apiCalls": "Chamadas de API",
+      "documentsAnalyzed": "Documentos Analisados",
+      "activeApiKeys": "Chaves de API Ativas",
+      "chatMessages": "Mensagens de Chat"
+    },
+    "recentActivity": "Atividade Recente",
+    "recentActivityDescription": "Suas últimas operações de compliance",
+    "quickActions": {
+      "analyzeDocument": "Analisar Documento",
+      "analyzeDocumentDesc": "Faça upload de um documento para análise de compliance",
+      "chatWithAI": "Conversar com IA",
+      "chatWithAIDesc": "Obtenha orientação instantânea de compliance",
+      "generateReport": "Gerar Relatório",
+      "generateReportDesc": "Crie relatório de status de compliance"
+    },
+    "plan": {
+      "starter": "Plano Starter",
+      "upgrade": "Atualizar Plano",
+      "frameworksIncluded": "frameworks incluídos",
+      "perMonth": "por mês"
+    },
+    "trends": {
+      "fromLastMonth": "do mês passado",
+      "thisMonth": "este mês",
+      "thisWeek": "esta semana",
+      "starterPlanLimit": "Limite do plano Starter",
+      "approachingLimit": "Aproximando do limite"
+    },
+    "activity": {
+      "documentAnalyzed": "Documento analisado",
+      "apiKeyCreated": "Chave de API criada",
+      "chatSession": "Sessão de chat",
+      "integrationConfigured": "Integração configurada",
+      "success": "sucesso",
+      "hoursAgo": "horas atrás",
+      "daysAgo": "dias atrás",
+      "dayAgo": "dia atrás"
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "apiKeys": "Chaves de API",
+    "secrets": "Secrets",
+    "integrations": "Integrações",
+    "documents": "Documentos",
+    "compliance": "Compliance",
+    "chat": "Chat",
+    "billing": "Cobrança",
+    "team": "Equipe",
+    "settings": "Configurações"
+  },
+  "apiKeys": {
+    "title": "Chaves de API",
+    "subtitle": "Gerencie suas chaves de API para acessar a API Process & Compliance Engine",
+    "create": "Criar Chave de API",
+    "name": "Nome",
+    "created": "Criada",
+    "lastUsed": "Último uso",
+    "status": "Status",
+    "actions": "Ações",
+    "active": "Ativa",
+    "revoked": "Revogada",
+    "expired": "Expirada",
+    "revoke": "Revogar",
+    "copy": "Copiar",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "usage": "Uso",
+    "quota": "Cota",
+    "newKeyCreated": "Nova chave criada com sucesso",
+    "keyCopied": "Chave copiada para a área de transferência",
+    "loading": "Carregando chaves de API...",
+    "used": "Chave de API Usada",
+    "starterPlanAllows": "O plano Starter permite 1 chave de API ativa",
+    "upgradeForMore": "Atualizar para mais chaves",
+    "createNew": "Criar Nova Chave de API",
+    "createdSuccessfully": "Chave de API Criada com Sucesso",
+    "saveKeyNow": "Salve esta chave agora - você não poderá vê-la novamente!",
+    "giveDescriptiveName": "Dê um nome descritivo à sua chave de API para identificá-la depois",
+    "yourNewApiKey": "Sua nova chave de API:",
+    "copyToClipboard": "Copiar para Área de Transferência",
+    "important": "Importante",
+    "keyShownOnce": "Esta chave será mostrada apenas uma vez. Certifique-se de copiá-la e armazená-la com segurança.",
+    "enterKeyName": "Digite o nome da chave",
+    "close": "Fechar"
+  },
+  "documents": {
+    "title": "Documentos",
+    "subtitle": "Faça upload e analise documentos de compliance",
+    "upload": "Fazer Upload de Documento",
+    "usage": "Uso",
+    "used": "Usado",
+    "quota": "Cota",
+    "documentsUsed": "Documentos Usados",
+    "monthlyQuota": "Sua cota mensal de documentos",
+    "uploaded": "Enviado em",
+    "compliance": "Compliance",
+    "status": {
+      "analyzed": "Analisado",
+      "analyzing": "Analisando..."
+    }
+  },
+  "compliance": {
+    "title": "Status de Compliance",
+    "subtitle": "Monitore seu compliance em todos os frameworks regulatórios",
+    "overallScore": "Score Geral de Compliance",
+    "frameworks": "Frameworks",
+    "frameworkCompliance": "Conformidade do Framework",
+    "gaps": "Gaps",
+    "recentGaps": "Gaps Recentes",
+    "compliant": "Conforme",
+    "needsAttention": "Precisa de Atenção",
+    "lastChecked": "Última verificação",
+    "thisMonth": "este mês"
+  },
+  "chat": {
+    "title": "Assistente de Chat IA",
+    "subtitle": "Obtenha respostas instantâneas para suas perguntas de compliance",
+    "poweredBy": "Powered by Gemini",
+    "messagesUsed": "mensagens usadas",
+    "placeholder": "Digite sua mensagem...",
+    "send": "Enviar",
+    "suggestedQuestions": {
+      "lgpd": "Quais são os principais requisitos da LGPD?",
+      "hipaa": "Como garantir conformidade com HIPAA?",
+      "iso27001": "Explique o processo de certificação ISO 27001",
+      "fda": "O que é necessário para aprovação FDA 510(k)?"
+    }
+  },
+  "billing": {
+    "title": "Cobrança e Assinatura",
+    "subtitle": "Gerencie seu plano de assinatura e informações de cobrança",
+    "currentPlan": "Plano Atual",
+    "active": "Ativo",
+    "renewsOn": "Renova em",
+    "invoices": "Faturas",
+    "upgrade": "Atualizar Plano",
+    "downgrade": "Downgrade",
+    "availablePlans": "Planos Disponíveis",
+    "perMonth": "por mês",
+    "perYear": "por ano",
+    "save": "economize",
+    "popular": "Popular",
+    "current": "Atual",
+    "updatePaymentMethod": "Atualizar Método de Pagamento",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "Perfeito para pequenas equipes começando"
+      },
+      "professional": {
+        "name": "Professional",
+        "description": "Para equipes em crescimento"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Para organizações grandes"
+      }
+    },
+    "features": {
+      "dedicatedAccountManager": "Gerente de conta dedicado",
+      "slaGuarantee": "Garantia de SLA"
+    }
+  },
+  "settings": {
+    "title": "Configurações",
+    "profile": "Perfil",
+    "notifications": "Notificações",
+    "appearance": "Aparência",
+    "security": "Segurança",
+    "updateProfile": "Atualizar suas informações pessoais",
+    "fullName": "Nome completo",
+    "email": "Email",
+    "role": "Função",
+    "saveChanges": "Salvar alterações",
+    "emailNotifications": "Notificações por email",
+    "complianceAlerts": "Alertas de compliance",
+    "usageAlerts": "Alertas de uso",
+    "theme": "Tema",
+    "changePassword": "Alterar senha",
+    "enable2FA": "Habilitar autenticação de dois fatores"
+  },
+  "team": {
+    "title": "Equipe",
+    "subtitle": "Gerencie os membros da sua equipe e suas permissões",
+    "inviteMember": "Convidar Membro",
+    "members": "Membros",
+    "role": "Função",
+    "status": "Status",
+    "joined": "Entrou em"
+  },
+  "secrets": {
+    "title": "Gerenciamento de Secrets",
+    "subtitle": "Armazene com segurança chaves de API e credenciais para integrações externas",
+    "addSecret": "Adicionar Secret",
+    "securityNotice": "Aviso de Segurança",
+    "securityNoticeText": "Os secrets são criptografados e armazenados com segurança. Nunca compartilhe suas credenciais."
+  },
+  "integrations": {
+    "title": "Integrações",
+    "subtitle": "Conecte Process & Compliance Engine com suas ferramentas e serviços favoritos",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "configure": "Configurar"
+  }
+}
+

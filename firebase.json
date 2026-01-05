@@ -21,8 +21,8 @@
   ],
   "hosting": [
     {
-      "target": "client-portal",
-      "public": "client-portal/out",
+      "target": "web-portal",
+      "public": "web-portal/out",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -32,30 +32,6 @@
         {
           "source": "**",
           "destination": "/index.html"
-        }
-      ]
-    },
-    {
-      "target": "nprocess-frontend",
-      "public": "secure-starter-kit/frontend/dist",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ],
-      "headers": [
-        {
-          "source": "**",
-          "headers": [
-             { "key": "Cache-Control", "value": "max-age=31536000" },
-             { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.run.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com http://localhost:8008;" }
-          ]
         }
       ]
     }

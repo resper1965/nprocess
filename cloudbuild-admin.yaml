@@ -1,0 +1,15 @@
+steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/nprocess-admin-api:$_ENV", "."]
+    dir: "admin-control-plane"
+
+  # Push the container image to Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/nprocess-admin-api:$_ENV"]
+
+images:
+  - "gcr.io/$PROJECT_ID/nprocess-admin-api:$_ENV"
+
+substitutions:
+  _ENV: "dev"

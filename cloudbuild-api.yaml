@@ -1,0 +1,21 @@
+steps:
+  # 1. Build Container
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/${PROJECT_ID}/nprocess-api-${_ENV}:latest",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
+  # 2. Push Container
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/${PROJECT_ID}/nprocess-api-${_ENV}:latest"]
+
+substitutions:
+  _ENV: dev
+
+images:
+  - "gcr.io/${PROJECT_ID}/nprocess-api-${_ENV}:latest"
