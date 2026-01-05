@@ -17,7 +17,9 @@ from app.schemas import (
     APIKeyValidationResponse,
     APIKeyQuotas,
     APIKeyEnvironment,
-    APIKeyStatus
+    APIKeyStatus,
+    StandardsUpdateRequest,
+    StandardsResponse
 )
 from app.middleware.auth import get_current_user
 
@@ -66,6 +68,7 @@ async def create_api_key(
             "status": APIKeyStatus.ACTIVE,
             "quotas": request.quotas or APIKeyQuotas(),
             "permissions": request.permissions,
+            "allowed_standards": request.allowed_standards,
             "created_at": datetime.utcnow(),
             "created_by": current_user["user_id"],
             "expires_at": request.expires_at,
@@ -88,6 +91,7 @@ async def create_api_key(
             status=key_record["status"],
             quotas=key_record["quotas"],
             permissions=key_record["permissions"],
+            allowed_standards=key_record["allowed_standards"],
             created_at=key_record["created_at"],
             created_by=key_record["created_by"],
             expires_at=key_record["expires_at"],
@@ -116,6 +120,7 @@ async def list_api_keys(
             status=key_record["status"],
             quotas=key_record["quotas"],
             permissions=key_record["permissions"],
+            allowed_standards=key_record.get("allowed_standards"),
             created_at=key_record["created_at"],
             created_by=key_record["created_by"],
             expires_at=key_record["expires_at"],
@@ -149,6 +154,7 @@ async def get_api_key(
         status=key_record["status"],
         quotas=key_record["quotas"],
         permissions=key_record["permissions"],
+        allowed_standards=key_record.get("allowed_standards"),
         created_at=key_record["created_at"],
         created_by=key_record["created_by"],
         expires_at=key_record["expires_at"],
@@ -185,6 +191,7 @@ async def revoke_api_key(
         status=key_record["status"],
         quotas=key_record["quotas"],
         permissions=key_record["permissions"],
+        allowed_standards=key_record.get("allowed_standards"),
         created_at=key_record["created_at"],
         created_by=key_record["created_by"],
         expires_at=key_record["expires_at"],
@@ -218,6 +225,7 @@ async def validate_api_key(request: APIKeyValidationRequest):
                 key_id=key_record["key_id"],
                 consumer_app_id=key_record["consumer_app_id"],
                 permissions=key_record["permissions"],
+                allowed_standards=key_record.get("allowed_standards"),
                 quota_remaining={
                     "daily": key_record["quotas"].requests_per_day,  # TODO: Calculate actual remaining
                     "monthly": key_record["quotas"].requests_per_month
@@ -229,6 +237,82 @@ async def validate_api_key(request: APIKeyValidationRequest):
         valid=False,
         message="Invalid API key"
     )
+
+
+@router.put("/{key_id}/standards", response_model=StandardsResponse)
+async def update_allowed_standards(
+    key_id: str,
+    request: StandardsUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update allowed standards for an API key.
+    Set to null/empty to allow all standards.
+    """
+    if key_id not in api_keys_db:
+        raise HTTPException(status_code=404, detail="API key not found")
+
+    # Update allowed_standards
+    api_keys_db[key_id]["allowed_standards"] = request.standards if request.standards else None
+
+    logger.info(f"Standards updated for API key {key_id} by user {current_user['user_id']}: {request.standards}")
+
+    return StandardsResponse(
+        key_id=key_id,
+        allowed_standards=api_keys_db[key_id]["allowed_standards"],
+        message=f"Allowed standards updated successfully"
+    )
+
+
+@router.get("/{key_id}/standards", response_model=StandardsResponse)
+async def get_allowed_standards(
+    key_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get allowed standards for an API key"""
+    if key_id not in api_keys_db:
+        raise HTTPException(status_code=404, detail="API key not found")
+
+    allowed = api_keys_db[key_id].get("allowed_standards")
+
+    return StandardsResponse(
+        key_id=key_id,
+        allowed_standards=allowed,
+        message="All standards allowed" if allowed is None else f"{len(allowed)} standards allowed"
+    )
+
+
+@router.delete("/{key_id}/standards/{standard_id}")
+async def remove_standard_from_key(
+    key_id: str,
+    standard_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove a specific standard from allowed list"""
+    if key_id not in api_keys_db:
+        raise HTTPException(status_code=404, detail="API key not found")
+
+    allowed = api_keys_db[key_id].get("allowed_standards")
+
+    if allowed is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot remove standard: key has access to all standards. Set allowed_standards first."
+        )
+
+    if standard_id not in allowed:
+        raise HTTPException(status_code=404, detail=f"Standard {standard_id} not in allowed list")
+
+    allowed.remove(standard_id)
+    api_keys_db[key_id]["allowed_standards"] = allowed if allowed else None
+
+    logger.info(f"Standard {standard_id} removed from API key {key_id} by user {current_user['user_id']}")
+
+    return {
+        "success": True,
+        "message": f"Standard {standard_id} removed from allowed list",
+        "remaining_standards": allowed
+    }
 
 
 @router.delete("/{key_id}")

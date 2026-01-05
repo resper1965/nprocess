@@ -123,6 +123,7 @@ class APIKeyCreate(BaseModel):
     environment: APIKeyEnvironment = APIKeyEnvironment.LIVE
     quotas: Optional[APIKeyQuotas] = None
     permissions: List[str] = Field(default_factory=lambda: ["read"])
+    allowed_standards: Optional[List[str]] = Field(default=None, description="List of standard IDs this API key can access (None = all)")
     expires_at: Optional[datetime] = None
 
 
@@ -137,6 +138,7 @@ class APIKeyResponse(BaseModel):
     status: APIKeyStatus
     quotas: APIKeyQuotas
     permissions: List[str]
+    allowed_standards: Optional[List[str]] = None
     created_at: datetime
     created_by: str
     expires_at: Optional[datetime] = None
@@ -156,6 +158,7 @@ class APIKeyInfo(BaseModel):
     status: APIKeyStatus
     quotas: APIKeyQuotas
     permissions: List[str]
+    allowed_standards: Optional[List[str]] = None
     created_at: datetime
     created_by: str
     expires_at: Optional[datetime] = None
@@ -177,8 +180,21 @@ class APIKeyValidationResponse(BaseModel):
     key_id: Optional[str] = None
     consumer_app_id: Optional[str] = None
     permissions: Optional[List[str]] = None
+    allowed_standards: Optional[List[str]] = None
     quota_remaining: Optional[Dict[str, int]] = None
     message: Optional[str] = None
+
+
+class StandardsUpdateRequest(BaseModel):
+    """Request to update allowed standards for an API key"""
+    standards: List[str] = Field(..., description="List of standard IDs to allow (e.g., ['lgpd_br_2018', 'iso27001_2013'])")
+
+
+class StandardsResponse(BaseModel):
+    """Response with standards information"""
+    key_id: str
+    allowed_standards: Optional[List[str]] = None
+    message: str
 
 
 # ============================================================================

@@ -44,19 +44,21 @@ class SearchService:
             self.db = None
 
     async def search_regulations(
-        self, 
-        query: str, 
-        domain: str, 
-        limit: int = 5
+        self,
+        query: str,
+        domain: str,
+        limit: int = 5,
+        allowed_standards: Optional[List[str]] = None
     ) -> List[Dict[str, str]]:
         """
         Busca regulamentos relevantes usando Firestore Vector Search.
-        
+
         Args:
             query: Texto da consulta.
             domain: Domínio regulatório (ex: LGPD, SOX) - usado para filtrar resultados.
             limit: Número máximo de resultados (KNN).
-            
+            allowed_standards: Lista de standard IDs permitidos para esta API key (None = todos).
+
         Returns:
             Lista de chunks encontrados com conteúdo e score de similaridade.
         """
@@ -80,9 +82,15 @@ class SearchService:
                 "CIS": "cis_controls",
                 "ISO27001": "iso_27001",
             }
-            
+
             source_id = domain_to_source.get(domain.upper())
-            
+
+            # 2.1. Verificar se source_id está na lista de allowed_standards
+            if allowed_standards is not None:
+                if source_id and source_id not in allowed_standards:
+                    logger.warning(f"Standard {source_id} não permitido para esta API key. Allowed: {allowed_standards}")
+                    return []  # API key não tem acesso a este standard
+
             if source_id:
                 # Busca específica na coleção do source
                 chunks_ref = self.db.collection("global_standards").document(source_id).collection("chunks")
@@ -106,16 +114,26 @@ class SearchService:
             for doc in docs:
                 data = doc.to_dict()
                 metadata = data.get("metadata", {})
-                
+
+                # Extrair source_id do path (ex: global_standards/lgpd_br/chunks/xxx)
+                path_parts = doc.reference.path.split('/')
+                doc_source_id = path_parts[1] if len(path_parts) > 1 else None
+
+                # Filtrar por allowed_standards se especificado
+                if allowed_standards is not None:
+                    if doc_source_id not in allowed_standards:
+                        logger.debug(f"Filtrando chunk de {doc_source_id} (não permitido)")
+                        continue  # Skip este resultado
+
                 # Filtro adicional por domain nos metadados (pós-busca)
                 # Útil quando usando collection_group
                 chunk_domain = metadata.get("domain", "").upper()
                 if source_id is None and domain and chunk_domain and chunk_domain != domain.upper():
                     continue  # Skip se domain não bate
-                
+
                 title = data.get("standard_title", metadata.get("name", "Regulamento"))
                 content = data.get("content", "")
-                
+
                 results.append({
                     "title": title,
                     "content": content,
@@ -123,7 +141,7 @@ class SearchService:
                     "hierarchy": metadata.get("hierarchy", ""),
                     "relevance_score": 0.0  # Firestore retorna ordenado por relevância
                 })
-                
+
             return results
 
         except Exception as e:
