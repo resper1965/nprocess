@@ -3,7 +3,7 @@ Knowledge Base Marketplace Router
 Handles KB management and subscriptions for the marketplace
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from typing import List, Optional
 from datetime import datetime, timedelta
 import uuid
@@ -433,18 +433,27 @@ async def cancel_subscription(
 @router.post("/search", response_model=KBSearchResponse)
 async def search_knowledge_bases(
     request: KBSearchRequest,
+    http_request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Search across subscribed Knowledge Bases"""
+    """
+    Search across subscribed Knowledge Bases
+
+    Security: Filters results by API key's allowed_standards if authenticated via X-API-Key
+    """
     import time
     start = time.time()
-    
+
     await ensure_initialized()
     kb_repo = get_kb_repository()
     sub_repo = get_subscription_repository()
-    
+
     tenant_id = current_user.get("tenant_id", "default")
-    
+
+    # Get allowed_standards from API key auth (if present)
+    from app.middleware.api_key_auth import get_allowed_standards
+    allowed_standards = get_allowed_standards(http_request)
+
     # Get subscribed KB IDs
     sub_filters = {
         "tenant_id": tenant_id,
@@ -452,30 +461,63 @@ async def search_knowledge_bases(
     }
     subs = await sub_repo.list(filters=sub_filters)
     subscribed_kb_ids = [s["kb_id"] for s in subs]
-    
+
     if not subscribed_kb_ids:
         raise HTTPException(status_code=400, detail="No active KB subscriptions")
-    
+
     # Filter by requested KBs if specified
     kb_ids_to_search = request.kb_ids or subscribed_kb_ids
     kb_ids_to_search = [kb_id for kb_id in kb_ids_to_search if kb_id in subscribed_kb_ids]
-    
+
     if not kb_ids_to_search:
         raise HTTPException(status_code=403, detail="Not subscribed to requested KBs")
-    
+
+    # SECURITY: Filter by allowed_standards (API key restriction)
+    if allowed_standards:
+        logger.info(
+            f"Applying allowed_standards filter",
+            extra={
+                "tenant_id": tenant_id,
+                "allowed_standards": allowed_standards,
+                "requested_kb_ids": kb_ids_to_search
+            }
+        )
+
+        # Filter marketplace standards (KBs)
+        allowed_marketplace = allowed_standards.get("marketplace", [])
+
+        if allowed_marketplace:
+            # Only allow KBs that are in allowed list
+            kb_ids_to_search = [
+                kb_id for kb_id in kb_ids_to_search
+                if kb_id in allowed_marketplace
+            ]
+
+            if not kb_ids_to_search:
+                logger.warning(
+                    f"No allowed KBs after standards filter",
+                    extra={
+                        "tenant_id": tenant_id,
+                        "allowed_marketplace": allowed_marketplace,
+                        "subscribed_kb_ids": subscribed_kb_ids
+                    }
+                )
+                raise HTTPException(
+                    status_code=403,
+                    detail="API key does not have access to requested knowledge bases"
+                )
+
     # Use the real search service
     from app.services.kb_search_service import KBSearchService
     service = KBSearchService()
-    
+
     search_results = await service.search(
         query=request.query,
         kb_ids=kb_ids_to_search,
         top_k=request.top_k
     )
-    
+
     # Get KB details for mapping (names)
-    # Optimization: If many KBs, this might need better pattern than one-by-one or list all
-    # For now, listing all active is reasonable as cache is in memory fallback
     all_kbs = await kb_repo.list(filters={"status": KBStatus.ACTIVE.value})
     kb_map = {kb["kb_id"]: kb for kb in all_kbs}
 
@@ -484,7 +526,7 @@ async def search_knowledge_bases(
     for r in search_results:
         kb_id = r["kb_id"]
         kb_name = kb_map.get(kb_id, {}).get("name", kb_id)
-        
+
         results.append(KBSearchResult(
             content=r["content"],
             source=r["source"],
@@ -493,9 +535,21 @@ async def search_knowledge_bases(
             score=r["score"],
             metadata=r.get("metadata")
         ))
-    
+
     elapsed = (time.time() - start) * 1000
-    
+
+    logger.info(
+        f"Search completed",
+        extra={
+            "tenant_id": tenant_id,
+            "query_length": len(request.query),
+            "kb_searched": kb_ids_to_search,
+            "results_count": len(results),
+            "processing_time_ms": elapsed,
+            "api_key_filtered": bool(allowed_standards)
+        }
+    )
+
     return KBSearchResponse(
         query=request.query,
         results=results[:request.top_k],
