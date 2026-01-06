@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for Google redirect result on mount
     const checkRedirectResult = async () => {
       console.log('checkRedirectResult: Checking for Google redirect result...', {
-        currentUser: auth.currentUser?.uid || 'none',
+        currentUser: auth?.currentUser?.uid || 'none',
         path: typeof window !== 'undefined' ? window.location.pathname : 'N/A'
       });
       
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const result = await handleGoogleRedirect();
         
         // Also check if currentUser exists (in case getRedirectResult already consumed the result)
-        const currentUser = auth.currentUser;
+        const currentUser = auth?.currentUser || null;
         
         console.log('checkRedirectResult: After handleGoogleRedirect', {
           hasResult: !!result,
@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Also check currentUser immediately in case auth state is already set
-    if (auth.currentUser) {
+    if (auth?.currentUser) {
       console.log('AuthProvider: currentUser already exists on mount', { uid: auth.currentUser.uid });
       setUser(auth.currentUser);
       setLoading(false);
@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         uid: currentUser?.uid,
         email: currentUser?.email,
         path: typeof window !== 'undefined' ? window.location.pathname : 'N/A',
-        currentUserFromAuth: auth.currentUser?.uid || 'none'
+        currentUserFromAuth: auth?.currentUser?.uid || 'none'
       });
       
       // Don't set loading true here if we want seamless auth state restore
