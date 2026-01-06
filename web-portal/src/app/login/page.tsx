@@ -235,10 +235,15 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-white">
+                <label 
+                  htmlFor="login-email"
+                  className="text-sm font-medium text-gray-900 dark:text-white"
+                >
                   {t.auth.login.email}
                 </label>
                 <Input
+                  id="login-email"
+                  name="email"
                   className="glass"
                   type="email"
                   placeholder="you@example.com"
@@ -253,7 +258,10 @@ export default function LoginPage() {
               {/* Password */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-900 dark:text-white">
+                  <label 
+                    htmlFor="login-password"
+                    className="text-sm font-medium text-gray-900 dark:text-white"
+                  >
                     {t.auth.login.password}
                   </label>
                   <Link
@@ -264,6 +272,8 @@ export default function LoginPage() {
                   </Link>
                 </div>
                 <Input
+                  id="login-password"
+                  name="password"
                   className="glass"
                   type="password"
                   placeholder="••••••••"
