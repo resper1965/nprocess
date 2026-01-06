@@ -118,8 +118,18 @@ export const registerWithEmail = async (
 };
 
 /**
+ * Detect if browser is Edge
+ */
+const isEdgeBrowser = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const userAgent = window.navigator.userAgent;
+  return userAgent.includes('Edg/') || userAgent.includes('Edge/');
+};
+
+/**
  * Login with Google using redirect (more reliable than popup)
  * This avoids issues with third-party cookies being blocked
+ * Special handling for Edge browser with Tracking Prevention
  */
 export const loginWithGoogle = async (): Promise<void> => {
   console.log('loginWithGoogle: Starting Google login process...');
@@ -131,10 +141,23 @@ export const loginWithGoogle = async (): Promise<void> => {
   
   console.log('loginWithGoogle: Firebase Auth is initialized', { authDomain: auth.app.options.authDomain });
   
+  // Detect Edge browser
+  const isEdge = isEdgeBrowser();
+  console.log('loginWithGoogle: Browser detected', { isEdge, userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'N/A' });
+  
   try {
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
+    
+    // For Edge, set custom parameters to help with Tracking Prevention
+    if (isEdge) {
+      // Set custom parameters that may help with Edge's Tracking Prevention
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      console.log('loginWithGoogle: Edge detected - using custom parameters');
+    }
     
     console.log('loginWithGoogle: GoogleAuthProvider created');
     
@@ -147,6 +170,7 @@ export const loginWithGoogle = async (): Promise<void> => {
     console.log('loginWithGoogle: Calling signInWithRedirect...');
     
     // Use redirect instead of popup to avoid third-party cookie issues
+    // signInWithRedirect should work even with Tracking Prevention as it's a full-page redirect
     await signInWithRedirect(auth, provider);
     
     console.log('loginWithGoogle: signInWithRedirect called successfully - redirect should happen now');

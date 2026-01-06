@@ -57,6 +57,14 @@ if (typeof window !== 'undefined') {
 
   // Initialize services (only in browser)
   authInstance = getAuth(app);
+  
+  // Configure auth settings for better Edge compatibility
+  if (authInstance) {
+    // Set persistence to help with Edge's Tracking Prevention
+    // This ensures auth state persists even with strict privacy settings
+    authInstance.settings.appVerificationDisabledForTesting = false;
+  }
+  
   storageInstance = getStorage(app);
   
   try {

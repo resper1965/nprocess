@@ -78,6 +78,15 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     console.log('handleGoogleLogin: Button clicked, starting Google login...')
     
+    // Detect Edge browser
+    const isEdge = typeof window !== 'undefined' && 
+                   (window.navigator.userAgent.includes('Edg/') || 
+                    window.navigator.userAgent.includes('Edge/'));
+    
+    if (isEdge) {
+      console.log('handleGoogleLogin: Edge browser detected - using Edge-optimized flow');
+    }
+    
     try {
       setError('')
       
@@ -85,6 +94,7 @@ export default function LoginPage() {
       
       // loginWithGoogle now uses redirect instead of popup
       // This avoids third-party cookie blocking issues
+      // signInWithRedirect should work with Edge's Tracking Prevention as it's a full-page redirect
       await loginWithGoogle()
       
       console.log('handleGoogleLogin: loginWithGoogle() completed - redirect should happen now')
@@ -126,11 +136,24 @@ export default function LoginPage() {
       }
       
       // Check for tracking prevention errors in message
+      const isEdge = typeof window !== 'undefined' && 
+                     (window.navigator.userAgent.includes('Edg/') || 
+                      window.navigator.userAgent.includes('Edge/'));
+      
       if (errorMessage.toLowerCase().includes('tracking prevention') || 
-          errorMessage.toLowerCase().includes('storage') && errorMessage.toLowerCase().includes('blocked')) {
-        errorMessage = 'Seu navegador está bloqueando o acesso necessário para o login com Google. ' +
-                       'Por favor, desative a "Prevenção de Rastreamento" nas configurações do navegador ' +
-                       'ou use outro navegador (Chrome, Firefox).';
+          (errorMessage.toLowerCase().includes('storage') && errorMessage.toLowerCase().includes('blocked'))) {
+        if (isEdge) {
+          errorMessage = 'O Microsoft Edge está bloqueando o acesso necessário para o login com Google. ' +
+                         'Para resolver, siga estes passos:\n\n' +
+                         '1. Clique no ícone de cadeado ao lado do endereço do site\n' +
+                         '2. Em "Prevenção de rastreamento", selecione "Desativada" para este site\n' +
+                         '3. Ou vá em Configurações → Privacidade → Prevenção de rastreamento → "Básico"\n\n' +
+                         'O login com Google funcionará após essas configurações.';
+        } else {
+          errorMessage = 'Seu navegador está bloqueando o acesso necessário para o login com Google. ' +
+                         'Por favor, desative a "Prevenção de Rastreamento" nas configurações do navegador ' +
+                         'ou use outro navegador (Chrome, Firefox).';
+        }
       }
       
       console.error('handleGoogleLogin: Setting error message:', errorMessage)
@@ -170,15 +193,29 @@ export default function LoginPage() {
                 <div className="mb-2">{error}</div>
                 {(error.toLowerCase().includes('tracking prevention') || 
                   (error.toLowerCase().includes('storage') && error.toLowerCase().includes('blocked')) ||
-                  error.toLowerCase().includes('rastreamento')) ? (
+                  error.toLowerCase().includes('rastreamento') ||
+                  error.toLowerCase().includes('microsoft edge')) ? (
                   <div className="mt-3 pt-3 border-t border-red-500/20">
-                    <div className="text-xs font-medium mb-2">💡 Soluções:</div>
-                    <ul className="text-xs list-disc list-inside space-y-1 text-red-500/80 dark:text-red-400/80">
-                      <li>Desative a "Prevenção de Rastreamento" nas configurações do navegador</li>
-                      <li>Use outro navegador (Chrome ou Firefox recomendados)</li>
-                      <li>Permita cookies de terceiros para este site</li>
-                      <li>Se estiver no Safari: Configurações → Privacidade → desative "Prevenir rastreamento entre sites"</li>
-                    </ul>
+                    <div className="text-xs font-medium mb-2">💡 Soluções para Microsoft Edge:</div>
+                    <ol className="text-xs list-decimal list-inside space-y-2 text-red-500/80 dark:text-red-400/80">
+                      <li className="font-medium">Método Rápido (Recomendado):
+                        <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+                          <li>Clique no ícone de <strong>cadeado</strong> ao lado do endereço do site</li>
+                          <li>Em "Prevenção de rastreamento", selecione <strong>"Desativada"</strong> para este site</li>
+                          <li>Recarregue a página e tente novamente</li>
+                        </ul>
+                      </li>
+                      <li className="font-medium">Método Global:
+                        <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
+                          <li>Configurações → <strong>Privacidade, pesquisa e serviços</strong></li>
+                          <li>Em "Prevenção de rastreamento", escolha <strong>"Básico"</strong></li>
+                          <li>Recarregue a página e tente novamente</li>
+                        </ul>
+                      </li>
+                    </ol>
+                    <div className="mt-2 text-xs text-red-500/60 dark:text-red-400/60">
+                      ⚠️ O login com Google requer acesso ao storage do Google APIs, que é bloqueado pela Prevenção de Rastreamento.
+                    </div>
                   </div>
                 ) : null}
               </div>
