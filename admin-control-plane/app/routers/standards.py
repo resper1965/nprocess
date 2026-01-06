@@ -293,17 +293,32 @@ async def delete_custom_standard(
     current_user: dict = Depends(get_current_user)
 ):
     """Delete a custom standard"""
-    client_id = current_user.get("client_id", "client_default")
+    try:
+        client_id = current_user.get("client_id", "client_default")
 
-    if client_id not in custom_standards_db or standard_id not in custom_standards_db[client_id]:
-        raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not found")
+        # Delete from Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc = doc_ref.get()
 
-    # TODO: Delete from Firestore client_standards/{client_id}/{standard_id}
-    del custom_standards_db[client_id][standard_id]
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not found")
 
-    logger.info(f"Custom standard deleted: {standard_id} by client {client_id}")
+        doc_ref.delete()
 
-    return {"success": True, "message": f"Custom standard {standard_id} deleted"}
+        # Delete associated chunks
+        chunks_ref = db.db.collection("client_standards").document(client_id).collection(standard_id).collection("chunks")
+        for chunk_doc in chunks_ref.stream():
+            chunk_doc.reference.delete()
+
+        logger.info(f"Custom standard deleted: {standard_id} by client {client_id}")
+
+        return {"success": True, "message": f"Custom standard {standard_id} deleted"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting custom standard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/custom/{standard_id}/ingest", response_model=StandardIngestResponse)
