@@ -119,8 +119,18 @@ export default function LoginPage() {
           'auth/operation-not-allowed': 'Login com Google não está habilitado. Entre em contato com o suporte.',
           'auth/configuration-not-found': 'Configuração do Firebase não encontrada. Verifique as configurações.',
           'auth/unauthorized-domain': 'Domínio não autorizado. Verifique as configurações do Firebase.',
+          'auth/network-request-failed': 'Erro de rede. Verifique sua conexão e tente novamente. ' +
+                                         'Se o problema persistir, pode ser bloqueio de rastreamento do navegador.',
         }
         errorMessage = errorMessages[error.code] || error.message || errorMessage
+      }
+      
+      // Check for tracking prevention errors in message
+      if (errorMessage.toLowerCase().includes('tracking prevention') || 
+          errorMessage.toLowerCase().includes('storage') && errorMessage.toLowerCase().includes('blocked')) {
+        errorMessage = 'Seu navegador está bloqueando o acesso necessário para o login com Google. ' +
+                       'Por favor, desative a "Prevenção de Rastreamento" nas configurações do navegador ' +
+                       'ou use outro navegador (Chrome, Firefox).';
       }
       
       console.error('handleGoogleLogin: Setting error message:', errorMessage)

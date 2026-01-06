@@ -163,10 +163,21 @@ export const loginWithGoogle = async (): Promise<void> => {
       name: error?.name
     });
     
+    // Check for tracking prevention / storage blocked errors
+    const errorMessageLower = (error?.message || '').toLowerCase();
+    const isTrackingPrevention = errorMessageLower.includes('tracking prevention') || 
+                                  errorMessageLower.includes('storage') ||
+                                  errorMessageLower.includes('blocked') ||
+                                  error?.code === 'auth/network-request-failed';
+    
     // Provide more specific error messages
     let errorMessage = 'Erro ao iniciar login com Google. Por favor, tente novamente.';
     
-    if (error?.code) {
+    if (isTrackingPrevention) {
+      errorMessage = 'Seu navegador está bloqueando o acesso necessário para o login com Google. ' +
+                     'Por favor, desative a "Prevenção de Rastreamento" nas configurações do navegador ' +
+                     'ou use outro navegador (Chrome, Firefox).';
+    } else if (error?.code) {
       switch (error.code) {
         case 'auth/operation-not-allowed':
           errorMessage = 'Login com Google não está habilitado. Entre em contato com o suporte.';
@@ -176,6 +187,10 @@ export const loginWithGoogle = async (): Promise<void> => {
           break;
         case 'auth/unauthorized-domain':
           errorMessage = 'Domínio não autorizado. Verifique as configurações do Firebase.';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Erro de rede. Verifique sua conexão e tente novamente. ' +
+                         'Se o problema persistir, pode ser bloqueio de rastreamento do navegador.';
           break;
         default:
           errorMessage = error.message || errorMessage;
