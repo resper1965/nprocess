@@ -174,7 +174,7 @@ export default function StandardsPage() {
       const createdStandard = await createRes.json();
 
       // Trigger ingestion
-      const ingestRes = await fetch(`${API_URL}/v1/admin/standards/custom/${createdStandard.id}/ingest`, {
+      const ingestRes = await fetch(`${API_URL}/v1/admin/standards/custom/${createdStandard.standard_id}/ingest`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
