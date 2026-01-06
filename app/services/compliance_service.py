@@ -55,12 +55,25 @@ class ComplianceService:
         # Convertemos o objeto ProcessDefinition para dict para passar ao AI Service
         process_data = request.process.model_dump()
 
+        # 2.1. Preparar contexto adicional incluindo SOA se fornecido
+        context = request.additional_context or ""
+        if request.soa:
+            soa_context = "\n\n**Statement of Applicability (SOA):**\n"
+            if request.soa.get("applicable_controls"):
+                soa_context += f"- Controles aplicáveis: {', '.join(request.soa['applicable_controls'])}\n"
+            if request.soa.get("excluded_controls"):
+                soa_context += f"- Controles excluídos: {', '.join(request.soa['excluded_controls'])}\n"
+            if request.soa.get("justification"):
+                soa_context += f"- Justificativa: {request.soa['justification']}\n"
+            soa_context += "\n**IMPORTANTE:** Analise APENAS os controles aplicáveis listados no SOA. Ignore completamente os controles excluídos."
+            context += soa_context
+
         # 3. Executar análise com IA
         overall_score, summary, gaps, suggestions = await self.ai_service.analyze_compliance(
             process_data=process_data,
             retrieved_regulations=retrieved_regulations,
             domain=request.domain,
-            additional_context=request.additional_context
+            additional_context=context
         )
 
         # 4. Construir resposta

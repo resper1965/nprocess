@@ -35,6 +35,7 @@ from app.routers import (
     process,
     audit,
     documents,
+    standards,
     kbs
 )
 from app.schemas import HealthResponse
@@ -54,6 +55,8 @@ app.include_router(auth.router, prefix="/v1/auth", tags=["Authentication"])
 app.include_router(apikeys.router, prefix="/v1/admin/apikeys", tags=["API Keys"])
 app.include_router(users.router, prefix="/v1/admin/users", tags=["Users"])
 app.include_router(ai_keys.router, prefix="/v1/admin/ai-keys", tags=["AI Keys"])
+app.include_router(standards.router, prefix="/v1/admin/standards", tags=["Standards Management"])
+app.include_router(kbs.router, prefix="/v1/admin/kbs", tags=["Knowledge Bases"])
 app.include_router(finops.router, prefix="/v1/admin/finops", tags=["FinOps"])
 app.include_router(services.router, prefix="/v1/admin/services", tags=["Services"])
 app.include_router(audit.router, prefix="/v1/audit", tags=["Audit Log (Internal)"]) # Renamed prefix to avoid conflict
@@ -67,9 +70,6 @@ app.include_router(integrations.router, prefix="/v1/integrations", tags=["Integr
 app.include_router(process.router, prefix="/v1/process", tags=["Module 1: Process Normalization"])
 app.include_router(audit.router, prefix="/v1/audit-engine", tags=["Module 2: Compliance Audit"]) # Distinct from audit log
 app.include_router(documents.router, prefix="/v1/documents", tags=["Module 3: Document Intelligence"])
-
-# Knowledge Base Marketplace
-app.include_router(kbs.router, prefix="/v1/admin/kbs", tags=["Knowledge Bases"])
 
 # MCP Server Integration (SSE Transport)
 from app.mcp_server import mcp

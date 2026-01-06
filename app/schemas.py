@@ -127,6 +127,10 @@ class ComplianceAnalyzeRequest(BaseModel):
         None,
         description="ID do processo externo (opcional, para referência nos logs)"
     )
+    soa: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Statement of Applicability: controles aplicáveis e exclusões. Ex: {'applicable_controls': ['A.15.1.1', 'A.15.1.2'], 'excluded_controls': ['A.18.*'], 'justification': 'Razão da exclusão'}"
+    )
     additional_context: Optional[str] = Field(
         None,
         max_length=2000,

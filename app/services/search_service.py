@@ -44,75 +44,131 @@ class SearchService:
             self.db = None
 
     async def search_regulations(
-        self, 
-        query: str, 
-        tenant_id: str,
-        include_private: bool = False,
-        limit: int = 5
+        self,
+        query: str,
+        domain: str,
+        limit: int = 5,
+        client_id: Optional[str] = None,
+        allowed_standards: Optional[Dict[str, List[str]]] = None
     ) -> List[Dict[str, str]]:
         """
-        Multi-tenant Vector Search using Firestore.
-        
+        Busca regulamentos relevantes usando Firestore Vector Search.
+        Busca em global_standards (marketplace) e client_standards (custom).
+
         Args:
-            query: User question.
-            tenant_id: The authenticated user's tenant ID.
-            include_private: If True, searches Private + Global. Else Only Global.
-            limit: Max results.
+            query: Texto da consulta.
+            domain: Domínio regulatório (ex: LGPD, SOX) - usado para filtrar resultados.
+            limit: Número máximo de resultados (KNN).
+            client_id: ID do cliente (para buscar em client_standards).
+            allowed_standards: Standards permitidos {"marketplace": [...], "custom": [...]}.
+                              None = todos os standards.
+
+        Returns:
+            Lista de chunks encontrados com conteúdo e score de similaridade.
         """
         if not self.db or not self.embedding_model:
+            logger.warning("Search Client ou Modelo Embedding não inicializado. Retornando lista vazia.")
             return []
 
         try:
-            # 1. Embedding
+            # 1. Gerar Embedding da Query
             query_embedding = self._generate_embedding(query)
             if not query_embedding:
                 return []
 
-            # 2. Define Scope (Filter)
-            # Firestore Vector Search supports pre-filtering.
-            # We must construct a query that targets the 'vectors' collection
-            # and filters by the allowed tenant_ids.
+            # 2. Buscar no source_id específico se domain for conhecido
+            # Mapeamento de domínios para source_ids
+            domain_to_source = {
+                "LGPD": "lgpd_br",
+                "GDPR": "gdpr_eu",
+                "SOX": "sox_us",
+                "NIST": "nist_csf",
+                "CIS": "cis_controls",
+                "ISO27001": "iso_27001",
+            }
+
+            source_id = domain_to_source.get(domain.upper())
+
+            # 2.1. Verificar se source_id está na lista de allowed_standards (marketplace)
+            if allowed_standards is not None:
+                marketplace_allowed = allowed_standards.get("marketplace", [])
+                if source_id and marketplace_allowed and source_id not in marketplace_allowed:
+                    logger.warning(f"Marketplace standard {source_id} não permitido. Allowed: {marketplace_allowed}")
+                    return []  # API key não tem acesso a este standard do marketplace
+
+            if source_id:
+                # Busca específica na coleção do source
+                chunks_ref = self.db.collection("global_standards").document(source_id).collection("chunks")
+                logger.info(f"Buscando em source específico: {source_id}")
+            else:
+                # Fallback: Busca em todos os chunks via Collection Group
+                chunks_ref = self.db.collection_group("chunks")
+                logger.info(f"Buscando em todos os sources (domain '{domain}' não mapeado)")
             
-            base_ref = self.db.collection("vectors")
-            
-            # Logic:
-            # If include_private: tenant_id IN ['system', tenant_id]
-            # Else: tenant_id == 'system'
-            
-            allowed_tenants = ["system"]
-            if include_private and tenant_id:
-                allowed_tenants.append(tenant_id)
-                
-            # Note: Firestore 'in' query supports up to 10 values.
-            # We filter for documents where tenant_id is in our allowed list.
-            vector_query = base_ref.where(field_path="tenant_id", op_string="in", value=allowed_tenants)
-            
-            # 3. Execute Vector Search on the Filtered Query
-            results = vector_query.find_nearest(
+            # 3. Executar Vector Search
+            vector_query = chunks_ref.find_nearest(
                 vector_field="embedding_vector",
                 query_vector=Vector(query_embedding),
                 distance_measure=DistanceMeasure.COSINE,
                 limit=limit
-            ).get()
+            )
+            
+            docs = vector_query.get()
 
-            # 4. Parse Results
-            parsed_results = []
-            for doc in results:
+            results = []
+            for doc in docs:
                 data = doc.to_dict()
-                parsed_results.append({
-                    "title": data.get("metadata", {}).get("name", "Unknown"),
-                    "content": data.get("content", ""),
-                    "source": f"Firestore:{doc.id}",
-                    "scope": data.get("scope", "unknown"),
-                    "tenant_id": data.get("tenant_id", "unknown"),
-                    "score": 0.0 
-                })
-                
-            return parsed_results
+                metadata = data.get("metadata", {})
 
-        except Exception as e:
-            logger.error(f"Vector Search Failed: {e}")
-            return []
+                # Extrair source_id e tipo do path
+                # Paths possíveis:
+                # - global_standards/lgpd_br/chunks/xxx (marketplace)
+                # - client_standards/{client_id}/custom_abc/chunks/xxx (custom)
+                path_parts = doc.reference.path.split('/')
+
+                if path_parts[0] == "global_standards":
+                    # Marketplace standard
+                    doc_source_id = path_parts[1] if len(path_parts) > 1 else None
+                    source_type = "marketplace"
+                elif path_parts[0] == "client_standards":
+                    # Custom standard
+                    doc_source_id = path_parts[2] if len(path_parts) > 2 else None
+                    source_type = "custom"
+                else:
+                    # Unknown path format, skip
+                    continue
+
+                # Filtrar por allowed_standards se especificado
+                if allowed_standards is not None:
+                    if source_type == "marketplace":
+                        marketplace_allowed = allowed_standards.get("marketplace", [])
+                        if marketplace_allowed and doc_source_id not in marketplace_allowed:
+                            logger.debug(f"Filtrando marketplace chunk de {doc_source_id} (não permitido)")
+                            continue
+                    elif source_type == "custom":
+                        custom_allowed = allowed_standards.get("custom", [])
+                        if custom_allowed and doc_source_id not in custom_allowed:
+                            logger.debug(f"Filtrando custom chunk de {doc_source_id} (não permitido)")
+                            continue
+
+                # Filtro adicional por domain nos metadados (pós-busca)
+                # Útil quando usando collection_group
+                chunk_domain = metadata.get("domain", "").upper()
+                if source_id is None and domain and chunk_domain and chunk_domain != domain.upper():
+                    continue  # Skip se domain não bate
+
+                title = data.get("standard_title", metadata.get("name", "Regulamento"))
+                content = data.get("content", "")
+
+                results.append({
+                    "title": title,
+                    "content": content,
+                    "source": f"Firestore:{doc.reference.path}",
+                    "hierarchy": metadata.get("hierarchy", ""),
+                    "relevance_score": 0.0  # Firestore retorna ordenado por relevância
+                })
+
+            return results
 
         except Exception as e:
             logger.error(f"Erro na busca vetorial Firestore: {e}")

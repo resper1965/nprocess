@@ -63,6 +63,16 @@ class ActionType(str, Enum):
 
 
 # ============================================================================
+# Shared Schemas
+# ============================================================================
+
+class AllowedStandards(BaseModel):
+    """Standards allowed for an API key (marketplace + custom)"""
+    marketplace: List[str] = Field(default_factory=list, description="IDs de standards do marketplace (e.g., ['lgpd_br', 'iso27001'])")
+    custom: List[str] = Field(default_factory=list, description="IDs de standards customizados do cliente")
+
+
+# ============================================================================
 # User Management Schemas
 # ============================================================================
 
@@ -123,6 +133,7 @@ class APIKeyCreate(BaseModel):
     environment: APIKeyEnvironment = APIKeyEnvironment.LIVE
     quotas: Optional[APIKeyQuotas] = None
     permissions: List[str] = Field(default_factory=lambda: ["read"])
+    allowed_standards: Optional[AllowedStandards] = Field(default=None, description="Standards permitidos (marketplace + custom). None = todos os standards")
     expires_at: Optional[datetime] = None
 
 
@@ -137,6 +148,7 @@ class APIKeyResponse(BaseModel):
     status: APIKeyStatus
     quotas: APIKeyQuotas
     permissions: List[str]
+    allowed_standards: Optional[AllowedStandards] = None
     created_at: datetime
     created_by: str
     expires_at: Optional[datetime] = None
@@ -156,6 +168,7 @@ class APIKeyInfo(BaseModel):
     status: APIKeyStatus
     quotas: APIKeyQuotas
     permissions: List[str]
+    allowed_standards: Optional[AllowedStandards] = None
     created_at: datetime
     created_by: str
     expires_at: Optional[datetime] = None
@@ -176,9 +189,23 @@ class APIKeyValidationResponse(BaseModel):
     valid: bool
     key_id: Optional[str] = None
     consumer_app_id: Optional[str] = None
+    client_id: Optional[str] = None
     permissions: Optional[List[str]] = None
+    allowed_standards: Optional[AllowedStandards] = None
     quota_remaining: Optional[Dict[str, int]] = None
     message: Optional[str] = None
+
+
+class StandardsUpdateRequest(BaseModel):
+    """Request to update allowed standards for an API key"""
+    standards: AllowedStandards = Field(..., description="Standards permitidos (marketplace + custom)")
+
+
+class StandardsResponse(BaseModel):
+    """Response with standards information"""
+    key_id: str
+    allowed_standards: Optional[AllowedStandards] = None
+    message: str
 
 
 # ============================================================================
@@ -218,6 +245,97 @@ class AIKeyTestResponse(BaseModel):
     message: str
     tested_at: datetime
     error: Optional[str] = None
+
+
+# ============================================================================
+# Standards Management Schemas
+# ============================================================================
+
+class StandardType(str, Enum):
+    """Type of standard"""
+    MARKETPLACE = "marketplace"  # Global/public standard
+    CUSTOM = "custom"            # Client-specific standard
+
+
+class StandardStatus(str, Enum):
+    """Status of standard vectorization"""
+    PENDING = "pending"          # Awaiting ingestion
+    PROCESSING = "processing"    # Being vectorized
+    COMPLETED = "completed"      # Ready to use
+    FAILED = "failed"           # Ingestion failed
+
+
+class StandardSourceType(str, Enum):
+    """Source type for ingestion"""
+    FILE = "file"               # PDF, TXT, DOCX upload
+    URL = "url"                 # Web scraping
+    TEXT = "text"               # Direct text input
+
+
+class StandardMarketplaceInfo(BaseModel):
+    """Information about a marketplace standard"""
+    standard_id: str
+    name: str
+    description: str
+    category: str  # "legal", "security", "quality", etc
+    jurisdiction: Optional[str] = None  # "BR", "EU", "US", etc
+    version: Optional[str] = None
+    total_chunks: int
+    last_updated: datetime
+    official_url: Optional[str] = None
+    is_active: bool = True
+
+
+class StandardCustomCreate(BaseModel):
+    """Request to create a custom standard"""
+    name: str = Field(..., min_length=3, max_length=200)
+    description: str = Field(..., min_length=10, max_length=1000)
+    source_type: StandardSourceType
+    source: str = Field(..., description="File path, URL, or raw text depending on source_type")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
+
+class StandardCustomInfo(BaseModel):
+    """Information about a custom standard"""
+    standard_id: str
+    client_id: str
+    name: str
+    description: str
+    source_type: StandardSourceType
+    status: StandardStatus
+    total_chunks: Optional[int] = None
+    created_at: datetime
+    created_by: str
+    updated_at: datetime
+    processing_progress: Optional[float] = None  # 0-100
+    error_message: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
+class StandardCustomUpdate(BaseModel):
+    """Update a custom standard"""
+    name: Optional[str] = Field(None, min_length=3, max_length=200)
+    description: Optional[str] = Field(None, min_length=10, max_length=1000)
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class StandardIngestRequest(BaseModel):
+    """Request to ingest/re-ingest a standard"""
+    source_type: StandardSourceType
+    source: str
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
+
+class StandardIngestResponse(BaseModel):
+    """Response from ingestion"""
+    standard_id: str
+    status: StandardStatus
+    message: str
+    chunks_generated: Optional[int] = None
+    processing_progress: Optional[float] = None
 
 
 # ============================================================================
