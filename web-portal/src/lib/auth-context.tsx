@@ -148,79 +148,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // First check for Google redirect result, then set up auth state listener
-    checkRedirectResult().then(() => {
-      console.log('checkRedirectResult completed, setting up auth state listener');
-    }).catch((error) => {
-      console.error('checkRedirectResult error:', error);
-    });
-
-    // Also check currentUser immediately in case auth state is already set
-    if (auth?.currentUser) {
-      console.log('AuthProvider: currentUser already exists on mount', { uid: auth.currentUser.uid });
-      setUser(auth.currentUser);
-      setLoading(false);
-    }
-
+    // Set up auth state listener first, then check for redirect result
+    // This ensures we catch the auth state change even if getRedirectResult doesn't return
+    let redirectHandled = false;
+    
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log('onAuthStateChanged: Auth state changed', { 
         hasUser: !!currentUser, 
         uid: currentUser?.uid,
         email: currentUser?.email,
         path: typeof window !== 'undefined' ? window.location.pathname : 'N/A',
-        currentUserFromAuth: auth?.currentUser?.uid || 'none'
+        currentUserFromAuth: auth?.currentUser?.uid || 'none',
+        redirectHandled
       });
       
-      // Don't set loading true here if we want seamless auth state restore
-      if (currentUser) {
-        setUser(currentUser);
-        try {
-          const tokenResult = await getIdTokenResult(currentUser);
-          // Try to get role from claims first
-          let userRole = (tokenResult.claims.role as string);
-
-          // If no custom claim, check Firestore
-          if (!userRole || userRole === 'user') {
-            try {
-               const userProfile = await getUserProfile(currentUser.uid);
-               if (userProfile && userProfile.role) {
-                 userRole = userProfile.role;
-               }
-            } catch (fsError) {
-              console.error("Error fetching user profile from Firestore:", fsError);
-            }
-          }
+      // If we have a user and haven't handled redirect yet, check if it's from Google redirect
+      if (currentUser && !redirectHandled) {
+        // Check if we're coming from a redirect (check URL params or sessionStorage)
+        const isFromRedirect = typeof window !== 'undefined' && (
+          window.location.search.includes('__firebase_request_key') ||
+          sessionStorage.getItem('auth_redirect_url') !== null ||
+          window.location.pathname === '/login' || 
+          window.location.pathname === '/login/'
+        );
+        
+        if (isFromRedirect) {
+          console.log('onAuthStateChanged: User detected after redirect, handling...', { uid: currentUser.uid });
+          redirectHandled = true;
           
-          const finalRole = userRole || 'user';
-          setRole(finalRole);
+          // Wait a bit to ensure everything is ready
+          await new Promise(resolve => setTimeout(resolve, 300));
           
-          console.log('onAuthStateChanged: User role determined', { uid: currentUser.uid, role: finalRole });
-          
-          // Redirect authenticated users away from public pages
-          if (typeof window !== 'undefined') {
-            const currentPath = window.location.pathname;
-            const publicPages = ['/login', '/register', '/', '/privacy', '/terms'];
-            const isPublicPage = publicPages.includes(currentPath);
+          // Get role and redirect
+          try {
+            const tokenResult = await getIdTokenResult(currentUser);
+            let userRole = (tokenResult.claims.role as string) || 'user';
             
-            // If user is authenticated and on a public page (except legal pages), redirect
-            if (isPublicPage && currentPath !== '/privacy' && currentPath !== '/terms') {
-              const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
-              
-              console.log('onAuthStateChanged: User authenticated on public page - redirecting from', currentPath, 'to', targetPath, { role: finalRole });
-              
-              // Wait a bit to ensure auth state is fully set
-              await new Promise(resolve => setTimeout(resolve, 100));
-              
-              // Immediate redirect
+            if (!userRole || userRole === 'user') {
+              try {
+                const userProfile = await getUserProfile(currentUser.uid);
+                if (userProfile && userProfile.role) {
+                  userRole = userProfile.role;
+                }
+              } catch (fsError) {
+                console.error("onAuthStateChanged: Error fetching user profile:", fsError);
+              }
+            }
+            
+            const finalRole = userRole || 'user';
+            setRole(finalRole);
+            const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+            
+            console.log('onAuthStateChanged: Redirecting after Google login to:', targetPath, { uid: currentUser.uid, role: finalRole });
+            
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem('auth_redirect_url');
               router.push(targetPath);
               
-              // Force redirect if router.push doesn't work (multiple attempts)
-              const redirectAttempts = [500, 1000, 2000, 3000];
+              // Multiple fallback redirects
+              const redirectAttempts = [500, 1000, 2000, 3000, 4000];
               redirectAttempts.forEach((delay) => {
                 setTimeout(() => {
-                  const stillOnPublicPage = window.location.pathname === currentPath || 
-                                           window.location.pathname === '/' || 
-                                           window.location.pathname === '/login';
+                  const stillOnPublicPage = window.location.pathname === '/' || 
+                                           window.location.pathname === '/login' ||
+                                           window.location.pathname === '/login/' ||
+                                           window.location.pathname === '/register';
                   if (stillOnPublicPage) {
                     console.log(`onAuthStateChanged: Router.push failed, forcing redirect after ${delay}ms to`, targetPath);
                     window.location.href = targetPath;
@@ -228,10 +220,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }, delay);
               });
             }
+          } catch (roleError) {
+            console.error('onAuthStateChanged: Error getting user role:', roleError);
+            setRole('user');
+            if (typeof window !== 'undefined') {
+              router.push('/dashboard');
+            }
           }
-        } catch (error) {
-          console.error("Error fetching user role:", error);
-          setRole('user');
+        }
+      }
+      
+      // Don't set loading true here if we want seamless auth state restore
+      if (currentUser) {
+        setUser(currentUser);
+        
+        // Only process role and redirect if not already handled by redirect logic above
+        if (!redirectHandled) {
+          try {
+            const tokenResult = await getIdTokenResult(currentUser);
+            // Try to get role from claims first
+            let userRole = (tokenResult.claims.role as string);
+
+            // If no custom claim, check Firestore
+            if (!userRole || userRole === 'user') {
+              try {
+                 const userProfile = await getUserProfile(currentUser.uid);
+                 if (userProfile && userProfile.role) {
+                   userRole = userProfile.role;
+                 }
+              } catch (fsError) {
+                console.error("Error fetching user profile from Firestore:", fsError);
+              }
+            }
+            
+            const finalRole = userRole || 'user';
+            setRole(finalRole);
+            
+            console.log('onAuthStateChanged: User role determined', { uid: currentUser.uid, role: finalRole });
+            
+            // Redirect authenticated users away from public pages
+            if (typeof window !== 'undefined') {
+              const currentPath = window.location.pathname;
+              const publicPages = ['/login', '/login/', '/register', '/', '/privacy', '/terms'];
+              const isPublicPage = publicPages.includes(currentPath);
+              
+              // If user is authenticated and on a public page (except legal pages), redirect
+              if (isPublicPage && currentPath !== '/privacy' && currentPath !== '/terms') {
+                const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+                
+                console.log('onAuthStateChanged: User authenticated on public page - redirecting from', currentPath, 'to', targetPath, { role: finalRole });
+                
+                // Wait a bit to ensure auth state is fully set
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Immediate redirect
+                router.push(targetPath);
+                
+                // Force redirect if router.push doesn't work (multiple attempts)
+                const redirectAttempts = [500, 1000, 2000, 3000];
+                redirectAttempts.forEach((delay) => {
+                  setTimeout(() => {
+                    const stillOnPublicPage = window.location.pathname === currentPath || 
+                                             window.location.pathname === '/' || 
+                                             window.location.pathname === '/login' ||
+                                             window.location.pathname === '/login/';
+                    if (stillOnPublicPage) {
+                      console.log(`onAuthStateChanged: Router.push failed, forcing redirect after ${delay}ms to`, targetPath);
+                      window.location.href = targetPath;
+                    }
+                  }, delay);
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching user role:", error);
+            setRole('user');
+          }
         }
       } else {
         console.log('onAuthStateChanged: No user, clearing auth state');
@@ -239,6 +303,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setRole(null);
       }
       setLoading(false);
+    });
+    
+    // Now check for Google redirect result (this may not return if already processed)
+    checkRedirectResult().then(() => {
+      console.log('checkRedirectResult completed');
+    }).catch((error) => {
+      console.error('checkRedirectResult error:', error);
     });
 
     return () => unsubscribe();
