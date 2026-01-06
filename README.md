@@ -582,6 +582,8 @@ http://localhost:80
 
 ## 🧪 Testing
 
+### Backend Tests
+
 ```bash
 # Run all tests
 make test
@@ -591,6 +593,26 @@ pytest tests/ -v --cov=app --cov-report=html
 
 # Run specific test
 pytest tests/test_api.py::test_endpoint -v
+```
+
+### Frontend Tests
+
+```bash
+# Run E2E tests
+cd web-portal
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+
+# Run E2E tests in headed mode
+npm run test:e2e:headed
+
+# Run linting
+npm run lint
+
+# Run type checking
+npm run type-check
 ```
 
 ## 🔧 Development
