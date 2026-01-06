@@ -328,8 +328,8 @@ export default function HomePage() {
               © 2025 ness. Process & Compliance Engine. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-              <Link href="/dashboard/settings" className="hover:text-primary">Privacy</Link>
-              <Link href="/dashboard/settings" className="hover:text-primary">Terms</Link>
+              <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
             </div>
           </div>
         </div>

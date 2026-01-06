@@ -230,13 +230,30 @@ export default function LoginPage() {
                 {t.auth.login.signUp}
               </Link>
             </div>
+            
+            {/* Legal Links */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                By signing in, you agree to our{' '}
+                <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
-          © 2024 ness. Process & Compliance Engine. All rights reserved.
-        </p>
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            © 2025 ness. Process & Compliance Engine. All rights reserved.
+          </p>
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
+            <span>•</span>
+            <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
+          </div>
+        </div>
       </div>
     </div>
   )

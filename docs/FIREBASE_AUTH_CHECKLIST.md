@@ -25,18 +25,24 @@
 ### 3. Adicionar Authorized Domains ✅
 - [ ] Ir para **Authentication > Settings > Authorized domains**
 - [ ] Adicionar domínios:
-  - [ ] `nprocess.ness.com.br`
-  - [ ] `nprocess-8e801.web.app`
-  - [ ] `nprocess-8e801.firebaseapp.com`
+  - [ ] `nprocess-8e801-4711d.web.app` ⭐ **NOVO - URL ATIVA**
+  - [ ] `nprocess-8e801-4711d.firebaseapp.com` ⭐ **NOVO**
+  - [ ] `nprocess.ness.com.br` (se usar domínio customizado)
+  - [ ] `nprocess-8e801.web.app` (site antigo, opcional)
+  - [ ] `nprocess-8e801.firebaseapp.com` (site antigo, opcional)
   - [ ] `localhost` (para desenvolvimento)
 
 ### 4. Configurar OAuth Redirect URIs (Google Cloud) ✅
-- [ ] Acessar: https://console.cloud.google.com/apis/credentials?project=nprocess-prod
-- [ ] Abrir OAuth 2.0 Client ID: `905989981186-vpbehck2l1se9kn2jtco9om2ni1ogfq0`
+- [ ] Acessar: https://console.cloud.google.com/apis/credentials?project=nprocess-8e801
+- [ ] Abrir OAuth 2.0 Client ID (ou criar novo se necessário)
+- [ ] Adicionar **Authorized JavaScript origins**:
+  - [ ] `https://nprocess-8e801-4711d.web.app` ⭐ **NOVO - URL ATIVA**
+  - [ ] `https://nprocess-8e801-4711d.firebaseapp.com` ⭐ **NOVO**
+  - [ ] `https://nprocess.ness.com.br` (se usar domínio customizado)
 - [ ] Adicionar **Authorized redirect URIs**:
-  - [ ] `https://nprocess-8e801.firebaseapp.com/__/auth/handler`
-  - [ ] `https://nprocess-8e801.web.app/__/auth/handler`
-  - [ ] `https://nprocess.ness.com.br/__/auth/handler`
+  - [ ] `https://nprocess-8e801-4711d.web.app/__/auth/handler` ⭐ **NOVO**
+  - [ ] `https://nprocess-8e801-4711d.firebaseapp.com/__/auth/handler` ⭐ **NOVO**
+  - [ ] `https://nprocess.ness.com.br/__/auth/handler` (se usar domínio customizado)
 - [ ] Salvar
 
 ---
