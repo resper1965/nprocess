@@ -29,7 +29,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Services (lazy initialization)
-db = FirestoreRepository()
+def get_firestore():
+    """Get Firestore client"""
+    from firebase_admin import firestore
+    from app.services.firebase_service import _initialize_firebase
+    _initialize_firebase()
+    return firestore.client()
 
 def get_storage():
     """Lazy get storage service"""
@@ -51,7 +56,8 @@ async def list_marketplace_standards(
     """List all available marketplace standards"""
     try:
         # Fetch from Firestore global_standards collection
-        docs = db.db.collection("global_standards").stream()
+        db = get_firestore()
+        docs = db.collection("global_standards").stream()
         standards = []
 
         for doc in docs:
@@ -248,7 +254,8 @@ async def list_custom_standards(
         client_id = current_user.get("client_id", "client_default")
 
         # Fetch from Firestore
-        docs = db.db.collection("client_standards").document(client_id).collection("standards").stream()
+        db = get_firestore()
+        docs = db.collection("client_standards").document(client_id).collection("standards").stream()
 
         standards = []
         for doc in docs:
