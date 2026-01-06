@@ -233,11 +233,24 @@ export const loginWithGoogle = async (): Promise<void> => {
  */
 export const handleGoogleRedirect = async (): Promise<UserCredential | null> => {
   if (!auth) {
+    console.log('handleGoogleRedirect: Auth not initialized');
     return null;
   }
   
+  console.log('handleGoogleRedirect: Calling getRedirectResult...', { 
+    currentUser: auth.currentUser?.uid || 'none',
+    path: typeof window !== 'undefined' ? window.location.pathname : 'N/A'
+  });
+  
   try {
     const result = await getRedirectResult(auth);
+    
+    console.log('handleGoogleRedirect: getRedirectResult returned', { 
+      hasResult: !!result, 
+      hasUser: !!result?.user,
+      uid: result?.user?.uid || 'none',
+      currentUserAfter: auth.currentUser?.uid || 'none'
+    });
     
     if (result) {
       console.log('handleGoogleRedirect: Google redirect result received', { uid: result.user.uid, email: result.user.email });
@@ -267,6 +280,18 @@ export const handleGoogleRedirect = async (): Promise<UserCredential | null> => 
       return result;
     }
     
+    // If no redirect result but currentUser exists, user might have already been authenticated
+    if (auth.currentUser) {
+      console.log('handleGoogleRedirect: No redirect result but currentUser exists', { uid: auth.currentUser.uid });
+      // Return a mock credential-like object
+      return {
+        user: auth.currentUser,
+        providerId: 'google.com',
+        operationType: 'signIn'
+      } as UserCredential;
+    }
+    
+    console.log('handleGoogleRedirect: No redirect result and no currentUser');
     return null;
   } catch (error: any) {
     console.error('Error handling Google redirect:', error);

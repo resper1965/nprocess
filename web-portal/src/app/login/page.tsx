@@ -35,16 +35,19 @@ export default function LoginPage() {
         // Immediate redirect
         router.push(targetPath)
         
-        // Force redirect if router.push doesn't work (multiple attempts with longer delays)
-        const redirectAttempts = [500, 1000, 2000, 3000, 4000]
-        redirectAttempts.forEach((delay) => {
-          setTimeout(() => {
-            if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/')) {
-              console.log(`LoginPage: Router.push failed, forcing redirect after ${delay}ms to`, targetPath)
-              window.location.href = targetPath
-            }
-          }, delay)
-        })
+      // Force redirect if router.push doesn't work (multiple attempts with longer delays)
+      const redirectAttempts = [500, 1000, 2000, 3000, 4000]
+      redirectAttempts.forEach((delay) => {
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && 
+              (window.location.pathname === '/login' || 
+               window.location.pathname === '/login/' || 
+               window.location.pathname === '/')) {
+            console.log(`LoginPage: Router.push failed, forcing redirect after ${delay}ms to`, targetPath)
+            window.location.href = targetPath
+          }
+        }, delay)
+      })
       };
       
       redirectWithDelay();
