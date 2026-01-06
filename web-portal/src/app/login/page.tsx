@@ -22,15 +22,23 @@ export default function LoginPage() {
   // Redirect authenticated users away from login page
   useEffect(() => {
     if (!loading && isAuthenticated && user) {
-      const targetPath = role === 'admin' || role === 'super_admin' ? '/admin/overview' : '/dashboard'
-      console.log('User authenticated, redirecting to:', targetPath)
+      // Use role if available, otherwise default to dashboard
+      const targetPath = (role === 'admin' || role === 'super_admin') ? '/admin/overview' : '/dashboard'
+      console.log('LoginPage: User authenticated, redirecting to:', targetPath, { user: user.uid, role })
+      
+      // Immediate redirect
       router.push(targetPath)
-      // Force redirect if router.push doesn't work
-      setTimeout(() => {
-        if (window.location.pathname === '/login') {
-          window.location.href = targetPath
-        }
-      }, 500)
+      
+      // Force redirect if router.push doesn't work (multiple attempts)
+      const redirectAttempts = [300, 800, 1500]
+      redirectAttempts.forEach((delay) => {
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/')) {
+            console.log(`LoginPage: Router.push failed, forcing redirect after ${delay}ms`)
+            window.location.href = targetPath
+          }
+        }, delay)
+      })
     }
   }, [loading, isAuthenticated, user, role, router])
 
