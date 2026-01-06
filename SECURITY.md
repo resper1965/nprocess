@@ -1,27 +1,30 @@
-# Security Policy
+# Política de Segurança
 
-## Supported Versions
+A segurança é prioridade máxima no n.process.
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+## Reportando Vulnerabilidades
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
+Se você descobrir uma vulnerabilidade de segurança, por favor, **NÃO** abra uma Issue pública.
 
-## Reporting a Vulnerability
+Envie um e-mail imediatamente para:
+**security@nprocess.com.br**
 
-We take security seriously. If you discover a vulnerability, please follow these steps:
+Inclua:
 
-1.  **Do NOT create a public GitHub issue.**
-2.  Email our security team at `security@ness.com.br`.
-3.  Include a proof of concept (PoC) if possible.
-4.  We will respond within 24 hours.
+1.  Descrição da vulnerabilidade.
+2.  Passos para reproduzir (PoC).
+3.  Impacto potencial.
 
-## SDLC & Compliance
+Nossa equipe de segurança responderá em até 24 horas.
 
-This project adheres to:
+## Escopo
 
-- **OWASP Top 10** mitigation strategies.
-- **SSDLC (Secure Software Development Life Cycle)** principles.
-- **Linting & SAST**: All PRs must pass Checkov and SonarQube scans (if configured).
+Esta política se aplica a:
+
+- Frontend (Client Portal)
+- Backend (Admin API & B4B Core)
+- Infraestrutura Cloud (GCP)
+
+## Safe Harbor
+
+Pesquisadores de segurança que seguirem esta política de divulgação responsável não sofrerão ação legal. Agradecemos sua colaboração em manter a plataforma segura.

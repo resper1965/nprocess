@@ -1,9 +1,9 @@
 
-from fastapi import APIRouter, HTTPException, Security
+from fastapi import APIRouter, HTTPException, Security, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from app.services.document_service import DocumentService
-from app.routers.auth import get_current_active_user
+from app.middleware.auth import get_current_user
 
 router = APIRouter()
 document_service = DocumentService()
@@ -19,7 +19,7 @@ class GenerateTemplateRequest(BaseModel):
 @router.post("/analyze-gaps")
 async def analyze_document_gaps(
     req: GapAnalysisRequest,
-    current_user: dict = Security(get_current_active_user, scopes=["admin"])
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Identify missing documentation required for compliance based on process context.
@@ -33,7 +33,7 @@ async def analyze_document_gaps(
 @router.post("/generate-template")
 async def generate_template(
     req: GenerateTemplateRequest,
-    current_user: dict = Security(get_current_active_user, scopes=["admin"])
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Generate a markdown template for a specific compliance document.

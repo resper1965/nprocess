@@ -4,14 +4,9 @@
     "prod": "nprocess-prod"
   },
   "targets": {
-    "hosting": {
-      "client-portal": [
-        "nprocess-8e801"
-      ]
-    },
     "nprocess-8e801": {
       "hosting": {
-        "client-portal": [
+        "web-portal": [
           "nprocess-8e801"
         ]
       }

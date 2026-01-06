@@ -32,8 +32,13 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
             try:
                 # Explicitly use the project ID from env to avoid stale ADC
                 project_id = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("GCP_PROJECT_ID")
-                self.cloud_logger = cloud_logging.Client(project=project_id).logger("compliance-engine")
-                logger.info(f"Cloud Logging initialized for project: {project_id}")
+                
+                if project_id:
+                    self.cloud_logger = cloud_logging.Client(project=project_id).logger("compliance-engine")
+                    logger.info(f"Cloud Logging initialized for project: {project_id}")
+                else:
+                    self.cloud_logger = None
+                    logger.warning("Cloud Logging skipped: No PROJECT_ID found.")
             except Exception as e:
                 logger.warning(f"Failed to initialize Cloud Logging: {e}")
                 self.cloud_logger = None

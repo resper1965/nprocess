@@ -1,0 +1,13 @@
+.git
+.gitignore
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+.next/
+out/
+build/
+dist/
+!Dockerfile

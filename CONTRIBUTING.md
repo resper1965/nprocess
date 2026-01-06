@@ -1,30 +1,29 @@
-# Contributing to n.process
+# Guia de Contribuição - n.process
 
-## Coding Standards
+Obrigado pelo interesse em contribuir para o n.process. Este é um repositório privado e proprietário.
 
-### Python (Backend)
+## Processo de Desenvolvimento
 
-- **Style**: PEP 8.
-- **Type Hinting**: Required for all function signatures.
-- **Logging**: Use `logging` module, never `print()`.
-- **Error Handling**: Use `try/except` blocks and raise standard HTTPExceptions.
-- **Security**: Validate all inputs (Pydantic). Sanitize outputs.
+1.  **Issues**: Toda mudança deve começar com uma Issue no GitHub Projects.
+2.  **Branches**:
+    - `main`: Produção (Protegida).
+    - `staging`: Pre-prod.
+    - `feat/nome-da-feature`: Desenvolvimento.
+    - `fix/nome-do-bug`: Correções.
 
-### TypeScript (Frontend)
+## Padrões de Código
 
-- **Framework**: Next.js (App Router).
-- **Style**: Prettier + ESLint strict config.
-- **Components**: Shadcn UI.
-- **State**: React Hooks / Context / Zustand.
+- **Frontend**: Next.js, TypeScript, TailwindCSS (Siga as regras do ESLint configurado).
+- **Backend**: Python (FastAPI), PEP8 (Siga as regras do `ruff`/`black`).
+- **Commits**: Conventional Commits (ex: `feat: add login`, `fix: cors error`).
 
-## Pull Request Process
+## Pull Requests
 
-1.  Ensure local tests pass.
-2.  Update documentation for any API changes.
-3.  Sign commits (GPG) if possible.
-4.  Add a description of security impacts.
+1.  Abra o PR apontando para `main` (ou `staging` se aplicável).
+2.  O PR deve passar em todos os checks do CI/CD (Lint, Test, Security).
+3.  Requer aprovação de pelo menos 1 Code Owner.
 
-## InfraOps
+## Segurança
 
-- **Docker**: Use multi-stage builds. Run as non-root user.
-- **IaC**: Terraform/CloudBuild. Avoid hardcoded secrets.
+- NUNCA comite segredos (chaves, senhas) no repositório.
+- Utilize o Secret Manager do GCP para variáveis sensíveis.

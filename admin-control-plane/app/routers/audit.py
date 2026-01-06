@@ -1,9 +1,9 @@
 
-from fastapi import APIRouter, HTTPException, Security
+from fastapi import APIRouter, HTTPException, Security, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from app.services.audit_service import AuditService
-from app.routers.auth import get_current_active_user
+from app.middleware.auth import get_current_user
 
 router = APIRouter()
 audit_service = AuditService()
@@ -15,7 +15,7 @@ class AuditRequest(BaseModel):
 @router.post("/execute")
 async def execute_audit(
     req: AuditRequest,
-    current_user: dict = Security(get_current_active_user, scopes=["admin"])
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Audit a process (Text/BPMN) against a specific Regulation.

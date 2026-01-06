@@ -1,0 +1,275 @@
+{
+  "common": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "getStarted": "Get Started",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "actions": "Actions"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Sign in to your Process & Compliance Engine account",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "signInWithGoogle": "Sign in with Google",
+      "dontHaveAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "errors": {
+        "invalidEmail": "Invalid email",
+        "userNotFound": "User not found",
+        "wrongPassword": "Incorrect password",
+        "invalidCredential": "Incorrect email or password",
+        "tooManyRequests": "Too many attempts. Try again later",
+        "networkError": "Connection error. Check your internet",
+        "generic": "Error signing in"
+      }
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Create your Process & Compliance Engine account",
+      "name": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
+  "dashboard": {
+    "title": "Welcome back",
+    "subtitle": "Here's what's happening with your compliance engine today",
+    "stats": {
+      "apiCalls": "API Calls",
+      "documentsAnalyzed": "Documents Analyzed",
+      "activeApiKeys": "Active API Keys",
+      "chatMessages": "Chat Messages"
+    },
+    "recentActivity": "Recent Activity",
+    "recentActivityDescription": "Your latest compliance operations",
+    "quickActions": {
+      "analyzeDocument": "Analyze Document",
+      "analyzeDocumentDesc": "Upload a document for compliance analysis",
+      "chatWithAI": "Chat with AI",
+      "chatWithAIDesc": "Get instant compliance guidance",
+      "generateReport": "Generate Report",
+      "generateReportDesc": "Create compliance status report"
+    },
+    "plan": {
+      "starter": "Starter Plan",
+      "upgrade": "Upgrade Plan",
+      "frameworksIncluded": "frameworks included",
+      "perMonth": "per month"
+    },
+    "trends": {
+      "fromLastMonth": "from last month",
+      "thisMonth": "this month",
+      "thisWeek": "this week",
+      "starterPlanLimit": "Starter plan limit",
+      "approachingLimit": "Approaching limit"
+    },
+    "activity": {
+      "documentAnalyzed": "Document analyzed",
+      "apiKeyCreated": "API key created",
+      "chatSession": "Chat session",
+      "integrationConfigured": "Integration configured",
+      "success": "success",
+      "hoursAgo": "hours ago",
+      "daysAgo": "days ago",
+      "dayAgo": "day ago"
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "apiKeys": "API Keys",
+    "secrets": "Secrets",
+    "integrations": "Integrations",
+    "documents": "Documents",
+    "compliance": "Compliance",
+    "chat": "Chat",
+    "billing": "Billing",
+    "team": "Team",
+    "settings": "Settings"
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "subtitle": "Manage your API keys for accessing the Process & Compliance Engine API",
+    "create": "Create API Key",
+    "name": "Name",
+    "created": "Created",
+    "lastUsed": "Last Used",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "revoked": "Revoked",
+    "expired": "Expired",
+    "revoke": "Revoke",
+    "copy": "Copy",
+    "show": "Show",
+    "hide": "Hide",
+    "usage": "Usage",
+    "quota": "Quota",
+    "newKeyCreated": "New key created successfully",
+    "keyCopied": "Key copied to clipboard",
+    "loading": "Loading API keys...",
+    "used": "API Key Used",
+    "starterPlanAllows": "Starter plan allows 1 active API key",
+    "upgradeForMore": "Upgrade for more keys",
+    "createNew": "Create New API Key",
+    "createdSuccessfully": "API Key Created Successfully",
+    "saveKeyNow": "Save this key now - you won't be able to see it again!",
+    "giveDescriptiveName": "Give your API key a descriptive name to identify it later",
+    "yourNewApiKey": "Your new API key:",
+    "copyToClipboard": "Copy to Clipboard",
+    "important": "Important",
+    "keyShownOnce": "This key will only be shown once. Make sure to copy and store it securely.",
+    "enterKeyName": "Enter key name",
+    "close": "Close"
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Upload and analyze compliance documents",
+    "upload": "Upload Document",
+    "usage": "Usage",
+    "used": "Used",
+    "quota": "Quota",
+    "documentsUsed": "Documents Used",
+    "monthlyQuota": "Your monthly document quota",
+    "uploaded": "Uploaded",
+    "compliance": "Compliance",
+    "status": {
+      "analyzed": "Analyzed",
+      "analyzing": "Analyzing..."
+    }
+  },
+  "compliance": {
+    "title": "Compliance Status",
+    "subtitle": "Monitor your compliance across all regulatory frameworks",
+    "overallScore": "Overall Compliance Score",
+    "frameworks": "Frameworks",
+    "frameworkCompliance": "Framework Compliance",
+    "gaps": "Gaps",
+    "recentGaps": "Recent Gaps",
+    "compliant": "Compliant",
+    "needsAttention": "Needs Attention",
+    "lastChecked": "Last checked",
+    "thisMonth": "this month"
+  },
+  "chat": {
+    "title": "AI Chat Assistant",
+    "subtitle": "Get instant answers to your compliance questions",
+    "poweredBy": "Powered by Gemini",
+    "messagesUsed": "messages used",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "suggestedQuestions": {
+      "lgpd": "What are the key requirements of LGPD?",
+      "hipaa": "How do I ensure HIPAA compliance?",
+      "iso27001": "Explain ISO 27001 certification process",
+      "fda": "What is required for FDA 510(k) clearance?"
+    }
+  },
+  "billing": {
+    "title": "Billing & Subscription",
+    "subtitle": "Manage your subscription plan and billing information",
+    "currentPlan": "Current Plan",
+    "active": "Active",
+    "renewsOn": "Renews on",
+    "invoices": "Invoices",
+    "upgrade": "Upgrade Plan",
+    "downgrade": "Downgrade",
+    "availablePlans": "Available Plans",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "save": "save",
+    "popular": "Popular",
+    "current": "Current",
+    "updatePaymentMethod": "Update Payment Method",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "Perfect for small teams getting started"
+      },
+      "professional": {
+        "name": "Professional",
+        "description": "For growing teams"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "For large organizations"
+      }
+    },
+    "features": {
+      "dedicatedAccountManager": "Dedicated account manager",
+      "slaGuarantee": "SLA guarantee"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "appearance": "Appearance",
+    "security": "Security",
+    "updateProfile": "Update your personal information",
+    "fullName": "Full name",
+    "email": "Email",
+    "role": "Role",
+    "saveChanges": "Save changes",
+    "emailNotifications": "Email notifications",
+    "emailNotificationsDesc": "Receive updates via email",
+    "complianceAlerts": "Compliance alerts",
+    "complianceAlertsDesc": "Get notified about compliance gaps",
+    "usageAlerts": "Usage alerts",
+    "usageAlertsDesc": "Alert when approaching plan limits",
+    "theme": "Theme",
+    "changePassword": "Change password",
+    "enable2FA": "Enable two-factor authentication",
+    "adminAccess": "Admin Access",
+    "adminAccessDesc": "You have access to the Admin Console. Access at /admin",
+    "currentAccessLevel": "Your current access level. Contact an administrator to change.",
+    "customizeAppearance": "Customize how ness. looks",
+    "manageAccountSecurity": "Manage your account security"
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "Manage your team members and their permissions",
+    "inviteMember": "Invite Member",
+    "members": "Members",
+    "role": "Role",
+    "status": "Status",
+    "joined": "Joined"
+  },
+  "secrets": {
+    "title": "Secrets Management",
+    "subtitle": "Securely store API keys and credentials for external integrations",
+    "addSecret": "Add Secret",
+    "securityNotice": "Security Notice",
+    "securityNoticeText": "Secrets are encrypted and stored securely. Never share your credentials."
+  },
+  "integrations": {
+    "title": "Integrations",
+    "subtitle": "Connect Process & Compliance Engine with your favorite tools and services",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "configure": "Configure"
+  }
+}
+

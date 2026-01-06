@@ -101,6 +101,12 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# Register New Modules (Constitution Phase)
+from app.routers import ingestion, compliance, documents
+app.include_router(ingestion.router)
+app.include_router(compliance.router)
+app.include_router(documents.router)
+
 # 1. Trusted Host Middleware (Prevents Host Header Injection)
 # In production (Cloud Run), allow all hosts since Cloud Run handles routing
 # In development, restrict to localhost
@@ -109,22 +115,11 @@ if os.getenv("ENVIRONMENT") == "production" or os.getenv("GOOGLE_CLOUD_PROJECT")
     ALLOWED_HOSTS = ["*"]
 else:
     # Local development - restrict to localhost
-    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
+    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,testserver").split(",")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 
 # 2. CORS Configuration
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS", 
-    "http://localhost:3000,https://nprocess.ness.com.br"
-).split(",")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"], # Explicit allow list, unsafe to use "*"
-    allow_headers=["Authorization", "Content-Type", "X-API-Key"],
-)
 
 # 3. Security Headers
 app.add_middleware(SecurityHeadersMiddleware)
@@ -134,6 +129,22 @@ redis_url = os.getenv("REDIS_URL", None)
 app.add_middleware(RateLimitMiddleware, redis_url=redis_url)
 app.add_middleware(StructuredLoggingMiddleware)
 app.add_middleware(TracingMiddleware)
+
+# CORS Configuration (Added LAST to be OUTERMOST)
+# Handles preflight OPTIONS requests before other middlewares
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS", 
+    "http://localhost:3000,https://nprocess.ness.com.br,https://nprocess-8e801.web.app,https://nprocess-8e801.firebaseapp.com"
+).split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex="https://.*\\.run\\.app", # Allow Cloud Run wildcards
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Key"],
+)
 
 
 # ============================================================================

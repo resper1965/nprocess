@@ -10,6 +10,7 @@
 ## 🎯 Overview
 
 n.process is an API-first platform that enables organizations to:
+
 - **Map business processes** into structured BPMN diagrams using AI
 - **Analyze compliance** with regulatory frameworks (ANEEL, ONS, LGPD, GDPR, etc.)
 - **Track compliance scores** in real-time
@@ -59,17 +60,17 @@ graph TB
     B --> G
     C --> E
     D --> I
-    
+
     I --> J
     I --> K
     I --> L
     I --> M
-    
+
     J --> E
     K --> G
     L --> H
     M --> G
-    
+
     E --> N
     E --> Q
     E --> P
@@ -101,7 +102,7 @@ sequenceDiagram
     RateLimit->>Cache: Get Rate Limit
     Cache-->>RateLimit: Current Count
     RateLimit-->>API: Allowed
-    
+
     API->>Service: Process Request
     Service->>Cache: Check Cache
     alt Cache Hit
@@ -113,7 +114,7 @@ sequenceDiagram
         AI-->>Service: AI Response
         Service->>Cache: Store in Cache
     end
-    
+
     Service-->>API: Response
     API-->>Client: HTTP Response
 ```
@@ -130,8 +131,7 @@ graph LR
     end
 
     subgraph "Frontend Services"
-        E[Admin Dashboard<br/>Port: 3000<br/>Next.js]
-        F[Client Portal<br/>Port: 3001<br/>Next.js]
+        E[Web Portal<br/>Port: 3000<br/>Next.js]
     end
 
     subgraph "MCP Services"
@@ -161,7 +161,7 @@ graph LR
     I --> C
     J --> D
     K --> C
-    
+
     A --> N
     A --> M
     B --> L
@@ -175,25 +175,25 @@ graph LR
 ```mermaid
 flowchart TD
     A[AI Development Tool<br/>Cursor/Claude/Antigravity] -->|MCP Protocol| B[MCP Gateway<br/>HTTP Server]
-    
+
     B -->|Route Request| C{Service Type}
-    
+
     C -->|Compliance| D[n.process MCP<br/>Server]
     C -->|Regulatory| E[Regulatory RAG MCP<br/>Server]
     C -->|Document| F[Document Generator MCP<br/>Server]
     C -->|Crawler| G[Regulatory Crawler MCP<br/>Server]
-    
+
     D -->|HTTP/REST| H[n.process API]
     E -->|HTTP/REST| I[Regulatory RAG API]
     F -->|HTTP/REST| J[Document Generator API]
     G -->|HTTP/REST| I
-    
+
     H -->|Process| K[(Firestore)]
     H -->|AI| L[Vertex AI Gemini]
     I -->|Search| M[Vertex AI Search]
     I -->|Cache| N[(Redis)]
     J -->|Generate| O[Document Templates]
-    
+
     K -->|Data| H
     L -->|AI Response| H
     M -->|RAG Results| I
@@ -235,12 +235,12 @@ flowchart LR
     A --> E
     B --> F
     C --> E
-    
+
     D --> L
     E --> M
     F --> N
     G --> O
-    
+
     E --> H
     E --> I
     F --> J
@@ -262,7 +262,7 @@ graph TB
         C[Business Services]
         D[Middleware]
     end
-    
+
     subgraph "Features"
         E[Process Management]
         F[Compliance Analysis]
@@ -271,14 +271,14 @@ graph TB
         I[Webhooks]
         J[API Key Auth]
     end
-    
+
     subgraph "Integrations"
         K[Firestore]
         L[Vertex AI]
         M[Redis Cache]
         N[Cloud Storage]
     end
-    
+
     A --> B
     B --> C
     C --> D
@@ -288,7 +288,7 @@ graph TB
     D --> H
     D --> I
     D --> J
-    
+
     E --> K
     F --> L
     G --> L
@@ -297,6 +297,7 @@ graph TB
 ```
 
 **Features:**
+
 - ✅ FastAPI REST API
 - ✅ Firestore for data persistence
 - ✅ Vertex AI Gemini for AI features
@@ -318,7 +319,7 @@ graph LR
         C[shadcn/ui Components]
         D[API Client]
     end
-    
+
     subgraph "Pages"
         E[Dashboard]
         F[API Keys]
@@ -326,12 +327,12 @@ graph LR
         H[Services]
         I[Analytics]
     end
-    
+
     subgraph "Backend"
         J[n.process API]
         K[Admin Control Plane]
     end
-    
+
     A --> B
     A --> C
     A --> D
@@ -340,12 +341,13 @@ graph LR
     D --> G
     D --> H
     D --> I
-    
+
     D --> J
     D --> K
 ```
 
 **Features:**
+
 - ✅ Next.js 16 with TypeScript
 - ✅ NextAuth.js for authentication
 - ✅ shadcn/ui components
@@ -365,27 +367,27 @@ graph TB
         B[Request Router]
         C[Auth Validator]
     end
-    
+
     subgraph "MCP Servers"
         D[n.process MCP<br/>STDIO Server]
         E[Regulatory RAG MCP<br/>STDIO Server]
         F[Document Generator MCP<br/>STDIO Server]
         G[Regulatory Crawler MCP<br/>STDIO Server]
     end
-    
+
     subgraph "Backend APIs"
         H[n.process API]
         I[Regulatory RAG API]
         J[Document Generator API]
     end
-    
+
     A --> B
     B --> C
     C --> D
     C --> E
     C --> F
     C --> G
-    
+
     D --> H
     E --> I
     F --> J
@@ -393,6 +395,7 @@ graph TB
 ```
 
 **Available MCP Servers:**
+
 - ✅ **n.process MCP** - Core compliance operations
 - ✅ **Regulatory RAG MCP** - Regulatory intelligence search
 - ✅ **Document Generator MCP** - BPMN to Mermaid conversion
@@ -409,12 +412,13 @@ graph LR
     A --> C[Redis]
     A --> D[JWT Auth]
     A --> E[API Key Encryption]
-    
+
     F[Admin Dashboard] --> A
     G[Client Portal] --> A
 ```
 
 **Features:**
+
 - ✅ Admin API for platform management
 - ✅ PostgreSQL for relational data
 - ✅ JWT authentication
@@ -426,11 +430,12 @@ graph LR
 graph LR
     A[Client Portal<br/>Next.js] --> B[Admin Control Plane]
     A --> C[Regulatory RAG API]
-    
+
     D[End Users] --> A
 ```
 
 **Features:**
+
 - ✅ Client-facing interface
 - ✅ Process visualization
 - ✅ Compliance reports
@@ -443,12 +448,13 @@ graph TB
     A[Regulatory RAG API] --> B[Vertex AI Search]
     A --> C[Redis Cache]
     A --> D[PostgreSQL]
-    
+
     E[Regulatory Queries] --> A
     A --> F[Regulatory Insights]
 ```
 
 **Features:**
+
 - ✅ Semantic search with Vertex AI Search
 - ✅ Intelligent caching with Redis
 - ✅ Quality scoring (relevância + recency)
@@ -462,13 +468,14 @@ graph LR
     A[Document Generator] --> B[BPMN Parser]
     A --> C[Mermaid Converter]
     A --> D[Template Engine]
-    
+
     E[BPMN XML] --> A
     A --> F[Mermaid Diagrams]
     A --> G[Document Templates]
 ```
 
 **Features:**
+
 - ✅ BPMN to Mermaid conversion
 - ✅ Document template generation
 - ✅ Process documentation automation
@@ -476,6 +483,7 @@ graph LR
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.11+
 - Node.js 20+
 - Google Cloud Project with billing enabled
@@ -512,7 +520,7 @@ uvicorn app.main:app --reload --port 8080
 ### Docker Development
 
 ```bash
-# Start all services
+# Start all services (including API Gateway)
 make docker-up
 # or
 docker-compose up -d
@@ -528,22 +536,41 @@ make docker-down
 docker-compose down
 ```
 
+### 🚪 API Gateway (Unified Entry Point)
+
+All APIs are accessible via a single endpoint through the NGINX gateway:
+
+```bash
+# Gateway URL (Development)
+http://localhost:80
+
+# Routes:
+# - /v1/modeling/*    -> Core API (BPMN generation)
+# - /v1/compliance/*  -> Core API (Compliance analysis)
+# - /v1/admin/*       -> Admin API (Users, API Keys, FinOps)
+# - /v1/auth/*        -> Admin API (Authentication)
+# - /health           -> Unified health check
+# - /docs             -> OpenAPI Documentation
+```
+
 ## 📚 Documentation
 
-- **[Quick Start Guide](docs/QUICK_START.md)** - Get started quickly
-- **[Integration Guide](docs/INTEGRATION.md)** - Integrate the API
-- **[Architecture](docs/ARCHITECTURE.md)** - System architecture
+- **[Quick Start Guide](docs/manuals/QUICK_START.md)** - Get started quickly
+- **[Integration Guide](docs/manuals/INTEGRATION.md)** - Integrate the API
+- **[Architecture](docs/architecture/ARCHITECTURE.md)** - System architecture
 - **[API Documentation](https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs)** - Interactive API docs
-- **[Security](docs/SECURITY.md)** - Security practices
-- **[Deployment](docs/DEPLOY_STATUS.md)** - Deployment guide
+- **[Security](docs/security/SECURITY.md)** - Security practices
+- **[Deployment](docs/deployment/DEPLOY_STATUS.md)** - Deployment guide
 
 ## 🔐 Authentication
 
 ### API Authentication
+
 - **API Key** in header: `X-API-Key: <your-key>` or `Authorization: Bearer <your-key>`
 - Create keys via Admin Dashboard or `/v1/my/api-keys` endpoint
 
 ### Admin Dashboard
+
 - **URL**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
 - **Credentials**: `admin@company.com` / `admin123`
 
@@ -592,10 +619,9 @@ nprocess/
 │   ├── services/          # Business logic
 │   ├── schemas/           # Pydantic models
 │   └── middleware/       # Custom middleware
-├── admin-dashboard/       # Admin interface (Next.js)
+├── web-portal/            # Unified Frontend (Admin + Client)
 ├── admin-control-plane/  # Admin API
-├── client-portal/         # Client interface
-├── mcp-servers/          # MCP protocol servers
+├── mcp-servers/          # MCP protocol servers (TypeScript)
 ├── regulatory-rag-api/   # RAG service
 ├── docs/                 # Documentation
 ├── tests/                # Test suite

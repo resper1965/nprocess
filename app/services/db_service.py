@@ -12,7 +12,8 @@ from google.cloud.firestore_v1 import DocumentSnapshot
 logger = logging.getLogger(__name__)
 
 # Collection names
-ANALYSES_COLLECTION = "compliance_audit_logs" # Renamed from 'compliance_analyses' to be clear it's a log
+ANALYSES_COLLECTION = "compliance_audit_logs" 
+TENANTS_COLLECTION = "tenants"
 
 class DatabaseService:
     """Serviço para interação com Firestore (Audit Logs)."""
@@ -72,6 +73,47 @@ class DatabaseService:
         except Exception as e:
             logger.error(f"Erro ao listar logs: {e}")
             # Retorna lista vazia em caso de erro (ex: collection não existe ainda)
+            return []
+
+    # ========================================================================
+    # Tenant Management
+    # ========================================================================
+
+    async def create_tenant(self, tenant_id: str, tenant_data: Dict[str, Any]) -> str:
+        """Cria ou atualiza um tenant com ID específico."""
+        try:
+            # Garante que timestamps sejam tratados
+            if "created_at" not in tenant_data:
+                tenant_data["created_at"] = firestore.SERVER_TIMESTAMP
+                
+            doc_ref = self.db.collection(TENANTS_COLLECTION).document(tenant_id)
+            doc_ref.set(tenant_data, merge=True)
+            return tenant_id
+        except Exception as e:
+            logger.error(f"Erro ao criar tenant {tenant_id}: {e}")
+            raise
+
+    async def get_tenant(self, tenant_id: str) -> Optional[Dict[str, Any]]:
+        """Busca um tenant pelo ID."""
+        try:
+            doc = self.db.collection(TENANTS_COLLECTION).document(tenant_id).get()
+            if not doc.exists:
+                return None
+            data = doc.to_dict()
+            data["id"] = doc.id
+            return data
+        except Exception as e:
+            logger.error(f"Erro ao buscar tenant {tenant_id}: {e}")
+            raise
+
+    async def list_tenants(self) -> List[Dict[str, Any]]:
+        """Lista todos os tenants ativos."""
+        try:
+            # Lista todos (assumindo poucos tenants em Enterprise. Se escalar, usar paginação)
+            docs = self.db.collection(TENANTS_COLLECTION).stream()
+            return [{"id": doc.id, **doc.to_dict()} for doc in docs]
+        except Exception as e:
+            logger.error(f"Erro ao listar tenants: {e}")
             return []
 
 _db_service_instance = None
