@@ -152,12 +152,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // This ensures we catch the auth state change even if getRedirectResult doesn't return
     let redirectHandled = false;
     let authStateCheckCount = 0;
+    let waitingForAuthState = false;
+    
+    // Check if we're coming from a redirect by checking URL and sessionStorage
+    const checkIfFromRedirect = () => {
+      if (typeof window === 'undefined') return false;
+      const urlParams = window.location.search;
+      const hasRedirectUrl = sessionStorage.getItem('auth_redirect_url') !== null;
+      const currentPath = window.location.pathname;
+      
+      return (
+        urlParams.includes('__firebase_request_key') ||
+        urlParams.includes('apiKey') ||
+        urlParams.includes('mode') ||
+        hasRedirectUrl ||
+        currentPath === '/login' || 
+        currentPath === '/login/' ||
+        (currentPath === '/' && hasRedirectUrl)
+      );
+    };
     
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       authStateCheckCount++;
       const currentPath = typeof window !== 'undefined' ? window.location.pathname : 'N/A';
       const urlParams = typeof window !== 'undefined' ? window.location.search : '';
       const hasRedirectUrl = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect_url') !== null : false;
+      const isFromRedirect = checkIfFromRedirect();
       
       console.log(`onAuthStateChanged [${authStateCheckCount}]: Auth state changed`, { 
         hasUser: !!currentUser, 
@@ -166,9 +186,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         path: currentPath,
         urlParams: urlParams,
         hasRedirectUrl: hasRedirectUrl,
+        isFromRedirect: isFromRedirect,
         currentUserFromAuth: auth?.currentUser?.uid || 'none',
-        redirectHandled
+        redirectHandled,
+        waitingForAuthState
       });
+      
+      // If we're coming from redirect but don't have user yet, wait a bit more
+      if (isFromRedirect && !currentUser && !waitingForAuthState && authStateCheckCount <= 3) {
+        console.log(`onAuthStateChanged: Coming from redirect but no user yet, waiting... (check ${authStateCheckCount})`);
+        waitingForAuthState = true;
+        
+        // Wait and check again
+        setTimeout(async () => {
+          const userAfterWait = auth?.currentUser;
+          console.log('onAuthStateChanged: After wait, checking user again', { 
+            hasUser: !!userAfterWait, 
+            uid: userAfterWait?.uid || 'none' 
+          });
+          
+          if (userAfterWait && !redirectHandled) {
+            console.log('onAuthStateChanged: User found after wait, processing redirect...', { uid: userAfterWait.uid });
+            // Trigger the redirect logic by setting user
+            setUser(userAfterWait);
+            // The next onAuthStateChanged call will handle the redirect
+          } else {
+            waitingForAuthState = false;
+          }
+        }, 1000);
+      }
       
       // If we have a user and haven't handled redirect yet, check if it's from Google redirect
       if (currentUser && !redirectHandled) {
