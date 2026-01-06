@@ -78,16 +78,20 @@ class StorageService:
             self.client = storage.Client(project=project_id)
             self.bucket = self.client.bucket(bucket_name)
 
-            # Verify bucket exists
-            if not self.bucket.exists():
-                logger.warning(f"Bucket {bucket_name} does not exist. Creating...")
-                self._create_bucket()
+            # Verify bucket exists (lazy check - don't fail if bucket doesn't exist yet)
+            try:
+                if not self.bucket.exists():
+                    logger.warning(f"Bucket {bucket_name} does not exist. It will be created on first use.")
+            except Exception as e:
+                logger.warning(f"Could not check bucket existence: {e}. Continuing anyway.")
 
             logger.info(f"StorageService initialized with bucket: {bucket_name}")
 
         except GoogleCloudError as e:
             logger.error(f"Failed to initialize StorageService: {e}")
-            raise StorageError(f"Storage initialization failed: {e}")
+            # Don't raise - allow service to start even if storage is not available
+            # Storage operations will fail gracefully when called
+            logger.warning("StorageService initialization failed, but continuing. Storage operations may fail.")
 
     def _create_bucket(self):
         """Create bucket with standard configuration"""
