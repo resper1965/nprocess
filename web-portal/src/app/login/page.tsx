@@ -76,15 +76,31 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = async () => {
+    console.log('handleGoogleLogin: Button clicked, starting Google login...')
+    
     try {
       setError('')
+      
+      console.log('handleGoogleLogin: Calling loginWithGoogle()...')
+      
       // loginWithGoogle now uses redirect instead of popup
       // This avoids third-party cookie blocking issues
       await loginWithGoogle()
+      
+      console.log('handleGoogleLogin: loginWithGoogle() completed - redirect should happen now')
+      
       // Note: The user will be redirected to Google for authentication
       // After authentication, they'll be redirected back to our app
       // The redirect result will be handled automatically by the auth context
     } catch (error: any) {
+      console.error('handleGoogleLogin: Error caught:', error)
+      console.error('handleGoogleLogin: Error details:', {
+        code: error?.code,
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      })
+      
       // Extract meaningful error message
       let errorMessage = t.auth.login.errors.generic
       
@@ -100,11 +116,14 @@ export default function LoginPage() {
           'auth/popup-closed-by-user': 'Login cancelado. Por favor, tente novamente.',
           'auth/popup-blocked': 'Popup bloqueado pelo navegador. Usando redirecionamento...',
           'auth/cancelled-popup-request': 'Login cancelado. Por favor, tente novamente.',
+          'auth/operation-not-allowed': 'Login com Google não está habilitado. Entre em contato com o suporte.',
+          'auth/configuration-not-found': 'Configuração do Firebase não encontrada. Verifique as configurações.',
+          'auth/unauthorized-domain': 'Domínio não autorizado. Verifique as configurações do Firebase.',
         }
         errorMessage = errorMessages[error.code] || error.message || errorMessage
       }
       
-      console.error('Google login error:', error)
+      console.error('handleGoogleLogin: Setting error message:', errorMessage)
       setError(errorMessage)
     }
   }

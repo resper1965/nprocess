@@ -122,28 +122,69 @@ export const registerWithEmail = async (
  * This avoids issues with third-party cookies being blocked
  */
 export const loginWithGoogle = async (): Promise<void> => {
+  console.log('loginWithGoogle: Starting Google login process...');
+  
   if (!auth) {
+    console.error('loginWithGoogle: Firebase Auth is not initialized!');
     throw new Error('Firebase Auth is not initialized. Please check your configuration.');
   }
+  
+  console.log('loginWithGoogle: Firebase Auth is initialized', { authDomain: auth.app.options.authDomain });
   
   try {
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
     
+    console.log('loginWithGoogle: GoogleAuthProvider created');
+    
     // Store the current URL to redirect back after Google auth
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('auth_redirect_url', window.location.pathname);
+      console.log('loginWithGoogle: Stored redirect URL:', window.location.pathname);
     }
+    
+    console.log('loginWithGoogle: Calling signInWithRedirect...');
     
     // Use redirect instead of popup to avoid third-party cookie issues
     await signInWithRedirect(auth, provider);
+    
+    console.log('loginWithGoogle: signInWithRedirect called successfully - redirect should happen now');
+    
     // Note: signInWithRedirect doesn't return a credential
     // The redirect will happen and the user will be redirected back
     // Use handleGoogleRedirect() to process the result after redirect
   } catch (error: any) {
-    console.error('Error initiating Google login:', error);
-    throw new Error('Erro ao iniciar login com Google. Por favor, tente novamente.');
+    console.error('loginWithGoogle: Error initiating Google login:', error);
+    console.error('loginWithGoogle: Error details:', {
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    });
+    
+    // Provide more specific error messages
+    let errorMessage = 'Erro ao iniciar login com Google. Por favor, tente novamente.';
+    
+    if (error?.code) {
+      switch (error.code) {
+        case 'auth/operation-not-allowed':
+          errorMessage = 'Login com Google não está habilitado. Entre em contato com o suporte.';
+          break;
+        case 'auth/configuration-not-found':
+          errorMessage = 'Configuração do Firebase não encontrada. Verifique as configurações.';
+          break;
+        case 'auth/unauthorized-domain':
+          errorMessage = 'Domínio não autorizado. Verifique as configurações do Firebase.';
+          break;
+        default:
+          errorMessage = error.message || errorMessage;
+      }
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+    
+    throw new Error(errorMessage);
   }
 };
 
