@@ -161,8 +161,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleLogin = async (data: LoginData) => {
     try {
-      await loginWithEmail(data.email, data.password);
-      router.push('/dashboard');
+      const credential = await loginWithEmail(data.email, data.password);
+      
+      // Wait a bit for auth state to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Get role to determine redirect path
+      let userRole = 'user';
+      if (credential?.user) {
+        try {
+          const tokenResult = await getIdTokenResult(credential.user);
+          userRole = (tokenResult.claims.role as string) || 'user';
+          
+          // Check Firestore if no custom claim
+          if (!userRole || userRole === 'user') {
+            try {
+              const userProfile = await getUserProfile(credential.user.uid);
+              if (userProfile && userProfile.role) {
+                userRole = userProfile.role;
+              }
+            } catch (fsError) {
+              console.error("Error fetching user profile:", fsError);
+            }
+          }
+        } catch (roleError) {
+          console.error('Error getting user role:', roleError);
+        }
+      }
+      
+      const targetPath = userRole === 'admin' || userRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+      console.log('Login successful, redirecting to:', targetPath);
+      
+      router.push(targetPath);
+      
+      // Force redirect if router.push doesn't work
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+          window.location.href = targetPath;
+        }
+      }, 500);
     } catch (error: any) {
       // Extract meaningful error message
       let errorMessage = 'Erro ao fazer login';

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n/context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,11 +12,27 @@ import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const { login, loginWithGoogle, loading } = useAuth()
+  const { login, loginWithGoogle, loading, user, role, isAuthenticated } = useAuth()
   const { t } = useI18n()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+
+  // Redirect authenticated users away from login page
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      const targetPath = role === 'admin' || role === 'super_admin' ? '/admin/overview' : '/dashboard'
+      console.log('User authenticated, redirecting to:', targetPath)
+      router.push(targetPath)
+      // Force redirect if router.push doesn't work
+      setTimeout(() => {
+        if (window.location.pathname === '/login') {
+          window.location.href = targetPath
+        }
+      }, 500)
+    }
+  }, [loading, isAuthenticated, user, role, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
