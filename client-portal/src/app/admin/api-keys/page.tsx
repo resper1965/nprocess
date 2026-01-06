@@ -1,14 +1,34 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Copy, MoreVertical, Trash2, Key, Loader2, AlertCircle } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Plus, Search, Copy, MoreVertical, Trash2, Key, Loader2, AlertCircle, Shield } from "lucide-react"
 import { cn, formatDate } from "@/lib/utils"
 import { useAPIKeysList, useCreateAPIKey, useRevokeAPIKey } from "@/hooks/use-api-keys"
 import { APIKeyCreate } from "@/lib/api-client"
+import { toast } from "sonner"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+interface MarketplaceStandard {
+  standard_id: string
+  name: string
+  description: string
+  category: string
+  is_active: boolean
+}
+
+interface CustomStandard {
+  id: string
+  name: string
+  description: string
+  status: string
+}
 
 export default function APIKeysPage() {
   const [showNewKeyDialog, setShowNewKeyDialog] = useState(false)
@@ -21,10 +41,55 @@ export default function APIKeysPage() {
   const [dailyQuota, setDailyQuota] = useState("10000")
   const [description, setDescription] = useState("")
 
+  // Standards state
+  const [marketplaceStandards, setMarketplaceStandards] = useState<MarketplaceStandard[]>([])
+  const [customStandards, setCustomStandards] = useState<CustomStandard[]>([])
+  const [selectedMarketplace, setSelectedMarketplace] = useState<string[]>([])
+  const [selectedCustom, setSelectedCustom] = useState<string[]>([])
+  const [loadingStandards, setLoadingStandards] = useState(false)
+
   // Fetch API keys from backend
   const { data: apiKeys, isLoading, error } = useAPIKeysList()
   const createKeyMutation = useCreateAPIKey()
   const revokeKeyMutation = useRevokeAPIKey()
+
+  // Load standards when dialog opens
+  useEffect(() => {
+    if (showNewKeyDialog) {
+      loadStandards()
+    }
+  }, [showNewKeyDialog])
+
+  const loadStandards = async () => {
+    setLoadingStandards(true)
+    try {
+      const token = localStorage.getItem('auth_token')
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
+
+      // Load marketplace standards
+      const marketplaceRes = await fetch(`${API_URL}/v1/admin/standards/marketplace`, { headers })
+      if (marketplaceRes.ok) {
+        const data = await marketplaceRes.json()
+        setMarketplaceStandards(data.standards || [])
+      }
+
+      // Load custom standards (only completed ones)
+      const customRes = await fetch(`${API_URL}/v1/admin/standards/custom`, { headers })
+      if (customRes.ok) {
+        const data = await customRes.json()
+        const completedStandards = (data.standards || []).filter((s: CustomStandard) => s.status === 'completed')
+        setCustomStandards(completedStandards)
+      }
+    } catch (error) {
+      console.error('Error loading standards:', error)
+      toast.error('Erro ao carregar standards')
+    } finally {
+      setLoadingStandards(false)
+    }
+  }
 
   const filteredKeys = apiKeys?.filter((key) =>
     key.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,6 +113,10 @@ export default function APIKeysPage() {
         requests_per_month: (parseInt(dailyQuota) || 10000) * 30,
       },
       permissions: ["read", "write"],
+      allowed_standards: {
+        marketplace: selectedMarketplace,
+        custom: selectedCustom,
+      },
     }
 
     try {
@@ -58,8 +127,11 @@ export default function APIKeysPage() {
       setConsumerAppId("")
       setDailyQuota("10000")
       setDescription("")
+      setSelectedMarketplace([])
+      setSelectedCustom([])
     } catch (error) {
       console.error("Failed to create API key:", error)
+      toast.error("Erro ao criar API key")
     }
   }
 
@@ -82,6 +154,24 @@ export default function APIKeysPage() {
     setConsumerAppId("")
     setDailyQuota("10000")
     setDescription("")
+    setSelectedMarketplace([])
+    setSelectedCustom([])
+  }
+
+  const toggleMarketplaceStandard = (standardId: string) => {
+    setSelectedMarketplace(prev =>
+      prev.includes(standardId)
+        ? prev.filter(id => id !== standardId)
+        : [...prev, standardId]
+    )
+  }
+
+  const toggleCustomStandard = (standardId: string) => {
+    setSelectedCustom(prev =>
+      prev.includes(standardId)
+        ? prev.filter(id => id !== standardId)
+        : [...prev, standardId]
+    )
   }
 
   if (error) {
@@ -371,6 +461,93 @@ export default function APIKeysPage() {
                       onChange={(e) => setDailyQuota(e.target.value)}
                     />
                   </div>
+
+                  {/* Standards Selection */}
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                      <label className="text-sm font-medium">Allowed Standards</label>
+                    </div>
+
+                    {loadingStandards ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <>
+                        {/* Marketplace Standards */}
+                        {marketplaceStandards.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-xs text-muted-foreground">Marketplace Standards</Label>
+                            <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                              {marketplaceStandards.map((standard) => (
+                                <div key={standard.standard_id} className="flex items-start space-x-2">
+                                  <Checkbox
+                                    id={`marketplace-${standard.standard_id}`}
+                                    checked={selectedMarketplace.includes(standard.standard_id)}
+                                    onCheckedChange={() => toggleMarketplaceStandard(standard.standard_id)}
+                                  />
+                                  <div className="grid gap-1 leading-none">
+                                    <label
+                                      htmlFor={`marketplace-${standard.standard_id}`}
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                      {standard.name}
+                                    </label>
+                                    <p className="text-xs text-muted-foreground">
+                                      {standard.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Custom Standards */}
+                        {customStandards.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-xs text-muted-foreground">Custom Standards</Label>
+                            <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                              {customStandards.map((standard) => (
+                                <div key={standard.id} className="flex items-start space-x-2">
+                                  <Checkbox
+                                    id={`custom-${standard.id}`}
+                                    checked={selectedCustom.includes(standard.id)}
+                                    onCheckedChange={() => toggleCustomStandard(standard.id)}
+                                  />
+                                  <div className="grid gap-1 leading-none">
+                                    <label
+                                      htmlFor={`custom-${standard.id}`}
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                      {standard.name}
+                                    </label>
+                                    <p className="text-xs text-muted-foreground">
+                                      {standard.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {marketplaceStandards.length === 0 && customStandards.length === 0 && (
+                          <div className="text-center py-4 text-sm text-muted-foreground">
+                            Nenhum standard disponível. Crie standards primeiro.
+                          </div>
+                        )}
+
+                        {(selectedMarketplace.length > 0 || selectedCustom.length > 0) && (
+                          <div className="text-xs text-muted-foreground">
+                            {selectedMarketplace.length + selectedCustom.length} standard(s) selecionado(s)
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
                   <div className="flex gap-2 pt-4">
                     <Button
                       className="flex-1"
