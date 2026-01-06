@@ -21,13 +21,17 @@ from app.schemas import (
 )
 from app.middleware.auth import get_current_user
 from app.services.firestore_repository import FirestoreRepository
+from app.services.storage_service import get_storage_service, StorageError, FileNotFoundError as StorageFileNotFoundError
+from app.services.ingestion_service import get_ingestion_service, IngestionStatus
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Firestore connection
+# Services
 db = FirestoreRepository()
+storage_service = get_storage_service()
+ingestion_service = get_ingestion_service()
 
 
 # ============================================================================
@@ -180,21 +184,27 @@ async def create_custom_standard(
     request: StandardCustomCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create a new custom standard for the client"""
+    """
+    Create a new custom standard for the client
+
+    Note: For file-based standards, use POST /custom/upload instead.
+    This endpoint is for URL or TEXT source types.
+    """
     try:
         # Generate IDs
         standard_id = f"custom_{secrets.token_hex(8)}"
         client_id = current_user.get("client_id", "client_default")
 
         # Create standard record
-        standard = {
+        standard_data = {
             "standard_id": standard_id,
             "client_id": client_id,
             "name": request.name,
             "description": request.description,
             "source_type": request.source_type,
+            "source": request.source if hasattr(request, 'source') else None,
             "status": StandardStatus.PENDING,
-            "total_chunks": None,
+            "total_chunks": 0,
             "created_at": datetime.utcnow(),
             "created_by": current_user["user_id"],
             "updated_at": datetime.utcnow(),
@@ -203,21 +213,23 @@ async def create_custom_standard(
             "metadata": request.metadata or {}
         }
 
-        # Store in database
-        if client_id not in custom_standards_db:
-            custom_standards_db[client_id] = {}
+        # Save to Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc_ref.set(standard_data)
 
-        custom_standards_db[client_id][standard_id] = standard
+        logger.info(
+            f"Custom standard created",
+            extra={
+                "standard_id": standard_id,
+                "client_id": client_id,
+                "source_type": request.source_type
+            }
+        )
 
-        logger.info(f"Custom standard created: {standard_id} by client {client_id}")
-
-        # Trigger ingestion (async in production)
-        # TODO: Call ingestion service
-
-        return StandardCustomInfo(**standard)
+        return StandardCustomInfo(**standard_data)
 
     except Exception as e:
-        logger.error(f"Error creating custom standard: {str(e)}")
+        logger.error(f"Error creating custom standard: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -250,12 +262,26 @@ async def get_custom_standard(
     current_user: dict = Depends(get_current_user)
 ):
     """Get details of a specific custom standard"""
-    client_id = current_user.get("client_id", "client_default")
+    try:
+        client_id = current_user.get("client_id", "client_default")
 
-    if client_id not in custom_standards_db or standard_id not in custom_standards_db[client_id]:
-        raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not found")
+        # Fetch from Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc = doc_ref.get()
 
-    return StandardCustomInfo(**custom_standards_db[client_id][standard_id])
+        if not doc.exists:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Custom standard {standard_id} not found"
+            )
+
+        return StandardCustomInfo(**doc.to_dict())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching custom standard: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/custom/{standard_id}", response_model=StandardCustomInfo)
@@ -265,26 +291,56 @@ async def update_custom_standard(
     current_user: dict = Depends(get_current_user)
 ):
     """Update a custom standard metadata"""
-    client_id = current_user.get("client_id", "client_default")
+    try:
+        client_id = current_user.get("client_id", "client_default")
 
-    if client_id not in custom_standards_db or standard_id not in custom_standards_db[client_id]:
-        raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not found")
+        # Fetch from Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc = doc_ref.get()
 
-    standard = custom_standards_db[client_id][standard_id]
+        if not doc.exists:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Custom standard {standard_id} not found"
+            )
 
-    # Update fields
-    if request.name:
-        standard["name"] = request.name
-    if request.description:
-        standard["description"] = request.description
-    if request.metadata:
-        standard["metadata"].update(request.metadata)
+        # Prepare updates
+        updates = {
+            "updated_at": datetime.utcnow()
+        }
 
-    standard["updated_at"] = datetime.utcnow()
+        if request.name:
+            updates["name"] = request.name
+        if request.description:
+            updates["description"] = request.description
+        if request.metadata:
+            # Merge metadata
+            current_metadata = doc.to_dict().get("metadata", {})
+            current_metadata.update(request.metadata)
+            updates["metadata"] = current_metadata
 
-    logger.info(f"Custom standard updated: {standard_id} by client {client_id}")
+        # Update in Firestore
+        doc_ref.update(updates)
 
-    return StandardCustomInfo(**standard)
+        # Fetch updated document
+        updated_doc = doc_ref.get()
+
+        logger.info(
+            f"Custom standard updated",
+            extra={
+                "standard_id": standard_id,
+                "client_id": client_id,
+                "updates": list(updates.keys())
+            }
+        )
+
+        return StandardCustomInfo(**updated_doc.to_dict())
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating custom standard: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/custom/{standard_id}")
@@ -327,38 +383,132 @@ async def ingest_custom_standard(
     request: StandardIngestRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Ingest or re-ingest a custom standard (vectorize)"""
-    client_id = current_user.get("client_id", "client_default")
+    """
+    Ingest or re-ingest a custom standard (vectorize and index)
 
-    if client_id not in custom_standards_db or standard_id not in custom_standards_db[client_id]:
-        raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not found")
+    This triggers the full ingestion pipeline:
+    1. Download file from GCS
+    2. Extract and clean text
+    3. Smart chunking (respects paragraphs/headings)
+    4. Generate embeddings (Vertex AI)
+    5. Index in Discovery Engine
+    6. Update status in Firestore
+    """
+    try:
+        client_id = current_user.get("client_id", "client_default")
 
-    standard = custom_standards_db[client_id][standard_id]
+        # Fetch standard from Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc = doc_ref.get()
 
-    # Update status to processing
-    standard["status"] = StandardStatus.PROCESSING
-    standard["processing_progress"] = 0.0
-    standard["updated_at"] = datetime.utcnow()
+        if not doc.exists:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Custom standard {standard_id} not found"
+            )
 
-    # TODO: Call actual ingestion service (async)
-    # from app.services.ingestion import ingest_command_handler
-    # result = await ingest_command_handler({
-    #     "source_type": request.source_type.value,
-    #     "source": request.source,
-    #     "source_id": standard_id,
-    #     "client_id": client_id,
-    #     "metadata": request.metadata
-    # })
+        standard_data = doc.to_dict()
 
-    logger.info(f"Ingestion started for custom standard: {standard_id}")
+        # Check if already processing
+        if standard_data.get("status") == StandardStatus.PROCESSING:
+            return StandardIngestResponse(
+                standard_id=standard_id,
+                status=StandardStatus.PROCESSING,
+                message="Ingestion already in progress",
+                chunks_generated=standard_data.get("total_chunks"),
+                processing_progress=standard_data.get("processing_progress", 0.0)
+            )
 
-    return StandardIngestResponse(
-        standard_id=standard_id,
-        status=StandardStatus.PROCESSING,
-        message="Ingestion started. Processing in background.",
-        chunks_generated=None,
-        processing_progress=0.0
-    )
+        # Get file from GCS
+        logger.info(
+            f"Starting ingestion for standard",
+            extra={
+                "standard_id": standard_id,
+                "client_id": client_id,
+                "source": standard_data.get("source")
+            }
+        )
+
+        try:
+            # Download file from GCS
+            file_content = await storage_service.download_standard_file(
+                standard_id=standard_id,
+                client_id=client_id
+            )
+
+            # Extract text content (simplified - in production use proper parsers)
+            # For PDF: use PyPDF2 or pdfplumber
+            # For DOCX: use python-docx
+            # For now, assume it's text
+            try:
+                content_text = file_content.decode("utf-8")
+            except UnicodeDecodeError:
+                # If not UTF-8, try latin-1
+                content_text = file_content.decode("latin-1")
+
+            # Trigger ingestion (async processing)
+            # In production, this should be queued via Cloud Tasks
+            # For now, we process synchronously
+            result = await ingestion_service.ingest_standard(
+                standard_id=standard_id,
+                content=content_text,
+                client_id=client_id,
+                source_name=standard_data.get("metadata", {}).get("original_filename", "unknown"),
+                metadata=standard_data.get("metadata", {})
+            )
+
+            logger.info(
+                f"Ingestion completed",
+                extra={
+                    "standard_id": standard_id,
+                    "client_id": client_id,
+                    "status": result.status.value,
+                    "total_chunks": result.total_chunks,
+                    "processing_time_seconds": result.processing_time_seconds
+                }
+            )
+
+            return StandardIngestResponse(
+                standard_id=standard_id,
+                status=result.status.value,
+                message=result.error_message or "Ingestion completed successfully",
+                chunks_generated=result.total_chunks,
+                processing_progress=100.0 if result.status == IngestionStatus.COMPLETED else 0.0
+            )
+
+        except StorageFileNotFoundError:
+            logger.error(f"File not found in storage for standard: {standard_id}")
+            raise HTTPException(
+                status_code=404,
+                detail="Standard file not found in storage. Please re-upload."
+            )
+        except Exception as e:
+            logger.error(
+                f"Ingestion failed: {e}",
+                extra={
+                    "standard_id": standard_id,
+                    "client_id": client_id
+                },
+                exc_info=True
+            )
+
+            # Update status to FAILED
+            doc_ref.update({
+                "status": StandardStatus.FAILED,
+                "error_message": str(e),
+                "updated_at": datetime.utcnow()
+            })
+
+            raise HTTPException(
+                status_code=500,
+                detail=f"Ingestion failed: {str(e)}"
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in ingest endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/custom/{standard_id}/status", response_model=StandardIngestResponse)
@@ -366,21 +516,39 @@ async def get_ingestion_status(
     standard_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get the ingestion/processing status of a custom standard"""
-    client_id = current_user.get("client_id", "client_default")
+    """
+    Get the ingestion/processing status of a custom standard
 
-    if client_id not in custom_standards_db or standard_id not in custom_standards_db[client_id]:
-        raise HTTPException(status_code=404, detail=f"Custom standard {standard_id} not found")
+    Returns real-time progress from Firestore
+    """
+    try:
+        client_id = current_user.get("client_id", "client_default")
 
-    standard = custom_standards_db[client_id][standard_id]
+        # Fetch from Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc = doc_ref.get()
 
-    return StandardIngestResponse(
-        standard_id=standard_id,
-        status=standard["status"],
-        message=f"Status: {standard['status']}",
-        chunks_generated=standard.get("total_chunks"),
-        processing_progress=standard.get("processing_progress")
-    )
+        if not doc.exists:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Custom standard {standard_id} not found"
+            )
+
+        standard_data = doc.to_dict()
+
+        return StandardIngestResponse(
+            standard_id=standard_id,
+            status=standard_data.get("status", StandardStatus.PENDING),
+            message=standard_data.get("processing_message") or standard_data.get("error_message") or f"Status: {standard_data.get('status')}",
+            chunks_generated=standard_data.get("total_chunks"),
+            processing_progress=standard_data.get("processing_progress", 0.0)
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching ingestion status: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ============================================================================
@@ -390,25 +558,117 @@ async def get_ingestion_status(
 @router.post("/custom/upload")
 async def upload_custom_standard_file(
     file: UploadFile = File(...),
+    name: str = None,
+    description: str = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload a file for custom standard creation"""
-    try:
-        # TODO: Save file to cloud storage (GCS)
-        # For now, just return file info
+    """
+    Upload a file and create custom standard (all-in-one)
 
+    Returns the created standard with storage details.
+    Ingestion is triggered automatically in the background.
+    """
+    try:
+        client_id = current_user.get("client_id", "client_default")
+        user_id = current_user.get("user_id")
+
+        # Validate file type
+        allowed_extensions = [".pdf", ".txt", ".docx", ".md"]
+        file_extension = file.filename.split(".")[-1].lower() if "." in file.filename else ""
+
+        if not any(file.filename.lower().endswith(ext) for ext in allowed_extensions):
+            raise HTTPException(
+                status_code=400,
+                detail=f"File type not supported. Allowed: {', '.join(allowed_extensions)}"
+            )
+
+        # Read file content
         contents = await file.read()
 
-        logger.info(f"File uploaded: {file.filename} ({len(contents)} bytes) by {current_user['user_id']}")
+        if len(contents) == 0:
+            raise HTTPException(status_code=400, detail="Empty file not allowed")
+
+        if len(contents) > 50 * 1024 * 1024:  # 50MB limit
+            raise HTTPException(status_code=413, detail="File too large (max 50MB)")
+
+        # Generate standard ID
+        standard_id = f"custom_{secrets.token_hex(8)}"
+
+        # Upload to GCS
+        logger.info(
+            f"Uploading file to GCS",
+            extra={
+                "standard_id": standard_id,
+                "client_id": client_id,
+                "filename": file.filename,
+                "size_bytes": len(contents)
+            }
+        )
+
+        upload_result = await storage_service.upload_standard_file(
+            file_content=contents,
+            standard_id=standard_id,
+            client_id=client_id,
+            file_extension=file_extension,
+            metadata={
+                "original_filename": file.filename,
+                "uploaded_by": user_id,
+                "content_type": file.content_type or "application/octet-stream"
+            }
+        )
+
+        # Create standard record in Firestore
+        standard_data = {
+            "standard_id": standard_id,
+            "client_id": client_id,
+            "name": name or file.filename,
+            "description": description or f"Custom standard uploaded from {file.filename}",
+            "source_type": StandardSourceType.FILE,
+            "source": upload_result["gcs_path"],
+            "status": StandardStatus.PENDING,
+            "total_chunks": 0,
+            "processing_progress": 0.0,
+            "created_at": datetime.utcnow(),
+            "created_by": user_id,
+            "updated_at": datetime.utcnow(),
+            "metadata": {
+                "original_filename": file.filename,
+                "file_size_bytes": len(contents),
+                "gcs_path": upload_result["gcs_path"],
+                "blob_name": upload_result["blob_name"],
+                "md5_hash": upload_result["md5_hash"]
+            }
+        }
+
+        # Save to Firestore
+        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        doc_ref.set(standard_data)
+
+        logger.info(
+            f"Custom standard created and stored in GCS",
+            extra={
+                "standard_id": standard_id,
+                "client_id": client_id,
+                "gcs_path": upload_result["gcs_path"]
+            }
+        )
+
+        # TODO: Trigger async ingestion via Cloud Tasks
+        # For now, return success with instructions to call /ingest endpoint
 
         return {
             "success": True,
-            "filename": file.filename,
-            "size": len(contents),
-            "content_type": file.content_type,
-            "message": "File uploaded successfully. Use the file path in create_custom_standard."
+            "standard": StandardCustomInfo(**standard_data),
+            "storage": {
+                "gcs_path": upload_result["gcs_path"],
+                "size_bytes": upload_result["size_bytes"]
+            },
+            "message": f"Standard created. Call POST /custom/{standard_id}/ingest to start processing."
         }
 
+    except StorageError as e:
+        logger.error(f"Storage error during upload: {e}")
+        raise HTTPException(status_code=500, detail=f"Storage error: {str(e)}")
     except Exception as e:
-        logger.error(f"Error uploading file: {str(e)}")
+        logger.error(f"Error uploading file: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

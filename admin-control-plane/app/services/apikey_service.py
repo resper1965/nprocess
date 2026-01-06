@@ -155,3 +155,27 @@ class APIKeyService:
 
         updated_doc = doc_ref.get()
         return updated_doc.to_dict()
+
+    async def update_last_used(self, key_id: str) -> bool:
+        """
+        Update last_used_at timestamp for API key usage tracking
+
+        Args:
+            key_id: API key identifier
+
+        Returns:
+            True if updated, False if key not found
+        """
+        try:
+            doc_ref = self.collection.document(key_id)
+
+            # Update last_used_at timestamp
+            doc_ref.update({
+                "last_used_at": datetime.utcnow()
+            })
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to update last_used_at for key {key_id}: {e}")
+            return False
