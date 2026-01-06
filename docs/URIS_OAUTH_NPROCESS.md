@@ -16,13 +16,20 @@
 
 ### ✅ Authorized JavaScript origins (Origens JavaScript Autorizadas)
 
-Adicione **TODAS** estas URLs (sem barra no final):
+**⚠️ IMPORTANTE**: Apenas o domínio, SEM barra no final, SEM caminhos!
+
+Adicione **TODAS** estas URLs (apenas o domínio, sem `/` no final):
 
 ```
 https://nprocess-8e801.firebaseapp.com
 https://nprocess-8e801-4711d.web.app
 https://nprocess.ness.com.br
 ```
+
+**❌ NÃO adicione:**
+- `https://nprocess-8e801.firebaseapp.com/` (com barra)
+- `https://nprocess-8e801.firebaseapp.com/login` (com caminho)
+- `http://nprocess-8e801.firebaseapp.com` (sem HTTPS)
 
 ### ✅ Authorized redirect URIs (URIs de Redirecionamento Autorizados)
 

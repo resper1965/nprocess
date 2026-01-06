@@ -53,11 +53,18 @@ https://nprocess.ness.com.br/__/auth/handler
 
 Na seção **"Origens JavaScript autorizadas"**, adicione **TODOS** os seguintes domínios:
 
+**⚠️ CRÍTICO**: Apenas o domínio, SEM barra (`/`) no final, SEM caminhos!
+
 ```
 https://nprocess-8e801.firebaseapp.com
 https://nprocess-8e801-4711d.web.app
 https://nprocess.ness.com.br
 ```
+
+**❌ NÃO adicione assim:**
+- `https://nprocess-8e801.firebaseapp.com/` ❌ (com barra)
+- `https://nprocess-8e801.firebaseapp.com/login` ❌ (com caminho)
+- `http://nprocess-8e801.firebaseapp.com` ❌ (sem HTTPS)
 
 ### 5. Salvar Alterações
 
