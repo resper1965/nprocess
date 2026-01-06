@@ -1,8 +1,16 @@
 /**
  * Firebase configuration and initialization
+ * Enhanced to handle Tracking Prevention in browsers like Edge and Safari
  */
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
+import { 
+  getAuth, 
+  Auth, 
+  browserLocalPersistence,
+  browserSessionPersistence,
+  indexedDBLocalPersistence,
+  setPersistence
+} from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import { getAnalytics, Analytics } from 'firebase/analytics';
@@ -58,11 +66,49 @@ if (typeof window !== 'undefined') {
   // Initialize services (only in browser)
   authInstance = getAuth(app);
   
-  // Configure auth settings for better Edge compatibility
+  // Configure auth persistence to handle Tracking Prevention
   if (authInstance) {
-    // Set persistence to help with Edge's Tracking Prevention
-    // This ensures auth state persists even with strict privacy settings
-    authInstance.settings.appVerificationDisabledForTesting = false;
+    console.log('🔐 Configuring Firebase Auth persistence...');
+    
+    // Try to set persistence - use IndexedDB first, fallback to session storage
+    // This helps with browsers that have Tracking Prevention enabled
+    const configurePersistence = async () => {
+      try {
+        // Try IndexedDB first (most compatible with Tracking Prevention)
+        await setPersistence(authInstance!, indexedDBLocalPersistence);
+        console.log('✅ Firebase Auth: Using IndexedDB persistence');
+      } catch (indexedDBError: any) {
+        console.warn('⚠️  IndexedDB persistence failed, trying localStorage...', indexedDBError?.code || indexedDBError?.message);
+        
+        try {
+          // Fallback to localStorage
+          await setPersistence(authInstance!, browserLocalPersistence);
+          console.log('✅ Firebase Auth: Using localStorage persistence');
+        } catch (localStorageError: any) {
+          console.warn('⚠️  localStorage persistence failed, using session storage...', localStorageError?.code || localStorageError?.message);
+          
+          try {
+            // Last fallback: session storage (cleared when tab closes)
+            await setPersistence(authInstance!, browserSessionPersistence);
+            console.log('⚠️  Firebase Auth: Using session persistence (will be lost on tab close)');
+          } catch (sessionError: any) {
+            console.error('❌ All persistence methods failed!', sessionError);
+            console.error('🚫 Tracking Prevention may be blocking Firebase Auth.');
+            console.error('💡 Solution: Disable Tracking Prevention for this site in browser settings.');
+  }
+        }
+      }
+    };
+    
+    // Call async persistence configuration
+    configurePersistence().catch((error) => {
+      console.error('Failed to configure Firebase Auth persistence:', error);
+    });
+    
+    // Disable app verification for testing (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      authInstance.settings.appVerificationDisabledForTesting = false;
+    }
   }
   
   storageInstance = getStorage(app);

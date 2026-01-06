@@ -334,37 +334,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('onAuthStateChanged: User role determined', { uid: currentUser.uid, role: finalRole });
             
             // Redirect authenticated users away from public pages
+            // But avoid competing with login page's redirect logic
             if (typeof window !== 'undefined') {
               const currentPath = window.location.pathname;
               const publicPages = ['/login', '/login/', '/register', '/', '/privacy', '/terms'];
               const isPublicPage = publicPages.includes(currentPath);
               
-              // If user is authenticated and on a public page (except legal pages), redirect
+              // If user is authenticated and on a public page (except legal  pages), redirect
+              // BUT: Give the login page's useEffect a chance to run first (it has role checking)
               if (isPublicPage && currentPath !== '/privacy' && currentPath !== '/terms') {
                 const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
                 
-                console.log('onAuthStateChanged: User authenticated on public page - redirecting from', currentPath, 'to', targetPath, { role: finalRole });
+                console.log('onAuthStateChanged: User authenticated on public page - will redirect from', currentPath, 'to', targetPath, { role: finalRole });
                 
-                // Wait a bit to ensure auth state is fully set
-                await new Promise(resolve => setTimeout(resolve, 100));
+                // Wait longer to allow login page's redirect to take precedence
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
-                // Immediate redirect
-                router.push(targetPath);
+                // Double-check we're still on a public page (login page might have redirected already)
+                const stillOnPublicPage = window.location.pathname === currentPath ||
+                                          window.location.pathname === '/' ||
+                                          window.location.pathname === '/login' ||
+                                          window.location.pathname === '/login/';
                 
-                // Force redirect if router.push doesn't work (multiple attempts)
-                const redirectAttempts = [500, 1000, 2000, 3000];
-                redirectAttempts.forEach((delay) => {
+                if (stillOnPublicPage) {
+                  console.log('onAuthStateChanged: Still on public page, forcing redirect to', targetPath);
+                  router.push(targetPath);
+                  
+                  // Single fallback attempt after delay
                   setTimeout(() => {
-                    const stillOnPublicPage = window.location.pathname === currentPath || 
-                                             window.location.pathname === '/' || 
-                                             window.location.pathname === '/login' ||
-                                             window.location.pathname === '/login/';
-                    if (stillOnPublicPage) {
-                      console.log(`onAuthStateChanged: Router.push failed, forcing redirect after ${delay}ms to`, targetPath);
+                    if (window.location.pathname === currentPath || 
+                        window.location.pathname === '/' || 
+                        window.location.pathname === '/login' ||
+                        window.location.pathname === '/login/') {
+                      console.log(`onAuthStateChanged: Router.push failed, forcing window redirect to`, targetPath);
                       window.location.href = targetPath;
                     }
-                  }, delay);
-                });
+                  }, 1500);
+                } else {
+                  console.log('onAuthStateChanged: Page already changed, skipping redirect');
+                }
               }
             }
           } catch (error) {

@@ -373,3 +373,54 @@ export const getUserProfile = async (userId: string) => {
   return null;
 };
 
+/**
+ * Check if browser has Tracking Prevention enabled
+ * This is a best-effort detection that tests storage availability
+ */
+export const checkTrackingPreventionStatus = async (): Promise<{
+  blocked: boolean;
+  reason?: string;
+}> => {
+  if (typeof window === 'undefined') {
+    return { blocked: false };
+  }
+
+  try {
+    // Test localStorage
+    const testKey = '__firebase_test_' + Date.now();
+    localStorage.setItem(testKey, 'test');
+    localStorage.removeItem(testKey);
+    
+    // Test IndexedDB
+    const dbTest = indexedDB.open('__test_db__');
+    await new Promise((resolve, reject) => {
+      dbTest.onsuccess = resolve;
+      dbTest.onerror = reject;
+      dbTest.onblocked = reject;
+      setTimeout(reject, 1000); // Timeout after 1s
+    });
+    
+    // If we got here, storage is available
+    return { blocked: false };
+  } catch (error: any) {
+    console.error('Storage test failed:', error);
+    
+    // Check for specific Tracking Prevention errors
+    const errorMessage = error?.message || error?.toString() || '';
+    const isTrackingPrevention = 
+      errorMessage.toLowerCase().includes('tracking prevention') ||
+      errorMessage.toLowerCase().includes('storage') ||
+      errorMessage.toLowerCase().includes('blocked') ||
+      errorMessage.toLowerCase().includes('quotaexceedederror') ||
+      error?.name === 'QuotaExceededError' ||
+      error?.name === 'SecurityError';
+    
+    return {
+      blocked: true,
+      reason: isTrackingPrevention
+        ? 'Tracking Prevention detectado bloqueando storage'
+        : 'Storage não disponível: ' + errorMessage
+    };
+  }
+};
+

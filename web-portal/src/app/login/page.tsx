@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NessLogo } from '@/components/ness-logo'
-import { Loader2 } from 'lucide-react'
+import { Loader2, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
+import { checkTrackingPreventionStatus } from '@/lib/firebase-auth'
 
 export default function LoginPage() {
   const { login, loginWithGoogle, loading, user, role, isAuthenticated } = useAuth()
@@ -18,39 +19,62 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [trackingPreventionWarning, setTrackingPreventionWarning] = useState('')
+
+  // Check for Tracking Prevention on mount
+  useEffect(() => {
+    const checkStorage = async () => {
+      const status = await checkTrackingPreventionStatus();
+      if (status.blocked) {
+        console.warn('⚠️ Tracking Prevention detected:', status.reason);
+        setTrackingPreventionWarning(
+          'Seu navegador está bloqueando o armazenamento necessário para login. ' +
+          'Por favor, desative a "Prevenção de Rastreamento" para este site.'
+        );
+      }
+    };
+    
+    checkStorage();
+  }, []);
 
   // Redirect authenticated users away from login page
   useEffect(() => {
-    console.log('LoginPage useEffect: Auth state', { loading, isAuthenticated, hasUser: !!user, role, path: typeof window !== 'undefined' ? window.location.pathname : 'N/A' });
+    console.log('LoginPage useEffect: Auth state', { 
+      loading, 
+      isAuthenticated, 
+      hasUser: !!user, 
+      role, 
+      path: typeof window !== 'undefined' ? window.location.pathname : 'N/A' 
+    });
     
-    if (!loading && isAuthenticated && user) {
+    // Only redirect if:
+    // 1. Not loading anymore
+    // 2. User is authenticated
+    // 3. Role has been determined (not null) - IMPORTANT!
+    if (!loading && isAuthenticated && user && role !== null) {
       // Use role if available, otherwise default to dashboard
       const targetPath = (role === 'admin' || role === 'super_admin') ? '/admin/overview' : '/dashboard'
-      console.log('LoginPage: User authenticated, redirecting to:', targetPath, { user: user.uid, role, currentPath: typeof window !== 'undefined' ? window.location.pathname : 'N/A' })
-      
-      // Wait a bit to ensure auth state is fully set
-      const redirectWithDelay = async () => {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Immediate redirect
-        router.push(targetPath)
-        
-      // Force redirect if router.push doesn't work (multiple attempts with longer delays)
-      const redirectAttempts = [500, 1000, 2000, 3000, 4000]
-      redirectAttempts.forEach((delay) => {
-        setTimeout(() => {
-          if (typeof window !== 'undefined' && 
-              (window.location.pathname === '/login' || 
-               window.location.pathname === '/login/' || 
-               window.location.pathname === '/')) {
-            console.log(`LoginPage: Router.push failed, forcing redirect after ${delay}ms to`, targetPath)
-            window.location.href = targetPath
-          }
-        }, delay)
+      console.log('LoginPage: User authenticated with role, redirecting to:', targetPath, { 
+        user: user.uid, 
+        role, 
+        currentPath: typeof window !== 'undefined' ? window.location.pathname : 'N/A' 
       })
-      };
       
-      redirectWithDelay();
+      // Small delay to ensure state is fully updated
+      setTimeout(() => {
+        if (window.location.pathname === '/login' || window.location.pathname === '/login/') {
+          console.log('LoginPage: Executing redirect to', targetPath);
+          router.push(targetPath);
+        }
+      }, 300);
+    } else {
+      console.log('LoginPage: Not redirecting yet', {
+        loading,
+        isAuthenticated,
+        hasUser: !!user,
+        hasRole: role !== null,
+        role
+      });
     }
   }, [loading, isAuthenticated, user, role, router])
 
@@ -199,6 +223,44 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Tracking Prevention Warning - Show proactively */}
+            {trackingPreventionWarning && (
+              <div className="mb-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm">
+                <div className="flex items-start gap-2 mb-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-semibold text-amber-900 dark:text-amber-300 mb-1">
+                      ⚠️ Bloqueio de Armazenamento Detectado
+                    </div>
+                    <div className="text-amber-800 dark:text-amber-200 mb-3">
+                      {trackingPreventionWarning}
+                    </div>
+                    <div className="text-xs font-medium text-amber-900 dark:text-amber-300 mb-2">
+                      💡 Como resolver no Microsoft Edge:
+                    </div>
+                    <ol className="text-xs list-decimal list-inside space-y-1.5 text-amber-800/90 dark:text-amber-200/90 ml-1">
+                      <li className="font-medium">
+                        Método Rápido (Recomendado):
+                        <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5 font-normal">
+                          <li>Clique no ícone de <strong>cadeado 🔒</strong> ao lado do endereço</li>
+                          <li>Em "Prevenção de rastreamento", escolha <strong>"Desativada"</strong></li>
+                          <li>Recarregue a página</li>
+                        </ul>
+                      </li>
+                      <li className="font-medium">
+                        Método Alternativo:
+                        <ul className="list-disc list-inside ml-4 mt-1 space-y-0.5 font-normal">
+                          <li>Menu Edge → Configurações → Privacidade</li>
+                          <li>Em "Prevenção de rastreamento", selecione <strong>"Básico"</strong></li>
+                          <li>Recarregue a página</li>
+                        </ul>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {error && (
               <div className="mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-600 dark:text-red-400">
                 <div className="font-medium mb-2">⚠️ Erro ao fazer login</div>
