@@ -134,15 +134,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (isPublicPage && currentPath !== '/privacy' && currentPath !== '/terms') {
               const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
               
-              // Use router.push first
+              console.log('onAuthStateChanged: Auth state changed - redirecting from', currentPath, 'to', targetPath, { role: finalRole });
+              
+              // Immediate redirect
               router.push(targetPath);
               
-              // Fallback: force navigation if router.push doesn't work after redirect
-              setTimeout(() => {
-                if (window.location.pathname === currentPath || window.location.pathname === '/') {
-                  window.location.href = targetPath;
-                }
-              }, 500);
+              // Force redirect if router.push doesn't work (multiple attempts)
+              const redirectAttempts = [500, 1000, 2000];
+              redirectAttempts.forEach((delay) => {
+                setTimeout(() => {
+                  const stillOnPublicPage = window.location.pathname === currentPath || 
+                                           window.location.pathname === '/' || 
+                                           window.location.pathname === '/login';
+                  if (stillOnPublicPage) {
+                    console.log(`onAuthStateChanged: Router.push failed, forcing redirect after ${delay}ms to`, targetPath);
+                    window.location.href = targetPath;
+                  }
+                }, delay);
+              });
             }
           }
         } catch (error) {
@@ -190,16 +199,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       const targetPath = userRole === 'admin' || userRole === 'super_admin' ? '/admin/overview' : '/dashboard';
-      console.log('Login successful, redirecting to:', targetPath);
+      console.log('handleLogin: Login successful, redirecting to:', targetPath, { userRole });
       
+      // Immediate redirect
       router.push(targetPath);
       
-      // Force redirect if router.push doesn't work
-      setTimeout(() => {
-        if (typeof window !== 'undefined' && window.location.pathname === '/login') {
-          window.location.href = targetPath;
-        }
-      }, 500);
+      // Force redirect if router.push doesn't work (multiple attempts)
+      const redirectAttempts = [300, 800, 1500];
+      redirectAttempts.forEach((delay) => {
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/')) {
+            console.log(`handleLogin: Router.push failed, forcing redirect after ${delay}ms`);
+            window.location.href = targetPath;
+          }
+        }, delay);
+      });
     } catch (error: any) {
       // Extract meaningful error message
       let errorMessage = 'Erro ao fazer login';
