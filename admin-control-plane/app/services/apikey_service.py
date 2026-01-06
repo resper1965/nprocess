@@ -46,6 +46,7 @@ class APIKeyService:
             "status": APIKeyStatus.ACTIVE,
             "quotas": data.get("quotas").dict() if data.get("quotas") else APIKeyQuotas().dict(),
             "permissions": data.get("permissions", []),
+            "allowed_standards": data.get("allowed_standards"),
             "created_at": datetime.utcnow(),
             "created_by": user_id,
             "expires_at": data.get("expires_at"),
@@ -136,7 +137,21 @@ class APIKeyService:
         # For MVP: just valid check
         
         return {
-            "valid": True, 
+            "valid": True,
             "key_data": found_doc,
             "message": "Valid"
         }
+
+    async def update_key(self, key_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update API key fields"""
+        doc_ref = self.collection.document(key_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return None
+
+        updates["updated_at"] = datetime.utcnow()
+        doc_ref.update(updates)
+
+        updated_doc = doc_ref.get()
+        return updated_doc.to_dict()

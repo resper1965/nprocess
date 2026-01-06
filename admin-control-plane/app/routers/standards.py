@@ -128,7 +128,7 @@ async def list_marketplace_standards(
         )
     ]
 
-    return standards
+    return {"standards": standards}
 
 
 @router.get("/marketplace/{standard_id}", response_model=StandardMarketplaceInfo)
@@ -211,7 +211,7 @@ async def list_custom_standards(
     for standard_data in custom_standards_db[client_id].values():
         standards.append(StandardCustomInfo(**standard_data))
 
-    return standards
+    return {"standards": standards}
 
 
 @router.get("/custom/{standard_id}", response_model=StandardCustomInfo)
