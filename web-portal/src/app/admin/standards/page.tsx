@@ -251,14 +251,14 @@ export default function StandardsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { icon: Clock, variant: 'secondary' as const, label: 'Pendente' },
-      processing: { icon: RefreshCw, variant: 'default' as const, label: 'Processando', animate: true },
-      completed: { icon: CheckCircle2, variant: 'default' as const, label: 'Completo', color: 'text-green-600' },
-      failed: { icon: XCircle, variant: 'destructive' as const, label: 'Falhou' },
+    const statusConfig: Record<string, { icon: any; variant: 'default' | 'secondary' | 'destructive'; label: string; animate?: boolean; color?: string }> = {
+      pending: { icon: Clock, variant: 'secondary', label: 'Pendente' },
+      processing: { icon: RefreshCw, variant: 'default', label: 'Processando', animate: true },
+      completed: { icon: CheckCircle2, variant: 'default', label: 'Completo', color: 'text-green-600' },
+      failed: { icon: XCircle, variant: 'destructive', label: 'Falhou' },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
 
     return (

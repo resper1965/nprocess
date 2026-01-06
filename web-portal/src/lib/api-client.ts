@@ -1,3 +1,5 @@
+import axios, { AxiosInstance } from 'axios';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface AllowedStandards {
@@ -119,3 +121,26 @@ export async function revokeAPIKey(keyId: string): Promise<APIResponse<void>> {
     return { error: error instanceof Error ? error.message : 'Failed to revoke API key' };
   }
 }
+
+// Admin API client for hooks that need axios-like interface
+const createAdminApi = (): AxiosInstance => {
+  const instance = axios.create({
+    baseURL: API_URL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  // Add auth token to requests
+  instance.interceptors.request.use((config) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  return instance;
+};
+
+export const adminApi = createAdminApi();
