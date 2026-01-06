@@ -131,6 +131,11 @@ export const loginWithGoogle = async (): Promise<void> => {
     provider.addScope('email');
     provider.addScope('profile');
     
+    // Store the current URL to redirect back after Google auth
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('auth_redirect_url', window.location.pathname);
+    }
+    
     // Use redirect instead of popup to avoid third-party cookie issues
     await signInWithRedirect(auth, provider);
     // Note: signInWithRedirect doesn't return a credential

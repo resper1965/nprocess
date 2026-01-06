@@ -47,10 +47,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkRedirectResult = async () => {
       try {
         const result = await handleGoogleRedirect();
-        if (result) {
+        if (result && result.user) {
           // User successfully signed in via redirect
-          // The onAuthStateChanged will handle the rest
-          console.log('Google login redirect successful');
+          console.log('Google login redirect successful', result.user.uid);
+          
+          // Get role to determine redirect path
+          try {
+            const tokenResult = await getIdTokenResult(result.user);
+            let userRole = (tokenResult.claims.role as string) || 'user';
+            
+            // Check Firestore if no custom claim
+            if (!userRole || userRole === 'user') {
+              try {
+                const userProfile = await getUserProfile(result.user.uid);
+                if (userProfile && userProfile.role) {
+                  userRole = userProfile.role;
+                }
+              } catch (fsError) {
+                console.error("Error fetching user profile:", fsError);
+              }
+            }
+            
+            const finalRole = userRole || 'user';
+            const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+            
+            // Redirect immediately after successful Google login
+            if (typeof window !== 'undefined') {
+              // Clear any stored redirect URL
+              sessionStorage.removeItem('auth_redirect_url');
+              
+              // Redirect to appropriate dashboard
+              router.push(targetPath);
+              
+              // Fallback redirect
+              setTimeout(() => {
+                if (window.location.pathname === '/' || window.location.pathname === '/login') {
+                  window.location.href = targetPath;
+                }
+              }, 300);
+            }
+          } catch (roleError) {
+            console.error('Error getting user role:', roleError);
+            // Still redirect to dashboard even if role fetch fails
+            router.push('/dashboard');
+          }
         }
       } catch (error) {
         console.error('Error handling Google redirect:', error);
@@ -84,19 +124,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const finalRole = userRole || 'user';
           setRole(finalRole);
           
-          // If we're on login page and user just logged in, redirect to dashboard
+          // Redirect authenticated users away from public pages
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            if (currentPath === '/login' || currentPath === '/register') {
-               const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin' : '/dashboard';
-              // Use both router.push and window.location for reliability
+            const publicPages = ['/login', '/register', '/', '/privacy', '/terms'];
+            const isPublicPage = publicPages.includes(currentPath);
+            
+            // If user is authenticated and on a public page (except legal pages), redirect
+            if (isPublicPage && currentPath !== '/privacy' && currentPath !== '/terms') {
+              const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+              
+              // Use router.push first
               router.push(targetPath);
-              // Fallback: force navigation if router.push doesn't work
+              
+              // Fallback: force navigation if router.push doesn't work after redirect
               setTimeout(() => {
-                if (window.location.pathname === currentPath) {
+                if (window.location.pathname === currentPath || window.location.pathname === '/') {
                   window.location.href = targetPath;
                 }
-              }, 100);
+              }, 500);
             }
           }
         } catch (error) {
