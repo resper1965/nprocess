@@ -226,7 +226,8 @@ async def create_custom_standard(
         }
 
         # Save to Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc_ref.set(standard_data)
 
         logger.info(
@@ -279,7 +280,8 @@ async def get_custom_standard(
         client_id = current_user.get("client_id", "client_default")
 
         # Fetch from Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc = doc_ref.get()
 
         if not doc.exists:
@@ -308,7 +310,8 @@ async def update_custom_standard(
         client_id = current_user.get("client_id", "client_default")
 
         # Fetch from Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc = doc_ref.get()
 
         if not doc.exists:
@@ -366,7 +369,8 @@ async def delete_custom_standard(
         client_id = current_user.get("client_id", "client_default")
 
         # Delete from Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc = doc_ref.get()
 
         if not doc.exists:
@@ -375,7 +379,8 @@ async def delete_custom_standard(
         doc_ref.delete()
 
         # Delete associated chunks
-        chunks_ref = db.db.collection("client_standards").document(client_id).collection(standard_id).collection("chunks")
+        db = get_firestore()
+        chunks_ref = db.collection("client_standards").document(client_id).collection(standard_id).collection("chunks")
         for chunk_doc in chunks_ref.stream():
             chunk_doc.reference.delete()
 
@@ -411,7 +416,8 @@ async def ingest_custom_standard(
         client_id = current_user.get("client_id", "client_default")
 
         # Fetch standard from Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc = doc_ref.get()
 
         if not doc.exists:
@@ -538,7 +544,8 @@ async def get_ingestion_status(
         client_id = current_user.get("client_id", "client_default")
 
         # Fetch from Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc = doc_ref.get()
 
         if not doc.exists:
@@ -654,7 +661,8 @@ async def upload_custom_standard_file(
         }
 
         # Save to Firestore
-        doc_ref = db.db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
+        db = get_firestore()
+        doc_ref = db.collection("client_standards").document(client_id).collection("standards").document(standard_id)
         doc_ref.set(standard_data)
 
         logger.info(
