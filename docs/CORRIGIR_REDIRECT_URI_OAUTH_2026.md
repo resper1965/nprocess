@@ -28,9 +28,16 @@ redirect_uri=https://nprocess-8e801.firebaseapp.com/__/auth/handler
 
 ### 2. Localizar OAuth 2.0 Client ID
 
-1. Procure pelo OAuth 2.0 Client ID usado pelo Firebase
-2. O ID do cliente deve ser: `905989981186-vpbehck2l1se9kn2jtco9om2ni1ogfq0.apps.googleusercontent.com`
-3. Clique no nome do Client ID para editar
+1. **Link direto para editar o Client ID:**
+   https://console.cloud.google.com/auth/clients/43006907338-ltuf3rpii9sgku5240jsr0096hd86lsu.apps.googleusercontent.com?project=nprocess-8e801
+
+2. **Client ID correto:**
+   `43006907338-ltuf3rpii9sgku5240jsr0096hd86lsu.apps.googleusercontent.com`
+
+3. Se preferir navegar manualmente:
+   - Acesse: https://console.cloud.google.com/apis/credentials?project=nprocess-8e801
+   - Procure pelo Client ID acima
+   - Clique no nome do Client ID para editar
 
 ### 3. Adicionar URIs de Redirecionamento
 
