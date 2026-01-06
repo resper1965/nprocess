@@ -165,8 +165,22 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-600 dark:text-red-400">
-                {error}
+              <div className="mb-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-600 dark:text-red-400">
+                <div className="font-medium mb-2">⚠️ Erro ao fazer login</div>
+                <div className="mb-2">{error}</div>
+                {(error.toLowerCase().includes('tracking prevention') || 
+                  (error.toLowerCase().includes('storage') && error.toLowerCase().includes('blocked')) ||
+                  error.toLowerCase().includes('rastreamento')) ? (
+                  <div className="mt-3 pt-3 border-t border-red-500/20">
+                    <div className="text-xs font-medium mb-2">💡 Soluções:</div>
+                    <ul className="text-xs list-disc list-inside space-y-1 text-red-500/80 dark:text-red-400/80">
+                      <li>Desative a "Prevenção de Rastreamento" nas configurações do navegador</li>
+                      <li>Use outro navegador (Chrome ou Firefox recomendados)</li>
+                      <li>Permita cookies de terceiros para este site</li>
+                      <li>Se estiver no Safari: Configurações → Privacidade → desative "Prevenir rastreamento entre sites"</li>
+                    </ul>
+                  </div>
+                ) : null}
               </div>
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
