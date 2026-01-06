@@ -4,672 +4,387 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-12.7-orange.svg)](https://firebase.google.com/)
 
-**Multi-tenant SaaS platform for intelligent compliance management** powered by Google Cloud Vertex AI and Gemini.
+**Plataforma SaaS para gestão inteligente de compliance** powered by Google Cloud Vertex AI e Gemini.
 
-## 🎯 Overview
+> 🎯 **Status**: Produção  
+> 📅 **Última Atualização**: 06/01/2026  
+> 🔗 **Deploy**: [nprocess-8e801-4711d.web.app](https://nprocess-8e801-4711d.web.app)
 
-n.process is an API-first platform that enables organizations to:
+---
 
-- **Map business processes** into structured BPMN diagrams using AI
-- **Analyze compliance** with regulatory frameworks (ANEEL, ONS, LGPD, GDPR, etc.)
-- **Track compliance scores** in real-time
-- **Manage API keys** and monitor usage
-- **Control costs** with FinOps capabilities
+## 🎯 O Que é n.process?
 
-## 🏗️ Architecture
+n.process é uma plataforma API-first que permite organizações:
 
-### System Overview
+- ✅ **Mapear processos** de negócio em diagramas BPMN estruturados usando IA
+- ✅ **Analisar compliance** com frameworks regulatórios (LGPD, ISO27001, GDPR, etc.)
+- ✅ **Rastrear scores** de conformidade em tempo real
+- ✅ **Gerenciar API keys** e monitorar uso
+- ✅ **Controlar custos** com capacidades FinOps
 
-```mermaid
-graph TB
-    subgraph "Client Layer"
-        A[Admin Dashboard<br/>Next.js 16]
-        B[Client Portal<br/>Next.js]
-        C[External Apps<br/>API Consumers]
-        D[MCP Clients<br/>Cursor/Claude/Antigravity]
-    end
+---
 
-    subgraph "API Layer"
-        E[n.process API<br/>FastAPI - Core]
-        F[Admin Control Plane<br/>Python API]
-        G[Regulatory RAG API<br/>FastAPI]
-        H[Document Generator Engine<br/>FastAPI]
-    end
+## 🏗️ Arquitetura
 
-    subgraph "MCP Layer"
-        I[MCP Gateway<br/>HTTP Gateway]
-        J[n.process MCP<br/>STDIO Server]
-        K[Regulatory RAG MCP<br/>STDIO Server]
-        L[Document Generator MCP<br/>STDIO Server]
-        M[Regulatory Crawler MCP<br/>STDIO Server]
-    end
+### Stack Tecnológico
 
-    subgraph "Data & AI Layer"
-        N[(Firestore<br/>NoSQL Database)]
-        O[(PostgreSQL<br/>Relational DB)]
-        P[(Redis<br/>Cache)]
-        Q[Vertex AI Gemini<br/>AI Services]
-        R[Vertex AI Search<br/>RAG Engine]
-        S[Cloud Storage<br/>Backups]
-    end
+**Frontend** (web-portal)
 
-    A --> E
-    A --> F
-    B --> F
-    B --> G
-    C --> E
-    D --> I
+- Next.js 16.1.1 (App Router) + React 19
+- TypeScript 5.6
+- Firebase Auth 12.7 (Email + Google OAuth)
+- Radix UI + TailwindCSS
+- Zustand (estado global)
+- TanStack React Query
 
-    I --> J
-    I --> K
-    I --> L
-    I --> M
+**Backend** (Core API)
 
-    J --> E
-    K --> G
-    L --> H
-    M --> G
-
-    E --> N
-    E --> Q
-    E --> P
-    F --> O
-    F --> P
-    G --> R
-    G --> P
-    E --> S
-```
-
-### Request Flow
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as n.process API
-    participant Auth as Auth Middleware
-    participant RateLimit as Rate Limiter
-    participant Service as Business Service
-    participant AI as Vertex AI
-    participant DB as Firestore
-    participant Cache as Redis
-
-    Client->>API: HTTP Request
-    API->>Auth: Validate API Key
-    Auth->>Cache: Check API Key
-    Cache-->>Auth: API Key Valid
-    Auth->>RateLimit: Check Rate Limit
-    RateLimit->>Cache: Get Rate Limit
-    Cache-->>RateLimit: Current Count
-    RateLimit-->>API: Allowed
-
-    API->>Service: Process Request
-    Service->>Cache: Check Cache
-    alt Cache Hit
-        Cache-->>Service: Cached Data
-    else Cache Miss
-        Service->>DB: Query Data
-        DB-->>Service: Data
-        Service->>AI: AI Processing (if needed)
-        AI-->>Service: AI Response
-        Service->>Cache: Store in Cache
-    end
-
-    Service-->>API: Response
-    API-->>Client: HTTP Response
-```
-
-### Services Architecture
-
-```mermaid
-graph LR
-    subgraph "Core Services"
-        A[n.process API<br/>Port: 8080<br/>FastAPI]
-        B[Admin Control Plane<br/>Port: 8008<br/>Python API]
-        C[Regulatory RAG API<br/>Port: 8000<br/>FastAPI]
-        D[Document Generator<br/>Port: 8001<br/>FastAPI]
-    end
-
-    subgraph "Frontend Services"
-        E[Web Portal<br/>Port: 3000<br/>Next.js]
-    end
-
-    subgraph "MCP Services"
-        G[MCP Gateway<br/>HTTP Gateway]
-        H[n.process MCP<br/>STDIO]
-        I[Regulatory RAG MCP<br/>STDIO]
-        J[Document Generator MCP<br/>STDIO]
-        K[Regulatory Crawler MCP<br/>STDIO]
-    end
-
-    subgraph "Infrastructure"
-        L[(PostgreSQL<br/>Port: 5432)]
-        M[(Redis<br/>Port: 6379)]
-        N[(Firestore<br/>GCP)]
-        O[Cloud Storage<br/>GCP]
-    end
-
-    E --> A
-    E --> B
-    F --> B
-    F --> C
-    G --> H
-    G --> I
-    G --> J
-    G --> K
-    H --> A
-    I --> C
-    J --> D
-    K --> C
-
-    A --> N
-    A --> M
-    B --> L
-    B --> M
-    C --> M
-    A --> O
-```
-
-### MCP Integration Flow
-
-```mermaid
-flowchart TD
-    A[AI Development Tool<br/>Cursor/Claude/Antigravity] -->|MCP Protocol| B[MCP Gateway<br/>HTTP Server]
-
-    B -->|Route Request| C{Service Type}
-
-    C -->|Compliance| D[n.process MCP<br/>Server]
-    C -->|Regulatory| E[Regulatory RAG MCP<br/>Server]
-    C -->|Document| F[Document Generator MCP<br/>Server]
-    C -->|Crawler| G[Regulatory Crawler MCP<br/>Server]
-
-    D -->|HTTP/REST| H[n.process API]
-    E -->|HTTP/REST| I[Regulatory RAG API]
-    F -->|HTTP/REST| J[Document Generator API]
-    G -->|HTTP/REST| I
-
-    H -->|Process| K[(Firestore)]
-    H -->|AI| L[Vertex AI Gemini]
-    I -->|Search| M[Vertex AI Search]
-    I -->|Cache| N[(Redis)]
-    J -->|Generate| O[Document Templates]
-
-    K -->|Data| H
-    L -->|AI Response| H
-    M -->|RAG Results| I
-    N -->|Cache| I
-```
-
-### Data Flow
-
-```mermaid
-flowchart LR
-    subgraph "Input"
-        A[Process Description<br/>Text/BPMN]
-        B[Regulatory Query]
-        C[API Request]
-    end
-
-    subgraph "Processing"
-        D[AI Service<br/>Gemini 1.5 Pro]
-        E[Compliance Analyzer]
-        F[RAG Engine<br/>Vertex AI Search]
-        G[Document Generator]
-    end
-
-    subgraph "Storage"
-        H[(Firestore<br/>Processes)]
-        I[(PostgreSQL<br/>Metadata)]
-        J[(Redis<br/>Cache)]
-        K[(Cloud Storage<br/>Backups)]
-    end
-
-    subgraph "Output"
-        L[BPMN Diagram]
-        M[Compliance Report]
-        N[Regulatory Insights]
-        O[Generated Documents]
-    end
-
-    A --> D
-    A --> E
-    B --> F
-    C --> E
-
-    D --> L
-    E --> M
-    F --> N
-    G --> O
-
-    E --> H
-    E --> I
-    F --> J
-    H --> K
-    I --> K
-```
-
-## 📦 Components
-
-### 1. n.process API (`app/`)
-
-**Core REST API for compliance management**
-
-```mermaid
-graph TB
-    subgraph "n.process API"
-        A[FastAPI Application]
-        B[API Routers]
-        C[Business Services]
-        D[Middleware]
-    end
-
-    subgraph "Features"
-        E[Process Management]
-        F[Compliance Analysis]
-        G[Diagram Generation]
-        H[Versioning]
-        I[Webhooks]
-        J[API Key Auth]
-    end
-
-    subgraph "Integrations"
-        K[Firestore]
-        L[Vertex AI]
-        M[Redis Cache]
-        N[Cloud Storage]
-    end
-
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    D --> F
-    D --> G
-    D --> H
-    D --> I
-    D --> J
-
-    E --> K
-    F --> L
-    G --> L
-    C --> M
-    H --> N
-```
-
-**Features:**
-
-- ✅ FastAPI REST API
-- ✅ Firestore for data persistence
-- ✅ Vertex AI Gemini for AI features
-- ✅ Rate limiting and monitoring
-- ✅ API Key authentication
-- ✅ Process versioning
-- ✅ Webhook notifications
-- ✅ Real-time compliance scoring
-
-### 2. Admin Dashboard (`admin-dashboard/`)
-
-**Human interface for platform management**
-
-```mermaid
-graph LR
-    subgraph "Admin Dashboard"
-        A[Next.js 16 App]
-        B[NextAuth.js]
-        C[shadcn/ui Components]
-        D[API Client]
-    end
-
-    subgraph "Pages"
-        E[Dashboard]
-        F[API Keys]
-        G[FinOps]
-        H[Services]
-        I[Analytics]
-    end
-
-    subgraph "Backend"
-        J[n.process API]
-        K[Admin Control Plane]
-    end
-
-    A --> B
-    A --> C
-    A --> D
-    D --> E
-    D --> F
-    D --> G
-    D --> H
-    D --> I
-
-    D --> J
-    D --> K
-```
-
-**Features:**
-
-- ✅ Next.js 16 with TypeScript
-- ✅ NextAuth.js for authentication
-- ✅ shadcn/ui components
-- ✅ API Key management
-- ✅ Cost tracking (FinOps)
-- ✅ Service monitoring
-- ✅ Analytics dashboard
-
-### 3. MCP Servers (`mcp-servers/`)
-
-**Model Context Protocol servers for AI tool integration**
-
-```mermaid
-graph TB
-    subgraph "MCP Gateway"
-        A[HTTP Gateway Server]
-        B[Request Router]
-        C[Auth Validator]
-    end
-
-    subgraph "MCP Servers"
-        D[n.process MCP<br/>STDIO Server]
-        E[Regulatory RAG MCP<br/>STDIO Server]
-        F[Document Generator MCP<br/>STDIO Server]
-        G[Regulatory Crawler MCP<br/>STDIO Server]
-    end
-
-    subgraph "Backend APIs"
-        H[n.process API]
-        I[Regulatory RAG API]
-        J[Document Generator API]
-    end
-
-    A --> B
-    B --> C
-    C --> D
-    C --> E
-    C --> F
-    C --> G
-
-    D --> H
-    E --> I
-    F --> J
-    G --> I
-```
-
-**Available MCP Servers:**
-
-- ✅ **n.process MCP** - Core compliance operations
-- ✅ **Regulatory RAG MCP** - Regulatory intelligence search
-- ✅ **Document Generator MCP** - BPMN to Mermaid conversion
-- ✅ **Regulatory Crawler MCP** - Automated regulation crawling
-- ✅ **MCP Gateway** - HTTP gateway for MCP servers
-
-### 4. Additional Services
-
-#### Admin Control Plane (`admin-control-plane/`)
-
-```mermaid
-graph LR
-    A[Admin Control Plane<br/>Python API] --> B[PostgreSQL]
-    A --> C[Redis]
-    A --> D[JWT Auth]
-    A --> E[API Key Encryption]
-
-    F[Admin Dashboard] --> A
-    G[Client Portal] --> A
-```
-
-**Features:**
-
-- ✅ Admin API for platform management
-- ✅ PostgreSQL for relational data
-- ✅ JWT authentication
-- ✅ API key encryption
-
-#### Client Portal (`client-portal/`)
-
-```mermaid
-graph LR
-    A[Client Portal<br/>Next.js] --> B[Admin Control Plane]
-    A --> C[Regulatory RAG API]
-
-    D[End Users] --> A
-```
-
-**Features:**
-
-- ✅ Client-facing interface
-- ✅ Process visualization
-- ✅ Compliance reports
-- ✅ Self-service API key management
-
-#### Regulatory RAG API (`regulatory-rag-api/`)
-
-```mermaid
-graph TB
-    A[Regulatory RAG API] --> B[Vertex AI Search]
-    A --> C[Redis Cache]
-    A --> D[PostgreSQL]
-
-    E[Regulatory Queries] --> A
-    A --> F[Regulatory Insights]
-```
-
-**Features:**
-
-- ✅ Semantic search with Vertex AI Search
-- ✅ Intelligent caching with Redis
-- ✅ Quality scoring (relevância + recency)
-- ✅ Domain-specific filtering
-- ✅ Multiple regulatory frameworks (ANEEL, ONS, LGPD, GDPR, etc.)
-
-#### Document Generator Engine (`document-generator-engine/`)
-
-```mermaid
-graph LR
-    A[Document Generator] --> B[BPMN Parser]
-    A --> C[Mermaid Converter]
-    A --> D[Template Engine]
-
-    E[BPMN XML] --> A
-    A --> F[Mermaid Diagrams]
-    A --> G[Document Templates]
-```
-
-**Features:**
-
-- ✅ BPMN to Mermaid conversion
-- ✅ Document template generation
-- ✅ Process documentation automation
-
-## 🚀 Quick Start
-
-### Prerequisites
-
+- FastAPI 0.115 + Uvicorn
 - Python 3.11+
-- Node.js 20+
-- Google Cloud Project with billing enabled
-- Docker & Docker Compose (for local development)
+- Google Cloud Firestore
+- Vertex AI (Gemini 1.5 Pro)
+- Vertex AI Search (RAG)
+- Firebase Admin SDK
 
-### Local Development
+**Infraestrutura**
 
-```bash
-# 1. Clone repository
-git clone https://github.com/resper1965/nprocess.git
-cd nprocess
+- Firebase Hosting (Frontend)
+- Cloud Run (APIs)
+- Firestore (Database)
+- Redis (Cache - opcional)
 
-# 2. Copy environment variables
-cp .env.example .env
-
-# 3. Configure .env with your credentials
-# - GOOGLE_CLOUD_PROJECT=nprocess
-# - GCP_PROJECT_ID=nprocess
-# - Add Vertex AI credentials if using AI features
-
-# 4. Install dependencies
-make install
-# or
-pip install -r requirements.txt
-
-# 5. Run locally
-uvicorn app.main:app --reload --port 8080
-
-# 6. Access API
-# - API: http://localhost:8080
-# - Docs: http://localhost:8080/docs
-```
-
-### Docker Development
-
-```bash
-# Start all services (including API Gateway)
-make docker-up
-# or
-docker-compose up -d
-
-# View logs
-make docker-logs
-# or
-docker-compose logs -f
-
-# Stop services
-make docker-down
-# or
-docker-compose down
-```
-
-### 🚪 API Gateway (Unified Entry Point)
-
-All APIs are accessible via a single endpoint through the NGINX gateway:
-
-```bash
-# Gateway URL (Development)
-http://localhost:80
-
-# Routes:
-# - /v1/modeling/*    -> Core API (BPMN generation)
-# - /v1/compliance/*  -> Core API (Compliance analysis)
-# - /v1/admin/*       -> Admin API (Users, API Keys, FinOps)
-# - /v1/auth/*        -> Admin API (Authentication)
-# - /health           -> Unified health check
-# - /docs             -> OpenAPI Documentation
-```
-
-## 📚 Documentation
-
-- **[Quick Start Guide](docs/manuals/QUICK_START.md)** - Get started quickly
-- **[Integration Guide](docs/manuals/INTEGRATION.md)** - Integrate the API
-- **[Architecture](docs/architecture/ARCHITECTURE.md)** - System architecture
-- **[API Documentation](https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs)** - Interactive API docs
-- **[Security](docs/security/SECURITY.md)** - Security practices
-- **[Deployment](docs/deployment/DEPLOY_STATUS.md)** - Deployment guide
-
-## 🔐 Authentication
-
-### API Authentication
-
-- **API Key** in header: `X-API-Key: <your-key>` or `Authorization: Bearer <your-key>`
-- Create keys via Admin Dashboard or `/v1/my/api-keys` endpoint
-
-### Admin Dashboard
-
-- **URL**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
-- **Credentials**: `admin@company.com` / `admin123`
-
-## 🌐 Production URLs
-
-- **API**: https://compliance-engine-5wqihg7s7a-uc.a.run.app
-- **API Docs**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
-- **Admin Dashboard**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
-
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-# Run all tests
-make test
-
-# Run with coverage
-pytest tests/ -v --cov=app --cov-report=html
-
-# Run specific test
-pytest tests/test_api.py::test_endpoint -v
-```
-
-### Frontend Tests
-
-```bash
-# Run E2E tests
-cd web-portal
-npm run test:e2e
-
-# Run E2E tests with UI
-npm run test:e2e:ui
-
-# Run E2E tests in headed mode
-npm run test:e2e:headed
-
-# Run linting
-npm run lint
-
-# Run type checking
-npm run type-check
-```
-
-## 🔧 Development
-
-```bash
-# Format code
-make format
-
-# Lint code
-make lint
-
-# Run security scans
-make security-scan
-
-# Clean build artifacts
-make clean
-```
-
-## 📋 Project Structure
+### Componentes Principais
 
 ```
 nprocess/
-├── app/                    # Main FastAPI application
-│   ├── main.py            # Application entry point
-│   ├── routers/           # API endpoints
-│   ├── services/          # Business logic
-│   ├── schemas/           # Pydantic models
-│   └── middleware/       # Custom middleware
-├── web-portal/            # Unified Frontend (Admin + Client)
-├── admin-control-plane/  # Admin API
-├── mcp-servers/          # MCP protocol servers (TypeScript)
-├── regulatory-rag-api/   # RAG service
-├── docs/                 # Documentation
-├── tests/                # Test suite
-├── scripts/              # Utility scripts
-└── specs/                # Specifications
+├── app/                    # Core API (FastAPI) - Port 8080
+│   ├── routers/           # Endpoints modulares
+│   ├── services/          # Lógica de negócio
+│   └── middleware/        # Security, logging, rate limiting
+│
+├── web-portal/            # Frontend (Next.js 16) - Port 3001
+│   ├── src/app/          # App Router pages
+│   ├── src/components/   # UI components
+│   └── src/lib/          # Auth, Firebase, utils
+│
+├── admin-control-plane/   # Admin API (Python) - Port 8008
+│   └── app/              # Admin endpoints
+│
+└── mcp-servers/          # Model Context Protocol Servers
+    └── ...               # MCP integrations
 ```
 
-## 🤝 Contributing
+---
 
-See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for guidelines.
+## 📦 Endpoints da API
 
-## 📄 License
+### Core API (`app/main.py`)
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+#### Health Check
+
+```http
+GET  /              # Root health check
+GET  /health        # Detailed health check
+```
+
+#### Modelagem BPMN
+
+````http
+POST /v1/modeling/generate
+Content-Type: application/json
+
+{
+  "description": "Processo de compra de material...",
+  "context": { "domain": "procurement" }
+}
+
+#### Análise de Compliance (Stateless)
+```http
+POST /v1/compliance/analyze
+Content-Type: application/json
+
+{
+  "process_id": "proc_123",
+  "process": {
+    "name": "Processo de Aquisição",
+    "description": "...",
+    "activities": ["..."],
+    "actors": ["..."]
+  },
+  "domain": "ISO27001"
+}
+````
+
+#### Ingestion (Admin Only)
+
+```http
+POST /v1/admin/ingest
+Authorization: Bearer <firebase_token>
+
+{
+  "source_type": "legal",
+  "source": "https://...",
+  "source_id": "lgpd_br"
+}
+```
+
+---
+
+## 🚀 Quick Start
+
+### Pré-requisitos
+
+- Python 3.11+
+- Node.js 20+
+- Google Cloud Project com billing
+- Firebase Project
+
+### Instalação Local
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/resper1965/nprocess.git
+cd nprocess
+
+# 2. Configure variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas credenciais
+
+# 3. Backend - Core API
+cd /path/to/nprocess
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8080
+
+# 4. Frontend - Web Portal
+cd web-portal
+npm install
+npm run dev  # Port 3001
+```
+
+### Acesso
+
+- **API**: http://localhost:8080
+- **API Docs**: http://localhost:8080/docs
+- **Frontend**: http://localhost:3001
+
+---
+
+## 🔐 Autenticação
+
+### Firebase Auth (Frontend)
+
+**Métodos Suportados**:
+
+- ✅ Email/Password
+- ✅ Google OAuth (redirect-based)
+
+**Proteção Tracking Prevention**:
+
+- Detecção automática de bloqueio de storage
+- Fallback em cascata: IndexedDB → localStorage → sessionStorage
+- Banner visual com instruções para desabilitar Tracking Prevention
+
+### Exemplo de Uso
+
+```typescript
+import { useAuth } from "@/lib/auth-context";
+
+function LoginPage() {
+  const { login, loginWithGoogle } = useAuth();
+
+  // Login com email
+  await login({ email, password });
+
+  // Login com Google
+  await loginWithGoogle();
+}
+```
+
+---
+
+## 🌐 Produção
+
+### URLs
+
+- **Frontend**: https://nprocess-8e801-4711d.web.app
+- **Core API**: https://nprocess-api-prod-fur76izi3a-uc.a.run.app
+- **Admin API**: https://nprocess-admin-api-prod-fur76izi3a-uc.a.run.app
+
+### Deploy
+
+```bash
+# Frontend (Firebase Hosting)
+cd web-portal
+npm run build
+firebase deploy --only hosting:web-portal --project nprocess-8e801
+
+# Backend (Cloud Run)
+gcloud run deploy nprocess-api \
+  --source app/ \
+  --platform managed \
+  --region us-central1
+```
+
+---
+
+## 🧪 Testes
+
+### Frontend
+
+```bash
+cd web-portal
+
+# Testes E2E
+npm run test:e2e
+
+# Testes E2E com UI
+npm run test:e2e:ui
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+```
+
+### Backend
+
+```bash
+cd /path/to/nprocess
+
+# Testes com coverage
+pytest tests/ -v --cov=app --cov-report=html
+
+# Linting
+black app/ --check
+isort app/ --check-only
+```
+
+---
+
+## 📝 Configuração
+
+### Variáveis de Ambiente (Frontend)
+
+```bash
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=nprocess-8e801.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=nprocess-8e801
+
+# API URLs
+NEXT_PUBLIC_API_URL=https://...
+NEXT_PUBLIC_ADMIN_API_URL=https://...
+```
+
+### Variáveis de Ambiente (Backend)
+
+```bash
+# GCP
+GCP_PROJECT_ID=nprocess
+GOOGLE_APPLICATION_CREDENTIALS=/.../service-account.json
+
+# Vertex AI
+VERTEX_AI_SEARCH_LOCATION=global
+VERTEX_AI_DATA_STORE_ID=regulations-datastore
+
+# Redis (opcional)
+REDIS_URL=redis://localhost:6379/0
+```
+
+---
+
+## 🛡️ Segurança
+
+### Headers de Segurança
+
+O Core API implementa automaticamente:
+
+```
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; ...
+Referrer-Policy: strict-origin-when-cross-origin
+```
+
+### Middlewares
+
+1. **TrustedHostMiddleware** - Previne Host Header Injection
+2. **SecurityHeadersMiddleware** - Adiciona headers de segurança
+3. **RateLimitMiddleware** - Rate limiting (Redis ou in-memory)
+4. **StructuredLoggingMiddleware** - Logs estruturados
+5. **TracingMiddleware** - Distributed tracing
+6. **CORSMiddleware** - CORS configurado
+
+---
+
+## 🐛 Issues Conhecidos & Soluções
+
+### ✅ Resolvido: Tracking Prevention Blocking
+
+**Problema**: Firefox / Edge bloqueavam Firebase Auth  
+**Solução**: Implementada cascata de persistência + detecção + UI warning  
+**Status**: Deployed em produção (06/01/2026)
+
+### ✅ Resolvido: Redirect Loop Após Login
+
+**Problema**: Race condition entre useEffects  
+**Solução**: Coordenação de redirects com verificação de role  
+**Status**: Deployed em produção (06/01/2026)
+
+---
+
+## 📚 Documentação
+
+- [Constitution](CONSTITUTION.md) - Regras de arquitetura
+- [API Integration Guide](API_INTEGRATION_GUIDE.md) - Guia de integração completo
+- [Issues Report](ISSUES_REPORT.md) - Relatório de problemas conhecidos
+- [Contributing](CONTRIBUTING.md) - Como contribuir
+- [Security](SECURITY.md) - Política de segurança
+
+---
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie sua feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add: amazing feature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+Ver [CONTRIBUTING.md](CONTRIBUTING.md) para mais detalhes.
+
+---
+
+## 📄 Licença
+
+Distribuído sob a licença MIT. Ver `LICENSE` para mais informações.
+
+---
 
 ## 🔗 Links
 
-- **GitHub**: https://github.com/resper1965/nprocess
-- **API Docs**: https://compliance-engine-5wqihg7s7a-uc.a.run.app/docs
-- **Admin Dashboard**: https://compliance-engine-admin-dashboard-5wqihg7s7a-uc.a.run.app
-
-## 🆘 Support
-
+- **Repositório**: https://github.com/resper1965/nprocess
+- **Aplicação**: https://nprocess-8e801-4711d.web.app
 - **Issues**: https://github.com/resper1965/nprocess/issues
-- **Security**: security@ness.com.br
+- **Docs API**: https://nprocess-api-prod-fur76izi3a-uc.a.run.app/docs
+
+---
+
+## 🆘 Suporte
+
+- **Email**: security@ness.com.br
+- **Issues**: GitHub Issues
+- **Docs**: Ver `/docs` no repositório
 
 ---
 
 **Built with ❤️ by [ness.](https://ness.com.br)**
+
+**Última Atualização da Documentação**: 06/01/2026  
+**Baseado em**: Análise real do código (não documentação antiga)
