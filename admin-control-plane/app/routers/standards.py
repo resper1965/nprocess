@@ -20,28 +20,48 @@ from app.schemas import (
     StandardSourceType
 )
 from app.middleware.auth import get_current_user
+from app.services.firestore_repository import FirestoreRepository
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# In-memory storage for demo (use Firestore in production)
-marketplace_standards_db = {}
-custom_standards_db = {}
+# Firestore connection
+db = FirestoreRepository()
 
 
 # ============================================================================
 # Marketplace Standards (Global/Public)
 # ============================================================================
 
-@router.get("/marketplace", response_model=List[StandardMarketplaceInfo])
+@router.get("/marketplace")
 async def list_marketplace_standards(
     current_user: dict = Depends(get_current_user)
 ):
     """List all available marketplace standards"""
-    # TODO: Fetch from Firestore global_standards collection
-    # For now, return hardcoded list
-    standards = [
+    try:
+        # Fetch from Firestore global_standards collection
+        docs = db.db.collection("global_standards").stream()
+        standards = []
+
+        for doc in docs:
+            data = doc.to_dict()
+            standards.append(StandardMarketplaceInfo(
+                standard_id=doc.id,
+                name=data.get("name", ""),
+                description=data.get("description", ""),
+                category=data.get("category", ""),
+                jurisdiction=data.get("jurisdiction"),
+                version=data.get("version"),
+                total_chunks=data.get("total_chunks", 0),
+                last_updated=data.get("last_updated", datetime.utcnow()),
+                official_url=data.get("official_url"),
+                is_active=data.get("is_active", True)
+            ))
+
+        # Fallback: if empty, return hardcoded marketplace standards
+        if not standards:
+            standards = [
         StandardMarketplaceInfo(
             standard_id="lgpd_br",
             name="LGPD - Lei Geral de Proteção de Dados",
@@ -126,9 +146,13 @@ async def list_marketplace_standards(
             official_url="https://www.pcisecuritystandards.org/",
             is_active=True
         )
-    ]
+            ]
 
-    return {"standards": standards}
+        return {"standards": standards}
+
+    except Exception as e:
+        logger.error(f"Error fetching marketplace standards: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/marketplace/{standard_id}", response_model=StandardMarketplaceInfo)
@@ -197,21 +221,27 @@ async def create_custom_standard(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/custom", response_model=List[StandardCustomInfo])
+@router.get("/custom")
 async def list_custom_standards(
     current_user: dict = Depends(get_current_user)
 ):
     """List all custom standards for the current client"""
-    client_id = current_user.get("client_id", "client_default")
+    try:
+        client_id = current_user.get("client_id", "client_default")
 
-    if client_id not in custom_standards_db:
-        return []
+        # Fetch from Firestore
+        docs = db.db.collection("client_standards").document(client_id).collection("standards").stream()
 
-    standards = []
-    for standard_data in custom_standards_db[client_id].values():
-        standards.append(StandardCustomInfo(**standard_data))
+        standards = []
+        for doc in docs:
+            data = doc.to_dict()
+            standards.append(StandardCustomInfo(**data))
 
-    return {"standards": standards}
+        return {"standards": standards}
+
+    except Exception as e:
+        logger.error(f"Error fetching custom standards: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/custom/{standard_id}", response_model=StandardCustomInfo)
