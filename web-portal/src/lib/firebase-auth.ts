@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   sendPasswordResetEmail,
   sendEmailVerification,
@@ -116,45 +118,83 @@ export const registerWithEmail = async (
 };
 
 /**
- * Login with Google
+ * Login with Google using redirect (more reliable than popup)
+ * This avoids issues with third-party cookies being blocked
  */
-export const loginWithGoogle = async (): Promise<UserCredential> => {
+export const loginWithGoogle = async (): Promise<void> => {
   if (!auth) {
     throw new Error('Firebase Auth is not initialized. Please check your configuration.');
   }
-  return await handleAuthOperation(async () => {
+  
+  try {
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
+    
+    // Use redirect instead of popup to avoid third-party cookie issues
+    await signInWithRedirect(auth, provider);
+    // Note: signInWithRedirect doesn't return a credential
+    // The redirect will happen and the user will be redirected back
+    // Use handleGoogleRedirect() to process the result after redirect
+  } catch (error: any) {
+    console.error('Error initiating Google login:', error);
+    throw new Error('Erro ao iniciar login com Google. Por favor, tente novamente.');
+  }
+};
 
-    const userCredential = await signInWithPopup(auth!, provider);
-
-    // Create/update user profile in Firestore (non-blocking)
-    const db = getDb();
-    if (userCredential.user && db) {
-      // Don't await - let it run in background to avoid blocking redirect
-      setDoc(
-        doc(db, 'users', userCredential.user.uid),
-        {
-          email: userCredential.user.email,
-          name: userCredential.user.displayName || '',
-          role: 'user',
-          emailVerified: userCredential.user.emailVerified,
-          provider: 'google',
-          created_at: serverTimestamp(),
-          updated_at: serverTimestamp()
-        },
-        { merge: true }
-      ).catch((error: any) => {
-        // Log error but don't fail the login
-        console.error('Error creating user profile:', error);
-        // If it's a permission error, the user profile might already exist
-        // or the rules need to be updated
-      });
+/**
+ * Handle Google login redirect result
+ * Call this after a page load to check if user returned from Google OAuth
+ */
+export const handleGoogleRedirect = async (): Promise<UserCredential | null> => {
+  if (!auth) {
+    return null;
+  }
+  
+  try {
+    const result = await getRedirectResult(auth);
+    
+    if (result) {
+      // User successfully signed in with Google
+      const db = getDb();
+      if (result.user && db) {
+        // Create/update user profile in Firestore (non-blocking)
+        setDoc(
+          doc(db, 'users', result.user.uid),
+          {
+            email: result.user.email,
+            name: result.user.displayName || '',
+            role: 'user',
+            emailVerified: result.user.emailVerified,
+            provider: 'google',
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp()
+          },
+          { merge: true }
+        ).catch((error: any) => {
+          // Log error but don't fail the login
+          console.error('Error creating user profile:', error);
+        });
+      }
+      
+      return result;
     }
-
-    return userCredential;
-  }, 'Erro ao fazer login com Google');
+    
+    return null;
+  } catch (error: any) {
+    console.error('Error handling Google redirect:', error);
+    
+    // Provide user-friendly error messages
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      throw new Error('Login cancelado. Por favor, tente novamente.');
+    } else if (error.code === 'auth/popup-blocked') {
+      throw new Error('Popup bloqueado pelo navegador. Por favor, permita popups para este site.');
+    } else if (error.message) {
+      throw new Error(error.message);
+    } else {
+      throw new Error('Erro ao fazer login com Google. Por favor, tente novamente.');
+    }
+  }
 };
 
 /**

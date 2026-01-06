@@ -11,8 +11,8 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: 'ness. | n.process',
-  description: 'Intelligent Compliance Management Platform',
+  title: 'n.process | ness.',
+  description: 'Intelligent Compliance Management Platform - Automate compliance analysis, process mapping, and regulatory adherence with AI-powered insights.',
   icons: {
     icon: '/favicon.ico',
   },

@@ -43,9 +43,9 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <NessLogo size="xl" className="inline-block mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
-            Create your Process & Compliance Engine account
-          </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Create your n.process account
+              </p>
         </div>
 
         {/* Register Card */}
@@ -164,7 +164,7 @@ export default function RegisterPage() {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-            © 2025 ness. Process & Compliance Engine. All rights reserved.
+            © 2025 ness. n.process. All rights reserved.
           </p>
           <div className="flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
             <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>

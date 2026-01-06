@@ -53,17 +53,12 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setError('')
-      // Use loginWithGoogle from auth context which handles redirect
+      // loginWithGoogle now uses redirect instead of popup
+      // This avoids third-party cookie blocking issues
       await loginWithGoogle()
-      // If we're still here after successful login, force redirect
-      // (loginWithGoogle should handle redirect, but this is a fallback)
-      if (typeof window !== 'undefined') {
-        setTimeout(() => {
-          if (window.location.pathname === '/login') {
-            window.location.href = '/dashboard'
-          }
-        }, 200)
-      }
+      // Note: The user will be redirected to Google for authentication
+      // After authentication, they'll be redirected back to our app
+      // The redirect result will be handled automatically by the auth context
     } catch (error: any) {
       // Extract meaningful error message
       let errorMessage = t.auth.login.errors.generic
@@ -75,8 +70,13 @@ export default function LoginPage() {
       } else if (typeof error === 'string') {
         errorMessage = error
       } else if (error?.code) {
-        // Firebase error code - using generic error for Google login
-        errorMessage = t.auth.login.errors.generic
+        // Firebase error code - map to user-friendly messages
+        const errorMessages: Record<string, string> = {
+          'auth/popup-closed-by-user': 'Login cancelado. Por favor, tente novamente.',
+          'auth/popup-blocked': 'Popup bloqueado pelo navegador. Usando redirecionamento...',
+          'auth/cancelled-popup-request': 'Login cancelado. Por favor, tente novamente.',
+        }
+        errorMessage = errorMessages[error.code] || error.message || errorMessage
       }
       
       console.error('Google login error:', error)
@@ -129,6 +129,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   required
+                  autoComplete="email"
                 />
               </div>
 
@@ -153,6 +154,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   required
+                  autoComplete="current-password"
                 />
               </div>
 
@@ -246,7 +248,7 @@ export default function LoginPage() {
         {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-            © 2025 ness. Process & Compliance Engine. All rights reserved.
+            © 2025 ness. n.process. All rights reserved.
           </p>
           <div className="flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
             <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>

@@ -37,7 +37,7 @@ export default function HomePage() {
   const features = [
     {
       icon: Shield,
-      title: 'Process & Compliance Engine',
+      title: 'Compliance Engine',
       description: 'Analyze processes against regulatory frameworks (LGPD, SOX, ISO 27001, HIPAA, GDPR) with AI-powered insights.',
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
@@ -97,6 +97,9 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <NessLogo size="lg" />
           <div className="flex items-center gap-4">
+            <a href="/privacy" className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary underline font-medium">
+              Privacy Policy
+            </a>
             <Link href="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
@@ -112,17 +115,27 @@ export default function HomePage() {
         <section className="container mx-auto px-4 py-20 lg:py-32">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <Badge variant="outline" className="mb-4 text-sm px-4 py-1">
-              Process & Compliance Engine
+              n.process
             </Badge>
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              Intelligent Compliance
-              <br />
-              <span className="text-primary">Management Platform</span>
+              n.process
             </h1>
-            <p className="text-xl lg:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl lg:text-2xl text-gray-600 dark:text-gray-400 mb-6 max-w-3xl mx-auto leading-relaxed">
               Automate compliance analysis, process mapping, and regulatory adherence 
               with AI-powered insights and real-time monitoring. Built for modern enterprises.
             </p>
+            <div className="mb-8 text-sm text-gray-600 dark:text-gray-400">
+              By using this service, you agree to our{' '}
+              <a href="/privacy" className="text-primary hover:underline font-medium underline">Privacy Policy</a>
+              {' '}and{' '}
+              <a href="/terms" className="text-primary hover:underline font-medium underline">Terms of Service</a>
+              .
+            </div>
+            <div className="mb-8 flex items-center justify-center gap-6 text-sm">
+              <a href="/privacy" className="text-primary hover:underline font-medium underline">Privacy Policy</a>
+              <span className="text-gray-400">•</span>
+              <a href="/terms" className="text-primary hover:underline font-medium underline">Terms of Service</a>
+            </div>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Link href="/register">
                 <Button size="lg" className="gap-2 text-lg px-8 py-6">
@@ -291,7 +304,7 @@ export default function HomePage() {
             <div>
               <NessLogo size="lg" className="mb-4" />
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Process & Compliance Engine by ness.
+                n.process by ness.
               </p>
             </div>
             <div>
@@ -325,11 +338,12 @@ export default function HomePage() {
           </div>
           <div className="border-t border-gray-200 dark:border-gray-800 pt-8 flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              © 2025 ness. Process & Compliance Engine. All rights reserved.
+                © 2025 ness. n.process. All rights reserved.
             </p>
             <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-              <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
+              <a href="/privacy" className="hover:text-primary underline font-medium">Privacy Policy</a>
+              <span className="text-gray-400">|</span>
+              <a href="/terms" className="hover:text-primary underline font-medium">Terms of Service</a>
             </div>
           </div>
         </div>

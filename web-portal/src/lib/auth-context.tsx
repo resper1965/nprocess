@@ -12,7 +12,7 @@ import {
   getIdTokenResult
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { loginWithEmail, loginWithGoogle, registerWithEmail, resetPassword, logout, getUserProfile } from "./firebase-auth";
+import { loginWithEmail, loginWithGoogle, handleGoogleRedirect, registerWithEmail, resetPassword, logout, getUserProfile } from "./firebase-auth";
 import { auth } from "./firebase-config";
 import { LoginData, RegisterData } from "@/types/auth"; 
 
@@ -42,6 +42,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
+
+    // Check for Google redirect result on mount
+    const checkRedirectResult = async () => {
+      try {
+        const result = await handleGoogleRedirect();
+        if (result) {
+          // User successfully signed in via redirect
+          // The onAuthStateChanged will handle the rest
+          console.log('Google login redirect successful');
+        }
+      } catch (error) {
+        console.error('Error handling Google redirect:', error);
+        // Don't set error here, let the login page handle it
+      }
+    };
+
+    checkRedirectResult();
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       // Don't set loading true here if we want seamless auth state restore
@@ -120,16 +137,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleLoginWithGoogle = async () => {
     try {
-      const userCredential = await loginWithGoogle();
-      // Immediately redirect after successful login
-      if (userCredential?.user) {
-        // Force redirect to dashboard
-        router.push('/dashboard');
-        // Also use window.location as fallback for immediate navigation
-        if (typeof window !== 'undefined') {
-          window.location.href = '/dashboard';
-        }
-      }
+      // loginWithGoogle now uses redirect, so it doesn't return a credential
+      // The redirect will happen and handleGoogleRedirect() will process the result
+      await loginWithGoogle();
+      // Note: The user will be redirected to Google, then back to our app
+      // The redirect result will be handled in the useEffect above
     } catch (error: any) {
       // Extract meaningful error message
       let errorMessage = 'Erro ao fazer login com Google';
