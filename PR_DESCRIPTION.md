@@ -1,8 +1,19 @@
 # Pull Request: feat: Implementa gestão completa de Standards (Marketplace + Custom) com backend e frontend
 
+> **Status**: ✅ Conflitos com `main` resolvidos | Pronto para merge
+
 ## 🎯 Objetivo
 
 Refatoração completa do nprocess para focar no backend das 3 rotinas principais (Process Regularization, Compliance Analysis, Documentation Generation), implementando arquitetura dual de standards (Marketplace + Custom) com controle granular de acesso por API key.
+
+### 🔀 Merge com Main
+
+Esta PR foi atualizada com as últimas mudanças da branch `main`, incluindo:
+- ✅ Migração `client-portal/` → `web-portal/`
+- ✅ Integração com novo `APIKeyService`
+- ✅ Coexistência com KBS router (`/v1/admin/kbs`)
+- ✅ Middlewares de logging e rate limiting
+- ✅ Arquitetura multi-tenant preservada onde aplicável
 
 ## 📦 Mudanças Implementadas
 
