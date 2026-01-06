@@ -239,13 +239,27 @@ export const handleGoogleRedirect = async (): Promise<UserCredential | null> => 
   
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : 'N/A';
   const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+  const fullUrl = typeof window !== 'undefined' ? window.location.href : 'N/A';
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'N/A';
+  const isCustomDomain = hostname === 'nprocess.ness.com.br';
   
   console.log('handleGoogleRedirect: Calling getRedirectResult...', { 
     currentUser: auth.currentUser?.uid || 'none',
     path: currentPath,
     urlParams: urlParams,
-    fullUrl: typeof window !== 'undefined' ? window.location.href : 'N/A'
+    fullUrl: fullUrl,
+    hostname: hostname,
+    isCustomDomain: isCustomDomain,
+    authDomain: auth.app.options.authDomain
   });
+  
+  // Warn if using custom domain but it might not be configured
+  if (isCustomDomain) {
+    console.log('⚠️ Using custom domain nprocess.ness.com.br - ensure it is configured in:');
+    console.log('   1. Firebase Auth - Authorized domains');
+    console.log('   2. Google OAuth - Authorized JavaScript origins');
+    console.log('   3. Google OAuth - Authorized redirect URIs');
+  }
   
   try {
     const result = await getRedirectResult(auth);
