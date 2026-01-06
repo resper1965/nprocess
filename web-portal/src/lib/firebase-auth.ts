@@ -237,9 +237,14 @@ export const handleGoogleRedirect = async (): Promise<UserCredential | null> => 
     return null;
   }
   
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : 'N/A';
+  const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+  
   console.log('handleGoogleRedirect: Calling getRedirectResult...', { 
     currentUser: auth.currentUser?.uid || 'none',
-    path: typeof window !== 'undefined' ? window.location.pathname : 'N/A'
+    path: currentPath,
+    urlParams: urlParams,
+    fullUrl: typeof window !== 'undefined' ? window.location.href : 'N/A'
   });
   
   try {
@@ -249,7 +254,9 @@ export const handleGoogleRedirect = async (): Promise<UserCredential | null> => 
       hasResult: !!result, 
       hasUser: !!result?.user,
       uid: result?.user?.uid || 'none',
-      currentUserAfter: auth.currentUser?.uid || 'none'
+      email: result?.user?.email || 'none',
+      currentUserAfter: auth.currentUser?.uid || 'none',
+      operationType: result?.operationType || 'none'
     });
     
     if (result) {

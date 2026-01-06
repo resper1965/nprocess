@@ -151,30 +151,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Set up auth state listener first, then check for redirect result
     // This ensures we catch the auth state change even if getRedirectResult doesn't return
     let redirectHandled = false;
+    let authStateCheckCount = 0;
     
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('onAuthStateChanged: Auth state changed', { 
+      authStateCheckCount++;
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : 'N/A';
+      const urlParams = typeof window !== 'undefined' ? window.location.search : '';
+      const hasRedirectUrl = typeof window !== 'undefined' ? sessionStorage.getItem('auth_redirect_url') !== null : false;
+      
+      console.log(`onAuthStateChanged [${authStateCheckCount}]: Auth state changed`, { 
         hasUser: !!currentUser, 
         uid: currentUser?.uid,
         email: currentUser?.email,
-        path: typeof window !== 'undefined' ? window.location.pathname : 'N/A',
+        path: currentPath,
+        urlParams: urlParams,
+        hasRedirectUrl: hasRedirectUrl,
         currentUserFromAuth: auth?.currentUser?.uid || 'none',
         redirectHandled
       });
       
       // If we have a user and haven't handled redirect yet, check if it's from Google redirect
       if (currentUser && !redirectHandled) {
-        // Check if we're coming from a redirect (check URL params or sessionStorage)
+        // Check if we're coming from a redirect (check URL params, sessionStorage, or pathname)
         const isFromRedirect = typeof window !== 'undefined' && (
-          window.location.search.includes('__firebase_request_key') ||
-          sessionStorage.getItem('auth_redirect_url') !== null ||
-          window.location.pathname === '/login' || 
-          window.location.pathname === '/login/'
+          urlParams.includes('__firebase_request_key') ||
+          urlParams.includes('apiKey') ||
+          urlParams.includes('mode') ||
+          hasRedirectUrl ||
+          currentPath === '/login' || 
+          currentPath === '/login/' ||
+          currentPath === '/'
         );
+        
+        console.log('onAuthStateChanged: Checking if from redirect', { 
+          isFromRedirect, 
+          urlParams, 
+          hasRedirectUrl, 
+          currentPath,
+          uid: currentUser.uid 
+        });
         
         if (isFromRedirect) {
           console.log('onAuthStateChanged: User detected after redirect, handling...', { uid: currentUser.uid });
           redirectHandled = true;
+          
+          // Update state immediately
+          setUser(currentUser);
           
           // Wait a bit to ensure everything is ready
           await new Promise(resolve => setTimeout(resolve, 300));
@@ -203,6 +225,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (typeof window !== 'undefined') {
               sessionStorage.removeItem('auth_redirect_url');
+              
+              // Clear URL params if present
+              if (urlParams) {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+              }
+              
               router.push(targetPath);
               
               // Multiple fallback redirects
