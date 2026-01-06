@@ -28,10 +28,16 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Services
+# Services (lazy initialization)
 db = FirestoreRepository()
-storage_service = get_storage_service()
-ingestion_service = get_ingestion_service()
+
+def get_storage():
+    """Lazy get storage service"""
+    return get_storage_service()
+
+def get_ingestion():
+    """Lazy get ingestion service"""
+    return get_ingestion_service()
 
 
 # ============================================================================
@@ -431,7 +437,7 @@ async def ingest_custom_standard(
 
         try:
             # Download file from GCS
-            file_content = await storage_service.download_standard_file(
+            file_content = await get_storage().download_standard_file(
                 standard_id=standard_id,
                 client_id=client_id
             )
@@ -449,7 +455,7 @@ async def ingest_custom_standard(
             # Trigger ingestion (async processing)
             # In production, this should be queued via Cloud Tasks
             # For now, we process synchronously
-            result = await ingestion_service.ingest_standard(
+            result = await get_ingestion().ingest_standard(
                 standard_id=standard_id,
                 content=content_text,
                 client_id=client_id,
@@ -605,7 +611,7 @@ async def upload_custom_standard_file(
             }
         )
 
-        upload_result = await storage_service.upload_standard_file(
+        upload_result = await get_storage().upload_standard_file(
             file_content=contents,
             standard_id=standard_id,
             client_id=client_id,
