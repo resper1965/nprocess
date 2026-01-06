@@ -160,6 +160,8 @@ export const handleGoogleRedirect = async (): Promise<UserCredential | null> => 
     const result = await getRedirectResult(auth);
     
     if (result) {
+      console.log('handleGoogleRedirect: Google redirect result received', { uid: result.user.uid, email: result.user.email });
+      
       // User successfully signed in with Google
       const db = getDb();
       if (result.user && db) {

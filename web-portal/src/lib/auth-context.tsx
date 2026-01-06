@@ -71,20 +71,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const finalRole = userRole || 'user';
             const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
             
+            console.log('checkRedirectResult: Google login successful, redirecting to:', targetPath, { uid: result.user.uid, role: finalRole });
+            
             // Redirect immediately after successful Google login
             if (typeof window !== 'undefined') {
               // Clear any stored redirect URL
               sessionStorage.removeItem('auth_redirect_url');
               
-              // Redirect to appropriate dashboard
+              // Immediate redirect
               router.push(targetPath);
               
-              // Fallback redirect
-              setTimeout(() => {
-                if (window.location.pathname === '/' || window.location.pathname === '/login') {
-                  window.location.href = targetPath;
-                }
-              }, 300);
+              // Multiple fallback redirects
+              const redirectAttempts = [300, 800, 1500, 2500];
+              redirectAttempts.forEach((delay) => {
+                setTimeout(() => {
+                  const stillOnPublicPage = window.location.pathname === '/' || 
+                                           window.location.pathname === '/login' ||
+                                           window.location.pathname === '/register';
+                  if (stillOnPublicPage) {
+                    console.log(`checkRedirectResult: Router.push failed, forcing redirect after ${delay}ms to`, targetPath);
+                    window.location.href = targetPath;
+                  }
+                }, delay);
+              });
             }
           } catch (roleError) {
             console.error('Error getting user role:', roleError);
