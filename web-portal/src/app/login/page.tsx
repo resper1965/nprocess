@@ -21,24 +21,33 @@ export default function LoginPage() {
 
   // Redirect authenticated users away from login page
   useEffect(() => {
+    console.log('LoginPage useEffect: Auth state', { loading, isAuthenticated, hasUser: !!user, role, path: typeof window !== 'undefined' ? window.location.pathname : 'N/A' });
+    
     if (!loading && isAuthenticated && user) {
       // Use role if available, otherwise default to dashboard
       const targetPath = (role === 'admin' || role === 'super_admin') ? '/admin/overview' : '/dashboard'
-      console.log('LoginPage: User authenticated, redirecting to:', targetPath, { user: user.uid, role })
+      console.log('LoginPage: User authenticated, redirecting to:', targetPath, { user: user.uid, role, currentPath: typeof window !== 'undefined' ? window.location.pathname : 'N/A' })
       
-      // Immediate redirect
-      router.push(targetPath)
+      // Wait a bit to ensure auth state is fully set
+      const redirectWithDelay = async () => {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Immediate redirect
+        router.push(targetPath)
+        
+        // Force redirect if router.push doesn't work (multiple attempts with longer delays)
+        const redirectAttempts = [500, 1000, 2000, 3000, 4000]
+        redirectAttempts.forEach((delay) => {
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/')) {
+              console.log(`LoginPage: Router.push failed, forcing redirect after ${delay}ms to`, targetPath)
+              window.location.href = targetPath
+            }
+          }, delay)
+        })
+      };
       
-      // Force redirect if router.push doesn't work (multiple attempts)
-      const redirectAttempts = [300, 800, 1500]
-      redirectAttempts.forEach((delay) => {
-        setTimeout(() => {
-          if (typeof window !== 'undefined' && (window.location.pathname === '/login' || window.location.pathname === '/')) {
-            console.log(`LoginPage: Router.push failed, forcing redirect after ${delay}ms`)
-            window.location.href = targetPath
-          }
-        }, delay)
-      })
+      redirectWithDelay();
     }
   }, [loading, isAuthenticated, user, role, router])
 

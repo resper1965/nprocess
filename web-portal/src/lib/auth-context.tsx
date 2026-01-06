@@ -45,11 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check for Google redirect result on mount
     const checkRedirectResult = async () => {
+      console.log('checkRedirectResult: Checking for Google redirect result...');
       try {
         const result = await handleGoogleRedirect();
         if (result && result.user) {
           // User successfully signed in via redirect
-          console.log('Google login redirect successful', result.user.uid);
+          console.log('checkRedirectResult: Google login redirect successful', { uid: result.user.uid, email: result.user.email });
+          
+          // Wait a bit to ensure auth state is updated
+          await new Promise(resolve => setTimeout(resolve, 200));
           
           // Get role to determine redirect path
           try {
@@ -64,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   userRole = userProfile.role;
                 }
               } catch (fsError) {
-                console.error("Error fetching user profile:", fsError);
+                console.error("checkRedirectResult: Error fetching user profile:", fsError);
               }
             }
             
@@ -78,11 +82,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Clear any stored redirect URL
               sessionStorage.removeItem('auth_redirect_url');
               
+              // Wait a bit more to ensure everything is ready
+              await new Promise(resolve => setTimeout(resolve, 300));
+              
               // Immediate redirect
               router.push(targetPath);
               
-              // Multiple fallback redirects
-              const redirectAttempts = [300, 800, 1500, 2500];
+              // Multiple fallback redirects with longer delays
+              const redirectAttempts = [500, 1000, 2000, 3000, 4000];
               redirectAttempts.forEach((delay) => {
                 setTimeout(() => {
                   const stillOnPublicPage = window.location.pathname === '/' || 
@@ -96,20 +103,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               });
             }
           } catch (roleError) {
-            console.error('Error getting user role:', roleError);
+            console.error('checkRedirectResult: Error getting user role:', roleError);
             // Still redirect to dashboard even if role fetch fails
-            router.push('/dashboard');
+            if (typeof window !== 'undefined') {
+              router.push('/dashboard');
+              setTimeout(() => {
+                if (window.location.pathname === '/login' || window.location.pathname === '/') {
+                  window.location.href = '/dashboard';
+                }
+              }, 1000);
+            }
           }
+        } else {
+          console.log('checkRedirectResult: No Google redirect result found');
         }
       } catch (error) {
-        console.error('Error handling Google redirect:', error);
+        console.error('checkRedirectResult: Error handling Google redirect:', error);
         // Don't set error here, let the login page handle it
       }
     };
 
-    checkRedirectResult();
+    // First check for Google redirect result, then set up auth state listener
+    checkRedirectResult().then(() => {
+      console.log('checkRedirectResult completed, setting up auth state listener');
+    }).catch((error) => {
+      console.error('checkRedirectResult error:', error);
+    });
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      console.log('onAuthStateChanged: Auth state changed', { 
+        hasUser: !!currentUser, 
+        uid: currentUser?.uid,
+        path: typeof window !== 'undefined' ? window.location.pathname : 'N/A'
+      });
+      
       // Don't set loading true here if we want seamless auth state restore
       if (currentUser) {
         setUser(currentUser);
@@ -133,6 +160,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const finalRole = userRole || 'user';
           setRole(finalRole);
           
+          console.log('onAuthStateChanged: User role determined', { uid: currentUser.uid, role: finalRole });
+          
           // Redirect authenticated users away from public pages
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
@@ -143,13 +172,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (isPublicPage && currentPath !== '/privacy' && currentPath !== '/terms') {
               const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
               
-              console.log('onAuthStateChanged: Auth state changed - redirecting from', currentPath, 'to', targetPath, { role: finalRole });
+              console.log('onAuthStateChanged: User authenticated on public page - redirecting from', currentPath, 'to', targetPath, { role: finalRole });
+              
+              // Wait a bit to ensure auth state is fully set
+              await new Promise(resolve => setTimeout(resolve, 100));
               
               // Immediate redirect
               router.push(targetPath);
               
               // Force redirect if router.push doesn't work (multiple attempts)
-              const redirectAttempts = [500, 1000, 2000];
+              const redirectAttempts = [500, 1000, 2000, 3000];
               redirectAttempts.forEach((delay) => {
                 setTimeout(() => {
                   const stillOnPublicPage = window.location.pathname === currentPath || 
@@ -168,6 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRole('user');
         }
       } else {
+        console.log('onAuthStateChanged: No user, clearing auth state');
         setUser(null);
         setRole(null);
       }
