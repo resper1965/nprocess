@@ -423,4 +423,3 @@ export const checkTrackingPreventionStatus = async (): Promise<{
     };
   }
 };
-
