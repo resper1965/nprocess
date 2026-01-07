@@ -221,27 +221,93 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       // If we're coming from redirect but don't have user yet, wait a bit more
-      if (isFromRedirect && !currentUser && !waitingForAuthState && authStateCheckCount <= 3) {
+      if (isFromRedirect && !currentUser && !waitingForAuthState && authStateCheckCount <= 5) {
         console.log(`onAuthStateChanged: Coming from redirect but no user yet, waiting... (check ${authStateCheckCount})`);
         waitingForAuthState = true;
         
-        // Wait and check again
+        // Multiple checks with increasing delays
+        const delays = [500, 1000, 2000, 3000, 5000];
+        const currentDelay = delays[Math.min(authStateCheckCount - 1, delays.length - 1)];
+        
         setTimeout(async () => {
-          const userAfterWait = auth?.currentUser;
-          console.log('onAuthStateChanged: After wait, checking user again', { 
-            hasUser: !!userAfterWait, 
-            uid: userAfterWait?.uid || 'none' 
-          });
-          
-          if (userAfterWait && !redirectHandled) {
-            console.log('onAuthStateChanged: User found after wait, processing redirect...', { uid: userAfterWait.uid });
-            // Trigger the redirect logic by setting user
-            setUser(userAfterWait);
-            // The next onAuthStateChanged call will handle the redirect
-          } else {
-            waitingForAuthState = false;
+          // Check multiple times
+          for (let attempt = 0; attempt < 3; attempt++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const userAfterWait = auth?.currentUser;
+            console.log(`onAuthStateChanged: After wait (attempt ${attempt + 1}), checking user again`, { 
+              hasUser: !!userAfterWait, 
+              uid: userAfterWait?.uid || 'none',
+              email: userAfterWait?.email || 'none'
+            });
+            
+            if (userAfterWait && !redirectHandled) {
+              console.log('onAuthStateChanged: User found after wait, processing redirect...', { uid: userAfterWait.uid });
+              // Set user immediately
+              setUser(userAfterWait);
+              
+              // Get role and redirect
+              try {
+                const tokenResult = await getIdTokenResult(userAfterWait);
+                let userRole = tokenResult.claims.role as string | undefined;
+                
+                console.log('onAuthStateChanged (wait): Token claims', {
+                  uid: userAfterWait.uid,
+                  customClaims: tokenResult.claims,
+                  roleFromClaim: userRole
+                });
+                
+                if (!userRole) {
+                  try {
+                    const userProfile = await getUserProfile(userAfterWait.uid);
+                    if (userProfile && userProfile.role) {
+                      userRole = userProfile.role;
+                    }
+                  } catch (fsError) {
+                    console.error("onAuthStateChanged (wait): Error fetching user profile:", fsError);
+                  }
+                }
+                
+                const finalRole = userRole || 'user';
+                setRole(finalRole);
+                redirectHandled = true;
+                waitingForAuthState = false;
+                
+                const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+                console.log('onAuthStateChanged (wait): Redirecting to:', targetPath, { role: finalRole });
+                
+                if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('auth_redirect_url');
+                  router.push(targetPath);
+                  
+                  // Fallback redirects
+                  [500, 1000, 2000, 3000].forEach((delay) => {
+                    setTimeout(() => {
+                      if (window.location.pathname === '/login' || window.location.pathname === '/login/') {
+                        window.location.href = targetPath;
+                      }
+                    }, delay);
+                  });
+                }
+                
+                return; // Exit early if user found
+              } catch (roleError) {
+                console.error('onAuthStateChanged (wait): Error getting role:', roleError);
+                setRole('user');
+                redirectHandled = true;
+                waitingForAuthState = false;
+                if (typeof window !== 'undefined') {
+                  router.push('/dashboard');
+                }
+                return;
+              }
+            }
           }
-        }, 1000);
+          
+          // If we get here, user still not found
+          waitingForAuthState = false;
+          console.warn('onAuthStateChanged: User still not found after multiple attempts');
+        }, currentDelay);
       }
       
       // If we have a user and haven't handled redirect yet, check if it's from Google redirect
