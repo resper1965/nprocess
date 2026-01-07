@@ -58,20 +58,47 @@ export default function SettingsPage() {
               {t.settings.role}
             </label>
             <div className="flex items-center gap-2">
-              <Badge variant={isAdmin ? "default" : "outline"} className="text-sm">
-                {getRoleDisplayName(role)}
+              <Badge 
+                variant={isAdmin ? "default" : "outline"} 
+                className={`text-sm ${
+                  role === 'super_admin' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                  role === 'admin' ? 'bg-primary/20 text-primary border-primary/30' :
+                  ''
+                }`}
+              >
+                {role === 'super_admin' ? '⭐ Super Admin' : getRoleDisplayName(role)}
               </Badge>
               {isAdmin && (
                 <Badge variant="default" className="text-xs bg-green-500/20 text-green-600 dark:text-green-400">
                   {t.settings.adminAccess}
                 </Badge>
               )}
+              {role === 'super_admin' && (
+                <Badge variant="default" className="text-xs bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30">
+                  Full Access
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              {isAdmin 
+              {role === 'super_admin' 
+                ? 'You have full administrative access to all features and settings.'
+                : isAdmin 
                 ? t.settings.adminAccessDesc
                 : t.settings.currentAccessLevel}
             </p>
+            {role && (
+              <details className="mt-2">
+                <summary className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
+                  Debug Info (click to expand)
+                </summary>
+                <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                  <div>Role: <strong>{role}</strong></div>
+                  <div>Is Admin: <strong>{isAdmin ? 'Yes' : 'No'}</strong></div>
+                  <div>Is Super Admin: <strong>{role === 'super_admin' ? 'Yes' : 'No'}</strong></div>
+                  <div>UID: <strong>{user?.uid}</strong></div>
+                </div>
+              </details>
+            )}
           </div>
         </CardContent>
       </Card>

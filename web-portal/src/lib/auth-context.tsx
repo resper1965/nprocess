@@ -413,7 +413,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
             setRole(finalRole);
             
-            console.log('onAuthStateChanged: User role determined', { uid: currentUser.uid, role: finalRole });
+            console.log('onAuthStateChanged: User role determined', { 
+              uid: currentUser.uid, 
+              email: currentUser.email,
+              role: finalRole,
+              isAdmin: finalRole === 'admin' || finalRole === 'super_admin',
+              isSuperAdmin: finalRole === 'super_admin',
+              tokenClaims: tokenResult.claims,
+              firestoreRole: userRole !== (tokenResult.claims.role as string) ? userRole : 'from_token'
+            });
+            
+            // Log super_admin status prominently
+            if (finalRole === 'super_admin') {
+              console.log('⭐ SUPER ADMIN DETECTED!', {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                role: finalRole,
+                hasAdminAccess: true
+              });
+            }
             
             // Redirect authenticated users away from public pages
             // But avoid competing with login page's redirect logic
