@@ -80,21 +80,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Get role to determine redirect path
           try {
             const tokenResult = await getIdTokenResult(userToUse);
-            let userRole = (tokenResult.claims.role as string) || 'user';
-            
-            // Check Firestore if no custom claim
-            if (!userRole || userRole === 'user') {
+            let userRole = tokenResult.claims.role as string | undefined;
+
+            console.log('checkRedirectResult: Token claims', {
+              uid: userToUse.uid,
+              email: userToUse.email,
+              customClaims: tokenResult.claims,
+              roleFromClaim: userRole
+            });
+
+            // IMPORTANT: Only check Firestore if no custom claim exists (undefined/null)
+            // Don't check if role is 'user', as that's a valid role value
+            if (!userRole) {
+              console.log('checkRedirectResult: No custom claim, checking Firestore...');
               try {
                 const userProfile = await getUserProfile(userToUse.uid);
+                console.log('checkRedirectResult: Firestore profile', {
+                  uid: userToUse.uid,
+                  profile: userProfile,
+                  hasProfile: !!userProfile,
+                  roleFromFirestore: userProfile?.role
+                });
+
                 if (userProfile && userProfile.role) {
                   userRole = userProfile.role;
+                  console.log('checkRedirectResult: Using role from Firestore:', userRole);
+                } else {
+                  console.warn('checkRedirectResult: No role in Firestore, defaulting to "user"');
                 }
               } catch (fsError) {
-                console.error("checkRedirectResult: Error fetching user profile:", fsError);
+                console.error("checkRedirectResult: Error fetching user profile from Firestore:", fsError);
+                console.error("checkRedirectResult: This might be due to Firestore rules or missing document");
               }
+            } else {
+              console.log('checkRedirectResult: Using role from custom claim:', userRole);
             }
-            
+
             const finalRole = userRole || 'user';
+            console.log('checkRedirectResult: Final role determined', {
+              uid: userToUse.uid,
+              email: userToUse.email,
+              finalRole,
+              isAdmin: finalRole === 'admin' || finalRole === 'super_admin'
+            });
             setRole(finalRole);
             const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
             
@@ -250,20 +278,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Get role and redirect
           try {
             const tokenResult = await getIdTokenResult(currentUser);
-            let userRole = (tokenResult.claims.role as string) || 'user';
-            
-            if (!userRole || userRole === 'user') {
+            let userRole = tokenResult.claims.role as string | undefined;
+
+            console.log('onAuthStateChanged (redirect): Token claims', {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              customClaims: tokenResult.claims,
+              roleFromClaim: userRole
+            });
+
+            // IMPORTANT: Only check Firestore if no custom claim exists (undefined/null)
+            if (!userRole) {
+              console.log('onAuthStateChanged (redirect): No custom claim, checking Firestore...');
               try {
                 const userProfile = await getUserProfile(currentUser.uid);
+                console.log('onAuthStateChanged (redirect): Firestore profile', {
+                  uid: currentUser.uid,
+                  profile: userProfile,
+                  hasProfile: !!userProfile,
+                  roleFromFirestore: userProfile?.role
+                });
+
                 if (userProfile && userProfile.role) {
                   userRole = userProfile.role;
+                  console.log('onAuthStateChanged (redirect): Using role from Firestore:', userRole);
+                } else {
+                  console.warn('onAuthStateChanged (redirect): No role in Firestore, defaulting to "user"');
                 }
               } catch (fsError) {
-                console.error("onAuthStateChanged: Error fetching user profile:", fsError);
+                console.error("onAuthStateChanged (redirect): Error fetching user profile from Firestore:", fsError);
+                console.error("onAuthStateChanged (redirect): This might be due to Firestore rules or missing document");
               }
+            } else {
+              console.log('onAuthStateChanged (redirect): Using role from custom claim:', userRole);
             }
-            
+
             const finalRole = userRole || 'user';
+            console.log('onAuthStateChanged (redirect): Final role determined', {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              finalRole,
+              isAdmin: finalRole === 'admin' || finalRole === 'super_admin'
+            });
             setRole(finalRole);
             const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
             
@@ -313,22 +369,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!redirectHandled) {
           try {
             const tokenResult = await getIdTokenResult(currentUser);
-            // Try to get role from claims first
-            let userRole = (tokenResult.claims.role as string);
+            let userRole = tokenResult.claims.role as string | undefined;
 
-            // If no custom claim, check Firestore
-            if (!userRole || userRole === 'user') {
+            console.log('onAuthStateChanged (normal): Token claims', {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              customClaims: tokenResult.claims,
+              roleFromClaim: userRole
+            });
+
+            // IMPORTANT: Only check Firestore if no custom claim exists (undefined/null)
+            if (!userRole) {
+              console.log('onAuthStateChanged (normal): No custom claim, checking Firestore...');
               try {
-                 const userProfile = await getUserProfile(currentUser.uid);
-                 if (userProfile && userProfile.role) {
-                   userRole = userProfile.role;
-                 }
+                const userProfile = await getUserProfile(currentUser.uid);
+                console.log('onAuthStateChanged (normal): Firestore profile', {
+                  uid: currentUser.uid,
+                  profile: userProfile,
+                  hasProfile: !!userProfile,
+                  roleFromFirestore: userProfile?.role
+                });
+
+                if (userProfile && userProfile.role) {
+                  userRole = userProfile.role;
+                  console.log('onAuthStateChanged (normal): Using role from Firestore:', userRole);
+                } else {
+                  console.warn('onAuthStateChanged (normal): No role in Firestore, defaulting to "user"');
+                }
               } catch (fsError) {
-                console.error("Error fetching user profile from Firestore:", fsError);
+                console.error("onAuthStateChanged (normal): Error fetching user profile from Firestore:", fsError);
+                console.error("onAuthStateChanged (normal): This might be due to Firestore rules or missing document");
               }
+            } else {
+              console.log('onAuthStateChanged (normal): Using role from custom claim:', userRole);
             }
-            
+
             const finalRole = userRole || 'user';
+            console.log('onAuthStateChanged (normal): Final role determined', {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              finalRole,
+              isAdmin: finalRole === 'admin' || finalRole === 'super_admin'
+            });
             setRole(finalRole);
             
             console.log('onAuthStateChanged: User role determined', { uid: currentUser.uid, role: finalRole });
@@ -406,30 +488,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Get role to determine redirect path
-      let userRole = 'user';
+      let userRole: string | undefined = undefined;
       if (credential?.user) {
         try {
           const tokenResult = await getIdTokenResult(credential.user);
-          userRole = (tokenResult.claims.role as string) || 'user';
-          
-          // Check Firestore if no custom claim
-          if (!userRole || userRole === 'user') {
+          userRole = tokenResult.claims.role as string | undefined;
+
+          console.log('handleLogin: Token claims', {
+            uid: credential.user.uid,
+            email: credential.user.email,
+            customClaims: tokenResult.claims,
+            roleFromClaim: userRole
+          });
+
+          // IMPORTANT: Only check Firestore if no custom claim exists (undefined/null)
+          if (!userRole) {
+            console.log('handleLogin: No custom claim, checking Firestore...');
             try {
               const userProfile = await getUserProfile(credential.user.uid);
+              console.log('handleLogin: Firestore profile', {
+                uid: credential.user.uid,
+                profile: userProfile,
+                hasProfile: !!userProfile,
+                roleFromFirestore: userProfile?.role
+              });
+
               if (userProfile && userProfile.role) {
                 userRole = userProfile.role;
+                console.log('handleLogin: Using role from Firestore:', userRole);
+              } else {
+                console.warn('handleLogin: No role in Firestore, defaulting to "user"');
               }
             } catch (fsError) {
-              console.error("Error fetching user profile:", fsError);
+              console.error("handleLogin: Error fetching user profile from Firestore:", fsError);
+              console.error("handleLogin: This might be due to Firestore rules or missing document");
             }
+          } else {
+            console.log('handleLogin: Using role from custom claim:', userRole);
           }
         } catch (roleError) {
-          console.error('Error getting user role:', roleError);
+          console.error('handleLogin: Error getting user role:', roleError);
         }
       }
-      
-      const targetPath = userRole === 'admin' || userRole === 'super_admin' ? '/admin/overview' : '/dashboard';
-      console.log('handleLogin: Login successful, redirecting to:', targetPath, { userRole });
+
+      const finalRole = userRole || 'user';
+      console.log('handleLogin: Final role determined', {
+        finalRole,
+        isAdmin: finalRole === 'admin' || finalRole === 'super_admin'
+      });
+
+      const targetPath = finalRole === 'admin' || finalRole === 'super_admin' ? '/admin/overview' : '/dashboard';
+      console.log('handleLogin: Login successful, redirecting to:', targetPath, { role: finalRole });
       
       // Immediate redirect
       router.push(targetPath);
