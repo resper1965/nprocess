@@ -9,7 +9,7 @@ pydantic-settings==2.5.2
 # Google Cloud Platform
 google-auth==2.35.0
 google-cloud-firestore>=2.19.0  # Mínimo 2.19.0 para suporte a Vector Search
-google-cloud-aiplatform==1.71.1
+google-cloud-aiplatform==1.133.0
 
 # Vertex AI
 vertexai>=1.71.0  # Mínimo 1.71.0 para suporte a Model Routing (gemini-1.5-pro/flash)
