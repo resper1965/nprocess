@@ -4,16 +4,13 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  LayoutDashboard,
+  Terminal,
+  Database,
+  Code,
   Key,
-  Users,
-  DollarSign,
-  Server,
   Settings,
   LogOut,
   ChevronRight,
-  Terminal,
-  Database,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -41,50 +38,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import {
-  Collapsible,
-} from "@/components/ui/collapsible"
 
-const navigation = [
+// Primary navigation - Infrastructure Control Plane
+const primaryNavigation = [
   { 
-    title: "Overview", 
+    title: "Console", 
     url: "/admin/overview", 
-    icon: LayoutDashboard,
+    icon: Terminal,
   },
   { 
-    title: "Knowledge", 
+    title: "Knowledge Ops", 
     url: "/admin/knowledge", 
     icon: Database,
   },
   { 
-    title: "API Keys", 
-    url: "/admin/api-keys", 
+    title: "Network & Access", 
+    url: "/admin/access", 
     icon: Key,
   },
   { 
-    title: "Consumers", 
-    url: "/admin/consumers", 
-    icon: Users,
-  },
-  { 
-    title: "FinOps", 
-    url: "/admin/finops", 
-    icon: DollarSign,
-  },
-  { 
-    title: "Services", 
-    url: "/admin/services", 
-    icon: Server,
-  },
-  {
-    title: "Developers",
-    url: "/admin/developers/prompts",
-    icon: Terminal,
-  },
-  { 
-    title: "Settings", 
-    url: "/admin/settings", 
-    icon: Settings,
+    title: "Developer Hub", 
+    url: "/admin/connect", 
+    icon: Code,
   },
 ]
 
@@ -113,16 +88,15 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
               asChild
             >
               <Link href="/admin/overview" className="flex items-center gap-3">
-                <div className="flex aspect-square size-5 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-                  <span className="font-bold text-xs">n.</span>
+                <div className="flex aspect-square size-5 items-center justify-center rounded-lg bg-brand-ness text-white flex-shrink-0">
+                  <span className="font-brand font-medium text-xs">n.</span>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold font-montserrat">
-                    <span>n</span>
+                  <span className="truncate font-brand font-medium tracking-tight">
+                    <span className="text-white">n.process</span>
                     <span className="text-[#00ade8]">.</span>
-                    <span>process</span>
                   </span>
-                  <span className="truncate text-xs text-muted-foreground">Admin Console</span>
+                  <span className="truncate text-xs text-zinc-500">Control Plane</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -132,22 +106,26 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-zinc-500">Infrastructure</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigation.map((item) => {
-                const isActive = pathname === item.url
+              {primaryNavigation.map((item) => {
+                const isActive = pathname === item.url || pathname.startsWith(item.url + '/')
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
                       tooltip={item.title}
+                      className={cn(
+                        isActive && "border-l-2 border-brand-ness bg-transparent text-white",
+                        !isActive && "text-zinc-400 hover:text-zinc-300"
+                      )}
                     >
                       <Link href={item.url}>
                         <item.icon className={cn(
                           "size-4",
-                          isActive && "text-[#00ade8]"
+                          isActive ? "text-white" : "text-zinc-500"
                         )} />
                         <span>{item.title}</span>
                       </Link>
@@ -170,23 +148,24 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+                    <AvatarFallback className="rounded-lg bg-brand-ness text-white">
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <div className="flex items-center gap-2">
-                      <span className="truncate font-semibold">
+                      <span className="truncate font-semibold text-white">
                         {user?.displayName || "Admin"}
                       </span>
                       {role && (
                         <Badge 
-                          variant={role === 'super_admin' || role === 'admin' ? "default" : "outline"} 
-                          className={`text-xs px-1.5 py-0 ${
-                            role === 'super_admin' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
-                            role === 'admin' ? 'bg-primary/20 text-primary border-primary/30' :
-                            ''
-                          }`}
+                          variant="outline" 
+                          className={cn(
+                            "text-xs px-1.5 py-0 border-zinc-800",
+                            role === 'super_admin' && 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+                            role === 'admin' && 'bg-brand-ness/10 text-brand-ness border-brand-ness/30',
+                            !['super_admin', 'admin'].includes(role) && 'bg-zinc-800/50 text-zinc-400 border-zinc-700'
+                          )}
                         >
                           {role === 'super_admin' ? '⭐ Super' : 
                            role === 'admin' ? '👑 Admin' :
@@ -196,43 +175,28 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                         </Badge>
                       )}
                     </div>
-                    <span className="truncate text-xs text-muted-foreground">
+                    <span className="truncate text-xs text-zinc-500">
                       {user?.email || "Loading..."}
                     </span>
                   </div>
-                  <ChevronRight className="ml-auto size-4" />
+                  <ChevronRight className="ml-auto size-4 text-zinc-500" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-zinc-900 border-zinc-800"
                 side="right"
                 align="end"
                 sideOffset={4}
               >
-                {/* Role Info */}
-                {role && (
-                  <>
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground border-b">
-                      <div className="font-medium">
-                        Role: {role === 'super_admin' ? 'Super Admin' : 
-                               role === 'admin' ? 'Admin' :
-                               role === 'finops_manager' ? 'FinOps Manager' :
-                               role === 'auditor' ? 'Auditor' :
-                               role === 'viewer' ? 'Viewer' : 'User'}
-                      </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
                 <DropdownMenuItem asChild>
-                  <Link href="/admin/settings">
+                  <Link href="/admin/settings" className="text-zinc-300">
                     <Settings className="mr-2 size-4" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem 
-                  className="text-destructive focus:text-destructive"
+                  className="text-red-400 focus:text-red-400 focus:bg-red-950/20"
                   onClick={() => logout()}
                 >
                   <LogOut className="mr-2 size-4" />

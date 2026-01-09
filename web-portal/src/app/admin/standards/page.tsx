@@ -37,8 +37,9 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { adminApi } from '@/lib/api-client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 interface MarketplaceStandard {
   standard_id: string;
@@ -97,14 +98,14 @@ export default function StandardsPage() {
       };
 
       // Load marketplace standards
-      const marketplaceRes = await fetch(`${API_URL}/v1/admin/standards/marketplace`, { headers });
+      const marketplaceRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/marketplace`, { headers });
       if (marketplaceRes.ok) {
         const data = await marketplaceRes.json();
         setMarketplaceStandards(data.standards || []);
       }
 
       // Load custom standards
-      const customRes = await fetch(`${API_URL}/v1/admin/standards/custom`, { headers });
+      const customRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom`, { headers });
       if (customRes.ok) {
         const data = await customRes.json();
         setCustomStandards(data.standards || []);
@@ -133,7 +134,7 @@ export default function StandardsPage() {
         const uploadFormData = new FormData();
         uploadFormData.append('file', selectedFile);
 
-        const uploadRes = await fetch(`${API_URL}/v1/admin/standards/custom/upload`, {
+        const uploadRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -158,7 +159,7 @@ export default function StandardsPage() {
         metadata: {},
       };
 
-      const createRes = await fetch(`${API_URL}/v1/admin/standards/custom`, {
+      const createRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -174,7 +175,7 @@ export default function StandardsPage() {
       const createdStandard = await createRes.json();
 
       // Trigger ingestion
-      const ingestRes = await fetch(`${API_URL}/v1/admin/standards/custom/${createdStandard.standard_id}/ingest`, {
+      const ingestRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom/${createdStandard.standard_id}/ingest`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -210,7 +211,7 @@ export default function StandardsPage() {
 
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${API_URL}/v1/admin/standards/custom/${standardId}`, {
+      const res = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom/${standardId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -232,7 +233,7 @@ export default function StandardsPage() {
   const handleRefreshStatus = async (standardId: string) => {
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`${API_URL}/v1/admin/standards/custom/${standardId}/status`, {
+      const res = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom/${standardId}/status`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

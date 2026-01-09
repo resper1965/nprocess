@@ -136,8 +136,10 @@ def get_search_service():
 @mcp.tool()
 async def search_knowledge_base(query: str, top_k: int = 5, domain: str = "") -> str:
     """
-    Searches the regulatory knowledge base using semantic search.
-    Returns relevant documents/passages for the query.
+    Gemini RAG - Retrieval Phase: Semantic search in knowledge bases.
+    
+    Uses Vertex AI Search with Google embeddings (Gemini-based) for semantic similarity.
+    Returns relevant document chunks ranked by relevance score.
     
     Args:
         query: The search query (e.g. "prazo retenção dados LGPD").
@@ -146,6 +148,7 @@ async def search_knowledge_base(query: str, top_k: int = 5, domain: str = "") ->
         
     Returns:
         JSON string with search results containing content, source, and relevance score.
+        These results can be used as context for Gemini generation (RAG completion).
     """
     logger.info(f"MCP Tool called: search_knowledge_base for '{query}' (top_k={top_k})")
     
@@ -173,15 +176,19 @@ async def search_knowledge_base(query: str, top_k: int = 5, domain: str = "") ->
 @mcp.tool()
 async def chat_with_knowledge(message: str, session_id: str = "") -> str:
     """
-    Sends a message to the AI assistant that has access to the knowledge base.
-    The assistant will search relevant documents and provide an informed response.
+    Gemini RAG - Complete Pipeline: Chat with knowledge base context.
+    
+    Full RAG implementation:
+    1. Retrieval: Searches knowledge base using semantic search (Vertex AI Search)
+    2. Augmentation: Retrieves relevant document chunks as context
+    3. Generation: Gemini 1.5 Pro/Flash generates response using retrieved context
     
     Args:
         message: The user's question or request.
         session_id: Optional session ID to maintain conversation context.
         
     Returns:
-        JSON string with the assistant's response and any actions performed.
+        JSON string with Gemini's response, sources used, and any actions performed.
     """
     logger.info(f"MCP Tool called: chat_with_knowledge for '{message[:50]}...'")
     

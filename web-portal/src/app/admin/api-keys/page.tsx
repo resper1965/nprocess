@@ -12,8 +12,9 @@ import { cn, formatDate } from "@/lib/utils"
 import { useAPIKeysList, useCreateAPIKey, useRevokeAPIKey } from "@/hooks/use-api-keys"
 import { APIKeyCreate } from "@/lib/api-client"
 import { toast } from "sonner"
+import { adminApi } from "@/lib/api-client"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface MarketplaceStandard {
   standard_id: string
@@ -70,14 +71,14 @@ export default function APIKeysPage() {
       }
 
       // Load marketplace standards
-      const marketplaceRes = await fetch(`${API_URL}/v1/admin/standards/marketplace`, { headers })
+      const marketplaceRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/marketplace`, { headers })
       if (marketplaceRes.ok) {
         const data = await marketplaceRes.json()
         setMarketplaceStandards(data.standards || [])
       }
 
       // Load custom standards (only completed ones)
-      const customRes = await fetch(`${API_URL}/v1/admin/standards/custom`, { headers })
+      const customRes = await fetch(`${ADMIN_API_URL}/v1/admin/standards/custom`, { headers })
       if (customRes.ok) {
         const data = await customRes.json()
         const completedStandards = (data.standards || []).filter((s: CustomStandard) => s.status === 'completed')

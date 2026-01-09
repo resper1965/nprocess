@@ -15,6 +15,10 @@
 ### Domínios Customizados (se configurados)
 - `nprocess.ness.com.br` (domínio customizado)
 
+### Domínios do Cloud Run (Produção)
+- ⚠️ `nprocess-frontend-43006907338.us-central1.run.app` **OBRIGATÓRIO** (domínio do Cloud Run)
+- ⚠️ `nprocess-api-prod-43006907338.us-central1.run.app` (se necessário para OAuth callbacks)
+
 ### Desenvolvimento Local
 - `localhost` (já vem por padrão)
 
@@ -33,7 +37,8 @@
 2. Adicione cada domínio:
    - `nprocess-8e801-4711d.web.app`
    - `nprocess-8e801-4711d.firebaseapp.com`
-   - `nprocess.ness.com.br` (se usar domínio customizado)
+   - `nprocess.ness.com.br` ⭐ **OBRIGATÓRIO se usar custom domain**
+   - `nprocess-frontend-43006907338.us-central1.run.app` ⭐ **OBRIGATÓRIO para Cloud Run**
 
 ### 3. Verificar Domínios Existentes
 
@@ -56,12 +61,14 @@ Se você estiver usando **Google OAuth**, também precisa autorizar os domínios
 4. Em **"Authorized JavaScript origins"**, adicione:
    - `https://nprocess-8e801-4711d.web.app`
    - `https://nprocess-8e801-4711d.firebaseapp.com`
-   - `https://nprocess.ness.com.br` (se usar domínio customizado)
+   - `https://nprocess.ness.com.br` ⭐ **OBRIGATÓRIO se usar custom domain**
+   - `https://nprocess-frontend-43006907338.us-central1.run.app` ⭐ **OBRIGATÓRIO para Cloud Run**
 
 5. Em **"Authorized redirect URIs"**, adicione:
    - `https://nprocess-8e801-4711d.web.app/__/auth/handler`
    - `https://nprocess-8e801-4711d.firebaseapp.com/__/auth/handler`
-   - `https://nprocess.ness.com.br/__/auth/handler` (se usar domínio customizado)
+   - `https://nprocess.ness.com.br/__/auth/handler` ⭐ **OBRIGATÓRIO se usar custom domain**
+   - `https://nprocess-frontend-43006907338.us-central1.run.app/__/auth/handler` ⭐ **OBRIGATÓRIO para Cloud Run**
 
 ---
 

@@ -1,9 +1,11 @@
 """
-Serviço de IA usando Vertex AI (Gemini 1.5 Pro) para análise e geração de processos.
+Serviço de IA usando Vertex AI (Gemini) com Model Routing para otimizar custos e latência.
+Usa gemini-1.5-pro para tarefas complexas e gemini-1.5-flash para tarefas rápidas.
 """
 import json
 import logging
 import os
+from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 import google.auth
@@ -23,6 +25,40 @@ from app.schemas import (
 
 
 logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# Task Types for Model Routing
+# ============================================================================
+
+class TaskType(str, Enum):
+    """Tipos de tarefa para roteamento de modelos."""
+    COMPLEX_REASONING = "complex_reasoning"  # Análise de compliance, raciocínio complexo
+    FAST_GENERATION = "fast_generation"      # Chats simples, resumos, formatação, geração rápida
+
+
+# ============================================================================
+# Model Configuration
+# ============================================================================
+
+# Modelos disponíveis
+MODEL_PRO = "gemini-1.5-pro-latest"      # Para tarefas complexas
+MODEL_FLASH = "gemini-1.5-flash-latest"  # Para tarefas rápidas
+
+# Configurações de geração por tipo de tarefa
+GENERATION_CONFIG_PRO = GenerationConfig(
+    temperature=0.2,  # Baixa temperatura para respostas determinísticas
+    top_p=0.95,
+    top_k=40,
+    max_output_tokens=8192,
+)
+
+GENERATION_CONFIG_FLASH = GenerationConfig(
+    temperature=0.3,  # Temperatura levemente menor para garantir obediência a formatos JSON
+    top_p=0.95,
+    top_k=40,
+    max_output_tokens=8192,
+)
 
 
 # ============================================================================
@@ -116,11 +152,66 @@ Seja rigoroso mas construtivo nas recomendações.
 
 
 # ============================================================================
+# AI Factory - Model Routing
+# ============================================================================
+
+class AIFactory:
+    """Factory para criar modelos Gemini baseado no tipo de tarefa."""
+    
+    @staticmethod
+    def get_model(
+        task_type: TaskType,
+        system_instruction: Optional[str] = None,
+        custom_config: Optional[GenerationConfig] = None
+    ) -> GenerativeModel:
+        """
+        Retorna o modelo apropriado baseado no tipo de tarefa.
+        
+        Args:
+            task_type: Tipo de tarefa (COMPLEX_REASONING ou FAST_GENERATION).
+            system_instruction: Instrução de sistema (opcional).
+            custom_config: Configuração customizada (opcional).
+        
+        Returns:
+            GenerativeModel configurado.
+        """
+        # Escolhe o modelo baseado no tipo de tarefa
+        if task_type == TaskType.COMPLEX_REASONING:
+            model_name = MODEL_PRO
+            generation_config = custom_config or GENERATION_CONFIG_PRO
+            logger.debug(f"Usando {model_name} para {task_type.value}")
+        else:  # FAST_GENERATION
+            model_name = MODEL_FLASH
+            generation_config = custom_config or GENERATION_CONFIG_FLASH
+            logger.debug(f"Usando {model_name} para {task_type.value}")
+        
+        # Configurações de segurança (permissivo para contexto empresarial)
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        }
+        
+        # Cria o modelo
+        model_kwargs = {
+            "model_name": model_name,
+            "generation_config": generation_config,
+            "safety_settings": safety_settings
+        }
+        
+        if system_instruction:
+            model_kwargs["system_instruction"] = [system_instruction]
+        
+        return GenerativeModel(**model_kwargs)
+
+
+# ============================================================================
 # AI Service Class
 # ============================================================================
 
 class AIService:
-    """Serviço para interação com Vertex AI Gemini."""
+    """Serviço para interação com Vertex AI Gemini com Model Routing."""
 
     def __init__(self, project_id: Optional[str] = None, location: str = "us-central1"):
         """
@@ -135,22 +226,6 @@ class AIService:
 
         # Inicializa Vertex AI
         vertexai.init(project=self.project_id, location=self.location)
-
-        # Configurações de geração
-        self.generation_config = GenerationConfig(
-            temperature=0.2,  # Baixa temperatura para respostas mais determinísticas
-            top_p=0.95,
-            top_k=40,
-            max_output_tokens=8192,
-        )
-
-        # Configurações de segurança (permissivo para contexto empresarial)
-        self.safety_settings = {
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-        }
 
         logger.info(f"AIService inicializado: project={self.project_id}, location={self.location}")
 
@@ -171,7 +246,8 @@ class AIService:
     async def generate_diagram(
         self,
         description: str,
-        context: Optional[str] = None
+        context: Optional[str] = None,
+        task_type: TaskType = TaskType.FAST_GENERATION
     ) -> DiagramGenerateResponse:
         """
         Gera diagrama BPMN a partir de descrição textual.
@@ -179,6 +255,8 @@ class AIService:
         Args:
             description: Descrição do processo de negócio.
             context: Contexto adicional (opcional).
+            task_type: Tipo de tarefa. Por padrão usa FAST_GENERATION (Flash).
+                      Use COMPLEX_REASONING (Pro) para processos muito complexos.
 
         Returns:
             DiagramGenerateResponse com texto normalizado e código Mermaid.
@@ -189,16 +267,13 @@ class AIService:
             if context:
                 user_prompt += f"\n\nContexto Adicional:\n{context}"
 
-            # Cria o modelo com system instruction
-            # Usa gemini-1.5-pro-latest para garantir compatibilidade
-            model = GenerativeModel(
-                model_name="gemini-1.5-pro-latest",
-                system_instruction=[PROCESS_ANALYST_SYSTEM_PROMPT],
-                generation_config=self.generation_config,
-                safety_settings=self.safety_settings
+            # Cria o modelo usando AIFactory com roteamento baseado em task_type
+            model = AIFactory.get_model(
+                task_type=task_type,
+                system_instruction=PROCESS_ANALYST_SYSTEM_PROMPT
             )
 
-            logger.info("Gerando diagrama com Gemini...")
+            logger.info(f"Gerando diagrama com {model._model_name} (task_type={task_type.value})...")
             response = model.generate_content(user_prompt)
 
             # Parse da resposta JSON
@@ -228,21 +303,29 @@ class AIService:
         process_data: Dict,
         retrieved_regulations: List[Dict],
         domain: str,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
+        task_type: TaskType = TaskType.COMPLEX_REASONING
     ) -> Tuple[float, str, List[ComplianceGap], List[ComplianceSuggestion]]:
         """
         Analisa compliance do processo contra regulamentações.
+        SEMPRE usa COMPLEX_REASONING (gemini-1.5-pro) para análise de compliance.
 
         Args:
             process_data: Dados completos do processo (incluindo mermaid_code, nodes, etc.)
             retrieved_regulations: Lista de regulamentos recuperados via RAG.
             domain: Domínio regulatório.
             additional_context: Contexto adicional (opcional).
+            task_type: Tipo de tarefa. Por padrão COMPLEX_REASONING (não recomendado alterar).
 
         Returns:
             Tuple com (overall_score, summary, gaps, suggestions).
         """
         try:
+            # Força COMPLEX_REASONING para análise de compliance
+            if task_type != TaskType.COMPLEX_REASONING:
+                logger.warning(f"analyze_compliance sempre usa COMPLEX_REASONING. Ignorando task_type={task_type}")
+                task_type = TaskType.COMPLEX_REASONING
+
             # Monta o contexto do processo
             process_context = f"""
 PROCESSO A SER ANALISADO:
@@ -273,16 +356,13 @@ Fluxos:
             if additional_context:
                 user_prompt += f"\n\nCONTEXTO ADICIONAL:\n{additional_context}"
 
-            # Cria o modelo com system instruction
-            # Usa gemini-1.5-pro-latest para garantir compatibilidade
-            model = GenerativeModel(
-                model_name="gemini-1.5-pro-latest",
-                system_instruction=[COMPLIANCE_AUDITOR_SYSTEM_PROMPT],
-                generation_config=self.generation_config,
-                safety_settings=self.safety_settings
+            # Cria o modelo usando AIFactory com COMPLEX_REASONING
+            model = AIFactory.get_model(
+                task_type=task_type,
+                system_instruction=COMPLIANCE_AUDITOR_SYSTEM_PROMPT
             )
 
-            logger.info(f"Analisando compliance para domínio: {domain}")
+            logger.info(f"Analisando compliance para domínio: {domain} usando {model._model_name}")
             response = model.generate_content(user_prompt)
 
             # Parse da resposta JSON
@@ -315,15 +395,21 @@ Fluxos:
             logger.error(f"Erro ao analisar compliance: {e}")
             raise
 
-
     async def generate_rag_answer(
         self,
         query: str,
-        context: str
+        context: str,
+        task_type: TaskType = TaskType.FAST_GENERATION
     ) -> str:
         """
         Generates a RAG answer based on retrieved context.
         Strictly grounds the answer in the provided context.
+        Usa FAST_GENERATION (Flash) por padrão para respostas rápidas.
+
+        Args:
+            query: Pergunta do usuário.
+            context: Contexto recuperado via RAG.
+            task_type: Tipo de tarefa. Por padrão FAST_GENERATION (Flash).
         """
         system_prompt = """You are a Compliance Assistant.
         Answer the user's question STRICTLY based on the provided Context.
@@ -339,13 +425,12 @@ Fluxos:
         """
         
         try:
-            model = GenerativeModel(
-                model_name="gemini-1.5-pro-latest",
-                system_instruction=[system_prompt],
-                generation_config=self.generation_config,
-                safety_settings=self.safety_settings
+            model = AIFactory.get_model(
+                task_type=task_type,
+                system_instruction=system_prompt
             )
             
+            logger.debug(f"Gerando resposta RAG com {model._model_name} (task_type={task_type.value})")
             response = model.generate_content(user_prompt)
             return response.text
         except Exception as e:
@@ -355,10 +440,17 @@ Fluxos:
     async def generate_document(
         self,
         doc_type: str,
-        context: str
+        context: str,
+        task_type: TaskType = TaskType.FAST_GENERATION
     ) -> Dict:
         """
         Generates a structured document (Title + Sections).
+        Usa FAST_GENERATION (Flash) por padrão.
+
+        Args:
+            doc_type: Tipo de documento.
+            context: Contexto para geração.
+            task_type: Tipo de tarefa. Por padrão FAST_GENERATION (Flash).
         """
         system_prompt = """You are a Legal & Compliance Document Expert.
         Generate a structured JSON document based on the request.
@@ -380,13 +472,12 @@ Fluxos:
         user_prompt = f"Type: {doc_type}\nContext: {context}"
         
         try:
-            model = GenerativeModel(
-                model_name="gemini-1.5-pro-latest",
-                system_instruction=[system_prompt],
-                generation_config=self.generation_config,
-                safety_settings=self.safety_settings
+            model = AIFactory.get_model(
+                task_type=task_type,
+                system_instruction=system_prompt
             )
             
+            logger.debug(f"Gerando documento com {model._model_name} (task_type={task_type.value})")
             response = model.generate_content(user_prompt)
             
             # Clean JSON

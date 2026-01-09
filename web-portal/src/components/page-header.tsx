@@ -1,6 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface PageHeaderProps {
   title: string
@@ -11,14 +12,14 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, children, className = '' }: PageHeaderProps) {
   return (
-    <div className={`sticky top-0 z-10 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 border-b border-white/20 dark:border-gray-800/50 backdrop-blur-sm ${className}`}>
-      <div className="flex items-center justify-between h-16 px-6 lg:px-8">
+    <div className={cn("sticky top-0 z-10 bg-zinc-950 border-b border-zinc-800", className)}>
+      <div className="flex items-center justify-between h-14 px-6">
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+          <h1 className="text-lg font-medium text-zinc-300 truncate">
             {title}
           </h1>
           {description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-0.5">
+            <p className="text-xs text-zinc-500 truncate mt-0.5">
               {description}
             </p>
           )}

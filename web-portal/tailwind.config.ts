@@ -11,9 +11,12 @@ const config: Config = {
     extend: {
       fontFamily: {
         montserrat: ['var(--font-montserrat)', 'sans-serif'],
+        brand: ['var(--font-brand)', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         // ness. brand colors
+        'brand-ness': '#00ade8',
         'ness-blue': '#00ade8',
         'ness-cyan': '#00ade9',
 
@@ -27,16 +30,16 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
 
-        // Primary colors (ness. cyan)
+        // Primary colors (n.process cyan #00ade8)
         primary: {
-          DEFAULT: '#00ade9',
+          DEFAULT: '#00ade8',
           foreground: 'hsl(var(--primary-foreground))',
           50: '#e6f9ff',
           100: '#b3f0ff',
           200: '#80e6ff',
           300: '#4dddff',
           400: '#1ad4ff',
-          500: '#00ade9',
+          500: '#00ade8',
           600: '#0096cc',
           700: '#007fad',
           800: '#00688f',

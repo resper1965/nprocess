@@ -69,20 +69,39 @@ export default function LoginPage() {
       setIsGoogleLoading(true)
       setError('')
       
-      // Direct call to loginWithGoogle - context handles everything
+      // Direct call to loginWithGoogle - onAuthStateChanged will handle everything
       await loginWithGoogle()
       
       // Success: useEffect watching `user` will handle redirect automatically
+      // No manual redirect needed - onAuthStateChanged handles it
     } catch (error: any) {
       console.error('Google login error:', error)
       
-      const errorMessage = error?.message || 'Erro ao fazer login com Google'
+      let errorMessage = 'Erro ao fazer login com Google'
       
-      // Show toast for errors
-      toast.error('Erro ao fazer login', {
-        description: errorMessage,
-        duration: 5000
-      })
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+      
+      // Show specific toast for popup blocked
+      if (error?.code === 'auth/popup-blocked' || errorMessage.toLowerCase().includes('popup bloqueado')) {
+        toast.error('Popup bloqueado', {
+          description: 'Por favor, permita popups para este site e tente novamente.',
+          duration: 5000
+        })
+      } else if (error?.code === 'auth/popup-closed-by-user' || error?.code === 'auth/cancelled-popup-request') {
+        toast.info('Login cancelado', {
+          description: 'Você fechou a janela de login. Tente novamente se desejar continuar.',
+          duration: 3000
+        })
+      } else {
+        toast.error('Erro ao fazer login', {
+          description: errorMessage,
+          duration: 5000
+        })
+      }
       
       setError(errorMessage)
     } finally {

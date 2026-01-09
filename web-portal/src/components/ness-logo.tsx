@@ -31,10 +31,10 @@ const sizeClasses = {
 /**
  * n.process Logo Component
  * 
- * Renders the n.process brand name with:
- * - Font: Montserrat Medium
- * - Text: black or white (auto-adapts to theme)
- * - Dot: #00ade8 (ness blue)
+ * Renders the "n.process" brand name with:
+ * - Font: Montserrat Medium (font-brand)
+ * - Text: white (dark mode) or black (light mode)
+ * - Dot: #00ade8 (brand-ness cyan)
  */
 export function NProcessLogo({ size = 'md', variant = 'auto', className }: NProcessLogoProps) {
   const textColor = variant === 'auto'
@@ -44,10 +44,9 @@ export function NProcessLogo({ size = 'md', variant = 'auto', className }: NProc
     : 'text-black'
 
   return (
-    <div className={cn('font-montserrat font-medium select-none', sizeClasses[size], className)}>
-      <span className={textColor}>n</span>
+    <div className={cn('font-brand font-medium select-none tracking-tight', sizeClasses[size], className)}>
+      <span className={textColor}>n.process</span>
       <span className="text-[#00ade8]">.</span>
-      <span className={textColor}>process</span>
     </div>
   )
 }

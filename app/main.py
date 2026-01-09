@@ -94,11 +94,37 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="n.process API",
-    description="Motor de Compliance e Modelagem de Processos (Stateless)",
+    description="""
+    ## Motor de Compliance e Modelagem de Processos
+    
+    API REST stateless para análise de compliance e geração de diagramas BPMN.
+    
+    ### Autenticação
+    - **API Key**: Envie no header `X-API-Key` para endpoints protegidos
+    - **Endpoints públicos**: `/health`, `/docs`, `/redoc`
+    
+    ### Módulos Principais
+    - **Modeling**: Geração de diagramas BPMN a partir de texto
+    - **Compliance**: Análise de compliance de processos
+    - **Documents**: Geração de documentação de compliance
+    
+    ### Documentação
+    - **Swagger UI**: `/docs` - Interface interativa
+    - **ReDoc**: `/redoc` - Documentação alternativa
+    - **OpenAPI JSON**: `/openapi.json` - Especificação OpenAPI
+    """,
     version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    contact={
+        "name": "n.process Support",
+        "url": "https://nprocess.ness.com.br",
+    },
+    license_info={
+        "name": "Proprietary",
+    },
 )
 
 # Register New Modules (Constitution Phase)
@@ -180,13 +206,27 @@ async def general_exception_handler(request, exc: Exception):
 # Health Check
 # ============================================================================
 
-@app.get("/", response_model=HealthCheckResponse, tags=["Health"])
+@app.get(
+    "/",
+    response_model=HealthCheckResponse,
+    tags=["Health"],
+    summary="Root endpoint",
+    description="Retorna informações básicas do serviço. Endpoint público, não requer autenticação."
+)
 async def root():
+    """Root endpoint - informações básicas do serviço"""
     return HealthCheckResponse(service="n.process engine", version="2.0.0")
 
 
-@app.get("/health", response_model=HealthCheckResponse, tags=["Health"])
+@app.get(
+    "/health",
+    response_model=HealthCheckResponse,
+    tags=["Health"],
+    summary="Health check",
+    description="Verifica o status de saúde do serviço. Endpoint público, não requer autenticação."
+)
 async def health_check():
+    """Health check endpoint - verifica status do serviço"""
     return HealthCheckResponse(service="n.process engine", version="2.0.0")
 
 
@@ -198,10 +238,28 @@ async def health_check():
     "/v1/modeling/generate",
     response_model=DiagramGenerateResponse,
     tags=["Modeling"],
-    summary="Gera diagrama BPMN a partir de texto"
+    summary="Gera diagrama BPMN a partir de texto",
+    description="""
+    Gera um diagrama BPMN (Business Process Model and Notation) a partir de uma descrição textual de processo.
+    
+    **Requisitos:**
+    - API Key no header `X-API-Key`
+    - Descrição do processo em português ou inglês
+    
+    **Exemplo de uso:**
+    ```json
+    {
+      "process_description": "Processo de onboarding de novos clientes: recebe dados, valida documentos, cria conta, envia email de boas-vindas"
+    }
+    ```
+    """
 )
 async def generate_diagram(request: DiagramGenerateRequest):
-    """Gera diagrama BPMN usando IA."""
+    """
+    Gera diagrama BPMN usando IA (Gemini 1.5 Pro).
+    
+    Retorna o diagrama em formato XML BPMN 2.0.
+    """
     try:
         service = get_modeling_service()
         return await service.generate_diagram(request)
@@ -220,7 +278,26 @@ async def generate_diagram(request: DiagramGenerateRequest):
     "/v1/compliance/analyze",
     response_model=ComplianceAnalyzeResponse,
     tags=["Compliance"],
-    summary="Analisa compliance de um processo (Stateless)"
+    summary="Analisa compliance de um processo (Stateless)",
+    description="""
+    Analisa a conformidade de um processo com frameworks regulatórios (LGPD, SOX, ISO, etc.).
+    
+    **Requisitos:**
+    - API Key no header `X-API-Key`
+    - Descrição do processo ou BPMN XML
+    - Domínio de compliance (LGPD, SOX, ISO27001, etc.)
+    
+    **Exemplo de uso:**
+    ```json
+    {
+      "process_description": "Coleta de dados pessoais de clientes",
+      "domain": "LGPD",
+      "process_bpmn": null
+    }
+    ```
+    
+    **Nota:** Este endpoint é stateless - não persiste o processo, apenas registra o log da auditoria.
+    """
 )
 async def analyze_compliance(request: ComplianceAnalyzeRequest):
     """

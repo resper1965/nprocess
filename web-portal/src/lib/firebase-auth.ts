@@ -5,8 +5,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   GoogleAuthProvider,
   sendPasswordResetEmail,
   sendEmailVerification,
@@ -127,11 +125,10 @@ const isEdgeBrowser = (): boolean => {
 };
 
 /**
- * Login with Google using redirect (more reliable than popup)
- * This avoids issues with third-party cookies being blocked
- * Special handling for Edge browser with Tracking Prevention
+ * Login with Google using popup
+ * Returns UserCredential or null if popup is blocked/cancelled
  */
-export const loginWithGoogle = async (): Promise<void> => {
+export const loginWithGoogle = async (): Promise<UserCredential | null> => {
   console.log('loginWithGoogle: Starting Google login process...');
   
   if (!auth) {
@@ -139,45 +136,64 @@ export const loginWithGoogle = async (): Promise<void> => {
     throw new Error('Firebase Auth is not initialized. Please check your configuration.');
   }
   
-  console.log('loginWithGoogle: Firebase Auth is initialized', { authDomain: auth.app.options.authDomain });
+  // Check if using custom domain
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'N/A';
+  const isCustomDomain = hostname === 'nprocess.ness.com.br';
   
-  // Detect Edge browser
-  const isEdge = isEdgeBrowser();
-  console.log('loginWithGoogle: Browser detected', { isEdge, userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'N/A' });
+  console.log('loginWithGoogle: Firebase Auth is initialized', { 
+    authDomain: auth.app.options.authDomain,
+    currentHostname: hostname,
+    isCustomDomain: isCustomDomain
+  });
+  
+  // Warn if using custom domain
+  if (isCustomDomain) {
+    console.warn('⚠️ Using custom domain nprocess.ness.com.br');
+    console.warn('   Ensure it is configured in:');
+    console.warn('   1. Firebase Auth - Authorized domains');
+    console.warn('   2. Google OAuth - Authorized JavaScript origins');
+    console.warn('   3. Google OAuth - Authorized redirect URIs');
+  }
   
   try {
     const provider = new GoogleAuthProvider();
     provider.addScope('email');
     provider.addScope('profile');
     
-    // For Edge, set custom parameters to help with Tracking Prevention
-    if (isEdge) {
-      // Set custom parameters that may help with Edge's Tracking Prevention
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      console.log('loginWithGoogle: Edge detected - using custom parameters');
-    }
-    
     console.log('loginWithGoogle: GoogleAuthProvider created');
     
-    // Store the current URL to redirect back after Google auth
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('auth_redirect_url', window.location.pathname);
-      console.log('loginWithGoogle: Stored redirect URL:', window.location.pathname);
+    console.log('loginWithGoogle: Calling signInWithPopup...');
+    const result = await signInWithPopup(auth, provider);
+    console.log('loginWithGoogle: signInWithPopup completed successfully', { uid: result.user.uid });
+    
+    // Verificar se o resultado é válido
+    if (!result) {
+      console.log('loginWithGoogle: signInWithPopup returned null');
+      return null;
     }
     
-    console.log('loginWithGoogle: Calling signInWithRedirect...');
+    // User successfully signed in with Google
+    const db = getDb();
+    if (result.user && db) {
+      // Create/update user profile in Firestore (non-blocking)
+      setDoc(
+        doc(db, 'users', result.user.uid),
+        {
+          email: result.user.email,
+          name: result.user.displayName || '',
+          role: 'user',
+          emailVerified: result.user.emailVerified,
+          provider: 'google',
+          created_at: serverTimestamp(),
+          updated_at: serverTimestamp()
+        },
+        { merge: true }
+      ).catch((error: any) => {
+        console.error('Error creating user profile:', error);
+      });
+    }
     
-    // Use redirect instead of popup to avoid third-party cookie issues
-    // signInWithRedirect should work even with Tracking Prevention as it's a full-page redirect
-    await signInWithRedirect(auth, provider);
-    
-    console.log('loginWithGoogle: signInWithRedirect called successfully - redirect should happen now');
-    
-    // Note: signInWithRedirect doesn't return a credential
-    // The redirect will happen and the user will be redirected back
-    // Use handleGoogleRedirect() to process the result after redirect
+    return result;
   } catch (error: any) {
     console.error('loginWithGoogle: Error initiating Google login:', error);
     console.error('loginWithGoogle: Error details:', {
@@ -187,22 +203,17 @@ export const loginWithGoogle = async (): Promise<void> => {
       name: error?.name
     });
     
-    // Check for tracking prevention / storage blocked errors
-    const errorMessageLower = (error?.message || '').toLowerCase();
-    const isTrackingPrevention = errorMessageLower.includes('tracking prevention') || 
-                                  errorMessageLower.includes('storage') ||
-                                  errorMessageLower.includes('blocked') ||
-                                  error?.code === 'auth/network-request-failed';
-    
-    // Provide more specific error messages
     let errorMessage = 'Erro ao iniciar login com Google. Por favor, tente novamente.';
     
-    if (isTrackingPrevention) {
-      errorMessage = 'Seu navegador está bloqueando o acesso necessário para o login com Google. ' +
-                     'Por favor, desative a "Prevenção de Rastreamento" nas configurações do navegador ' +
-                     'ou use outro navegador (Chrome, Firefox).';
-    } else if (error?.code) {
+    if (error?.code) {
       switch (error.code) {
+        case 'auth/popup-closed-by-user':
+        case 'auth/cancelled-popup-request':
+          errorMessage = 'Login cancelado. Por favor, tente novamente.';
+          break;
+        case 'auth/popup-blocked':
+          errorMessage = 'Popup bloqueado pelo navegador. Por favor, permita popups para este site.';
+          break;
         case 'auth/operation-not-allowed':
           errorMessage = 'Login com Google não está habilitado. Entre em contato com o suporte.';
           break;
@@ -210,11 +221,14 @@ export const loginWithGoogle = async (): Promise<void> => {
           errorMessage = 'Configuração do Firebase não encontrada. Verifique as configurações.';
           break;
         case 'auth/unauthorized-domain':
-          errorMessage = 'Domínio não autorizado. Verifique as configurações do Firebase.';
+          if (isCustomDomain) {
+            errorMessage = 'Domínio customizado não autorizado. Adicione "nprocess.ness.com.br" em:\n1. Firebase Auth → Authorized domains\n2. Google OAuth → Authorized JavaScript origins\n3. Google OAuth → Authorized redirect URIs';
+          } else {
+            errorMessage = 'Domínio não autorizado. Verifique as configurações do Firebase.';
+          }
           break;
         case 'auth/network-request-failed':
-          errorMessage = 'Erro de rede. Verifique sua conexão e tente novamente. ' +
-                         'Se o problema persistir, pode ser bloqueio de rastreamento do navegador.';
+          errorMessage = 'Erro de rede. Verifique sua conexão e tente novamente.';
           break;
         default:
           errorMessage = error.message || errorMessage;
@@ -227,108 +241,7 @@ export const loginWithGoogle = async (): Promise<void> => {
   }
 };
 
-/**
- * Handle Google login redirect result
- * Call this after a page load to check if user returned from Google OAuth
- */
-export const handleGoogleRedirect = async (): Promise<UserCredential | null> => {
-  if (!auth) {
-    console.log('handleGoogleRedirect: Auth not initialized');
-    return null;
-  }
-  
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : 'N/A';
-  const urlParams = typeof window !== 'undefined' ? window.location.search : '';
-  const fullUrl = typeof window !== 'undefined' ? window.location.href : 'N/A';
-  const hostname = typeof window !== 'undefined' ? window.location.hostname : 'N/A';
-  const isCustomDomain = hostname === 'nprocess.ness.com.br';
-  
-  console.log('handleGoogleRedirect: Calling getRedirectResult...', { 
-    currentUser: auth.currentUser?.uid || 'none',
-    path: currentPath,
-    urlParams: urlParams,
-    fullUrl: fullUrl,
-    hostname: hostname,
-    isCustomDomain: isCustomDomain,
-    authDomain: auth.app.options.authDomain
-  });
-  
-  // Warn if using custom domain but it might not be configured
-  if (isCustomDomain) {
-    console.log('⚠️ Using custom domain nprocess.ness.com.br - ensure it is configured in:');
-    console.log('   1. Firebase Auth - Authorized domains');
-    console.log('   2. Google OAuth - Authorized JavaScript origins');
-    console.log('   3. Google OAuth - Authorized redirect URIs');
-  }
-  
-  try {
-    const result = await getRedirectResult(auth);
-    
-    console.log('handleGoogleRedirect: getRedirectResult returned', { 
-      hasResult: !!result, 
-      hasUser: !!result?.user,
-      uid: result?.user?.uid || 'none',
-      email: result?.user?.email || 'none',
-      currentUserAfter: auth.currentUser?.uid || 'none',
-      operationType: result?.operationType || 'none'
-    });
-    
-    if (result) {
-      console.log('handleGoogleRedirect: Google redirect result received', { uid: result.user.uid, email: result.user.email });
-      
-      // User successfully signed in with Google
-      const db = getDb();
-      if (result.user && db) {
-        // Create/update user profile in Firestore (non-blocking)
-        setDoc(
-          doc(db, 'users', result.user.uid),
-          {
-            email: result.user.email,
-            name: result.user.displayName || '',
-            role: 'user',
-            emailVerified: result.user.emailVerified,
-            provider: 'google',
-            created_at: serverTimestamp(),
-            updated_at: serverTimestamp()
-          },
-          { merge: true }
-        ).catch((error: any) => {
-          // Log error but don't fail the login
-          console.error('Error creating user profile:', error);
-        });
-      }
-      
-      return result;
-    }
-    
-    // If no redirect result but currentUser exists, user might have already been authenticated
-    if (auth.currentUser) {
-      console.log('handleGoogleRedirect: No redirect result but currentUser exists', { uid: auth.currentUser.uid });
-      // Return a mock credential-like object
-      return {
-        user: auth.currentUser,
-        providerId: 'google.com',
-        operationType: 'signIn'
-      } as UserCredential;
-    }
-    
-    console.log('handleGoogleRedirect: No redirect result and no currentUser');
-    return null;
-  } catch (error: any) {
-    console.error('Error handling Google redirect:', error);
-    
-    // Provide user-friendly error messages
-    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-      throw new Error('Login cancelado. Por favor, tente novamente.');
-    } else if (error.code === 'auth/popup-blocked') {
-      throw new Error('Popup bloqueado pelo navegador. Por favor, permita popups para este site.');
-    } else if (error.message) {
-      throw new Error(error.message);
-    } else {
-      throw new Error('Erro ao fazer login com Google. Por favor, tente novamente.');
-    }
-  }
-};
+// Removed handleGoogleRedirect - we now use signInWithPopup exclusively
 
 /**
  * Reset password

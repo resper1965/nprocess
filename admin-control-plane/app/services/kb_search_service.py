@@ -1,6 +1,12 @@
 """
 Knowledge Base Search Service
-Integrates with Vertex AI Search for vector-based document search.
+Gemini RAG Implementation: Vector-based document search with Vertex AI Search + Gemini generation.
+
+Architecture:
+- Vector Store: Vertex AI Search (Discovery Engine) with Google embeddings
+- Embeddings: Google text-embedding-004 (Gemini-based)
+- LLM: Gemini 1.5 Pro/Flash for RAG generation
+- Chunking: Custom strategies (Standard/Legal) for optimal retrieval
 """
 
 import os
@@ -22,8 +28,15 @@ DATASTORE_ID = os.getenv("VERTEX_DATASTORE_ID", "nprocess-kb-central")
 
 class KBSearchService:
     """
-    Service for ingesting and searching documents in Knowledge Bases.
-    Uses a central Vertex AI Search datastore with kb_id metadata for filtering.
+    Gemini RAG Service for Knowledge Bases.
+    
+    Implements Retrieval-Augmented Generation (RAG) using:
+    - Vertex AI Search (Discovery Engine) for vector storage and retrieval
+    - Google Embedding Models (text-embedding-004) for semantic search
+    - Gemini 1.5 Pro/Flash for context-aware response generation
+    
+    Documents are chunked, embedded, and indexed for fast semantic search.
+    Queries retrieve relevant chunks, which are then used as context for Gemini.
     """
     
     def __init__(self):
@@ -75,8 +88,15 @@ class KBSearchService:
         replace_existing: bool = False
     ) -> Dict[str, Any]:
         """
-        Ingest documents into a Knowledge Base.
-        Splits content into chunks and imports them into Vertex AI Search.
+        Ingest documents into a Knowledge Base (Gemini RAG Pipeline).
+        
+        Process:
+        1. Split content into chunks (Standard or Legal strategy)
+        2. Generate embeddings using Google embedding models (Gemini-based)
+        3. Index chunks + embeddings in Vertex AI Search
+        4. Store metadata for filtering and context
+        
+        The resulting KB is ready for RAG: semantic search + Gemini generation.
         """
         start_time = time.time()
         errors = []
@@ -223,7 +243,12 @@ class KBSearchService:
         top_k: int = 5
     ) -> List[Dict[str, Any]]:
         """
-        Search across specified Knowledge Bases using Vertex AI Search.
+        Semantic search across Knowledge Bases (Gemini RAG - Retrieval Phase).
+        
+        Uses Vertex AI Search with Google embeddings for semantic similarity.
+        Results are ranked by relevance and can be used as context for Gemini generation.
+        
+        This is the "Retrieval" part of RAG. The "Generation" happens in chat/completion endpoints.
         """
         client = self._get_search_client()
         

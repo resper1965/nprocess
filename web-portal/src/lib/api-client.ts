@@ -50,7 +50,7 @@ function getAuthHeaders(): HeadersInit {
 
 export async function listAPIKeys(): Promise<APIResponse<APIKey[]>> {
   try {
-    const response = await fetch(`${API_URL}/v1/admin/apikeys`, {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/apikeys`, {
       headers: getAuthHeaders(),
     });
 
@@ -68,7 +68,7 @@ export async function listAPIKeys(): Promise<APIResponse<APIKey[]>> {
 
 export async function createAPIKey(request: APIKeyCreate): Promise<APIResponse<APIKey>> {
   try {
-    const response = await fetch(`${API_URL}/v1/admin/apikeys`, {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/apikeys`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(request),
@@ -88,7 +88,7 @@ export async function createAPIKey(request: APIKeyCreate): Promise<APIResponse<A
 
 export async function deleteAPIKey(keyId: string): Promise<APIResponse<void>> {
   try {
-    const response = await fetch(`${API_URL}/v1/admin/apikeys/${keyId}`, {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/apikeys/${keyId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -106,7 +106,7 @@ export async function deleteAPIKey(keyId: string): Promise<APIResponse<void>> {
 
 export async function revokeAPIKey(keyId: string): Promise<APIResponse<void>> {
   try {
-    const response = await fetch(`${API_URL}/v1/admin/apikeys/${keyId}/revoke`, {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/apikeys/${keyId}/revoke`, {
       method: 'POST',
       headers: getAuthHeaders(),
     });
@@ -122,10 +122,13 @@ export async function revokeAPIKey(keyId: string): Promise<APIResponse<void>> {
   }
 }
 
+// Admin API URL (separate from main API)
+const ADMIN_API_URL = process.env.NEXT_PUBLIC_ADMIN_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 // Admin API client for hooks that need axios-like interface
 const createAdminApi = (): AxiosInstance => {
   const instance = axios.create({
-    baseURL: API_URL,
+    baseURL: ADMIN_API_URL,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -144,3 +147,184 @@ const createAdminApi = (): AxiosInstance => {
 };
 
 export const adminApi = createAdminApi();
+
+// ============================================================================
+// Knowledge Base Interfaces and Functions
+// ============================================================================
+
+export interface KnowledgeBase {
+  kb_id: string;
+  name: string;
+  description: string;
+  category: string;
+  status: 'draft' | 'active' | 'archived';
+  price_monthly_cents: number;
+  update_frequency: 'daily' | 'weekly' | 'monthly' | 'on_demand';
+  document_count: number;
+  chunk_count: number;
+  last_updated_at: string | null;
+  created_at: string;
+  created_by: string;
+  tags: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface KBCreate {
+  name: string;
+  description: string;
+  category: string;
+  price_monthly_cents: number;
+  update_frequency?: 'daily' | 'weekly' | 'monthly' | 'on_demand';
+  tags?: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface KBIngestDocument {
+  content: string;
+  source: string;
+  metadata?: Record<string, any>;
+}
+
+export interface KBIngestRequest {
+  documents: KBIngestDocument[];
+  replace_existing?: boolean;
+}
+
+export interface KBIngestResponse {
+  kb_id: string;
+  documents_ingested: number;
+  chunks_created: number;
+  processing_time_ms: number;
+  errors: string[];
+}
+
+// List all Knowledge Bases
+export async function listKnowledgeBases(status?: 'draft' | 'active' | 'archived'): Promise<APIResponse<KnowledgeBase[]>> {
+  try {
+    const url = status 
+      ? `${ADMIN_API_URL}/v1/admin/kbs?status=${status}`
+      : `${ADMIN_API_URL}/v1/admin/kbs`;
+    
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Failed to fetch knowledge bases' }));
+      return { error: errorData.detail || 'Failed to fetch knowledge bases' };
+    }
+
+    const data = await response.json();
+    return { data: Array.isArray(data) ? data : [] };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to fetch knowledge bases' };
+  }
+}
+
+// Create a new Knowledge Base
+export async function createKnowledgeBase(request: KBCreate): Promise<APIResponse<KnowledgeBase>> {
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/kbs`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Failed to create knowledge base' }));
+      return { error: errorData.detail || 'Failed to create knowledge base' };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to create knowledge base' };
+  }
+}
+
+// Get a specific Knowledge Base
+export async function getKnowledgeBase(kbId: string): Promise<APIResponse<KnowledgeBase>> {
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/kbs/${kbId}`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Failed to fetch knowledge base' }));
+      return { error: errorData.detail || 'Failed to fetch knowledge base' };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to fetch knowledge base' };
+  }
+}
+
+// Ingest documents into a Knowledge Base
+export async function ingestKnowledgeBaseDocuments(
+  kbId: string,
+  request: KBIngestRequest
+): Promise<APIResponse<KBIngestResponse>> {
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/kbs/${kbId}/ingest`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Failed to ingest documents' }));
+      return { error: errorData.detail || 'Failed to ingest documents' };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to ingest documents' };
+  }
+}
+
+// Publish a Knowledge Base to marketplace
+export async function publishKnowledgeBase(kbId: string): Promise<APIResponse<KnowledgeBase>> {
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/kbs/${kbId}/publish`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Failed to publish knowledge base' }));
+      return { error: errorData.detail || 'Failed to publish knowledge base' };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to publish knowledge base' };
+  }
+}
+
+// Update a Knowledge Base
+export async function updateKnowledgeBase(
+  kbId: string,
+  updates: Partial<KBCreate>
+): Promise<APIResponse<KnowledgeBase>> {
+  try {
+    const response = await fetch(`${ADMIN_API_URL}/v1/admin/kbs/${kbId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Failed to update knowledge base' }));
+      return { error: errorData.detail || 'Failed to update knowledge base' };
+    }
+
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Failed to update knowledge base' };
+  }
+}

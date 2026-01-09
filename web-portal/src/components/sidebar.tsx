@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { NessLogo } from './ness-logo'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n/context'
 import { Badge } from '@/components/ui/badge'
@@ -54,16 +53,18 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex h-screen w-64 flex-col glass-strong dark:glass-strong-dark border-r border-white/20 dark:border-gray-800/50">
-      {/* Logo - Header fixo com mesma altura do header da página */}
-      <div className="sticky top-0 z-20 flex h-16 items-center justify-start px-3 border-b border-white/10 dark:border-gray-800/30 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 backdrop-blur-sm">
-        <Link href="/dashboard" className="pl-3">
-          <NessLogo size="lg" />
+    <div className="flex h-screen w-64 flex-col bg-zinc-950 border-r border-zinc-800">
+      {/* Logo - Header fixo */}
+      <div className="flex h-16 items-center justify-start px-6 border-b border-zinc-800">
+        <Link href="/dashboard">
+          <span className="font-brand font-medium text-2xl tracking-tight text-white">
+            n.process<span className="text-[#00ade8]">.</span>
+          </span>
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 pt-6 lg:pt-8 pb-4 overflow-y-auto">
+      <nav className="flex-1 space-y-1 px-3 pt-6 pb-4 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -71,15 +72,15 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                'group flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors relative',
                 isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-gray-800/50 glass-hover dark:glass-hover-dark'
+                  ? 'text-white border-l-2 border-brand-ness'
+                  : 'text-zinc-400 hover:text-zinc-300'
               )}
             >
               <item.icon className={cn(
                 'h-5 w-5 flex-shrink-0 transition-colors',
-                isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200'
+                isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'
               )} />
               {item.name}
             </Link>
@@ -88,7 +89,7 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Navigation */}
-      <div className="border-t border-white/10 dark:border-gray-800/30 px-3 py-4 space-y-1">
+      <div className="border-t border-zinc-800 px-3 py-4 space-y-1">
         {bottomNavigation.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -96,15 +97,15 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                'group flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors relative',
                 isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-gray-800/50'
+                  ? 'text-white border-l-2 border-brand-ness'
+                  : 'text-zinc-400 hover:text-zinc-300'
               )}
             >
               <item.icon className={cn(
                 'h-5 w-5 flex-shrink-0 transition-colors',
-                isActive ? 'text-white' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200'
+                isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'
               )} />
               {item.name}
             </Link>
@@ -114,7 +115,7 @@ export function Sidebar() {
         {/* Logout Button */}
         <button
           onClick={() => logout()}
-          className="w-full group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="w-full group flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors text-zinc-400 hover:text-red-400"
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
           {t.common.signOut}
@@ -122,35 +123,30 @@ export function Sidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="border-t border-white/10 dark:border-gray-800/30 p-4">
+      <div className="border-t border-zinc-800 p-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold">
+          <div className="h-10 w-10 rounded-full bg-brand-ness flex items-center justify-center text-white font-semibold text-sm">
             {getInitials()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-medium text-white truncate">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-xs text-zinc-400 truncate">
               {user?.email || "Loading..."}
             </p>
             {role && (
               <div className="mt-1.5">
                 <Badge 
-                  variant={
-                    role === 'super_admin' ? 'default' :
-                    role === 'admin' ? 'default' :
-                    role === 'finops_manager' ? 'outline' :
-                    role === 'auditor' ? 'outline' :
-                    'outline'
-                  }
-                  className={`text-xs px-2 py-0.5 ${
-                    role === 'super_admin' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
-                    role === 'admin' ? 'bg-primary/20 text-primary border-primary/30' :
-                    role === 'finops_manager' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                    role === 'auditor' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
-                  }`}
+                  variant="outline"
+                  className={cn(
+                    "text-xs px-2 py-0.5 border-zinc-800",
+                    role === 'super_admin' && 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+                    role === 'admin' && 'bg-brand-ness/10 text-brand-ness border-brand-ness/30',
+                    role === 'finops_manager' && 'bg-zinc-800/50 text-zinc-300 border-zinc-700',
+                    role === 'auditor' && 'bg-zinc-800/50 text-zinc-300 border-zinc-700',
+                    !['super_admin', 'admin', 'finops_manager', 'auditor'].includes(role) && 'bg-zinc-800/50 text-zinc-400 border-zinc-700'
+                  )}
                 >
                   {role === 'super_admin' ? '⭐ Super Admin' : 
                    role === 'admin' ? '👑 Admin' :

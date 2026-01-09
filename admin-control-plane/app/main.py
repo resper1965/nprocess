@@ -43,11 +43,46 @@ from app.schemas import HealthResponse
 # Initialize FastAPI app
 app = FastAPI(
     title="Admin Control Plane API",
-    description="Administrative API for n.process Platform",
+    description="""
+    ## API Administrativa do n.process Platform
+    
+    API central para gerenciamento administrativo da plataforma n.process.
+    
+    ### Autenticação
+    - **API Key**: Envie no header `X-API-Key` para endpoints protegidos
+    - **Endpoints públicos**: `/health`, `/docs`, `/redoc`
+    
+    ### Módulos Principais
+    - **API Keys**: Gestão de chaves de API
+    - **Users**: Gerenciamento de usuários
+    - **FinOps**: Controle financeiro e custos
+    - **Services**: Monitoramento de serviços
+    - **Standards**: Gestão de frameworks de compliance
+    - **Knowledge Bases**: Gestão de bases de conhecimento
+    - **Process**: Normalização de processos
+    - **Audit Engine**: Motor de auditoria de compliance
+    - **Documents**: Geração de documentação
+    
+    ### MCP Server
+    - **SSE Endpoint**: `/mcp/sse` - Server-Sent Events para Model Context Protocol
+    - **Messages**: `/mcp/messages` - Mensagens MCP
+    
+    ### Documentação
+    - **Swagger UI**: `/docs` - Interface interativa
+    - **ReDoc**: `/redoc` - Documentação alternativa
+    - **OpenAPI JSON**: `/openapi.json` - Especificação OpenAPI
+    """,
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    openapi_url="/openapi.json",
+    contact={
+        "name": "n.process Support",
+        "url": "https://nprocess.ness.com.br",
+    },
+    license_info={
+        "name": "Proprietary",
+    },
 )
 
 # Include routers
@@ -163,6 +198,8 @@ default_origins = [
     "http://localhost:8080",
     "http://localhost:5173",
     "https://nprocess-frontend-s7tmkmao2a-uc.a.run.app",
+    "https://nprocess-frontend-43006907338.us-central1.run.app",  # Cloud Run frontend
+    "https://nprocess.ness.com.br",  # Custom domain
     "https://nprocess-8e801.web.app",
     "https://nprocess-8e801.firebaseapp.com"
 ]

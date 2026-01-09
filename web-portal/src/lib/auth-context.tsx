@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Handle redirect for authenticated users
+  // Handle redirect for authenticated users (only from public pages)
   const handleAuthenticatedRedirect = (userRole: string) => {
     if (typeof window === 'undefined') return;
     
@@ -105,13 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : '/dashboard';
       
       console.log('handleAuthenticatedRedirect: Redirecting from', currentPath, 'to', targetPath, { role: userRole });
-      
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        if (window.location.pathname === currentPath) {
-          router.push(targetPath);
-        }
-      }, 300);
+      router.push(targetPath);
     }
   };
 
@@ -158,27 +152,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (currentUser) {
               setUser(currentUser);
               
-              try {
-                // Load role
-                const userRole = await loadUserRole(currentUser);
-                setRole(userRole);
-                
-                // Handle redirect if on public page
-                handleAuthenticatedRedirect(userRole);
-                
-                // Log super_admin status
-                if (userRole === 'super_admin') {
-                  console.log('⭐ SUPER ADMIN DETECTED!', {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    role: userRole
-                  });
-                }
-              } catch (roleError) {
-                console.error('onAuthStateChanged: Error loading user role:', roleError);
-                // Set default role if loading fails
-                setRole('user');
-              }
+              // Load role and handle redirect - this is the ONLY place where we update role
+              loadUserRole(currentUser)
+                .then((userRole) => {
+                  if (!mounted) return;
+                  
+                  setRole(userRole);
+                  
+                  // Handle redirect if on public page
+                  handleAuthenticatedRedirect(userRole);
+                  
+                  // Log super_admin status
+                  if (userRole === 'super_admin') {
+                    console.log('⭐ SUPER ADMIN DETECTED!', {
+                      uid: currentUser.uid,
+                      email: currentUser.email,
+                      role: userRole
+                    });
+                  }
+                })
+                .catch((roleError) => {
+                  console.error('onAuthStateChanged: Error loading user role:', roleError);
+                  if (mounted) {
+                    // Set default role if loading fails
+                    setRole('user');
+                  }
+                });
             } else {
               console.log('onAuthStateChanged: No user, clearing auth state');
               setUser(null);
@@ -240,24 +239,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleLogin = async (data: LoginData) => {
     try {
-      const credential = await loginWithEmail(data.email, data.password);
+      // Login with email - onAuthStateChanged will handle state update automatically
+      await loginWithEmail(data.email, data.password);
       
-      // Wait a bit for auth state to update via onAuthStateChanged
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Get role to determine redirect path
-      if (credential?.user) {
-        const userRole = await loadUserRole(credential.user);
-        setRole(userRole);
-        
-        const targetPath = (userRole === 'admin' || userRole === 'super_admin') 
-          ? '/admin/overview' 
-          : '/dashboard';
-        
-        console.log('handleLogin: Login successful, redirecting to:', targetPath, { role: userRole });
-        
-        router.push(targetPath);
-      }
+      // No manual redirect needed - onAuthStateChanged will handle it
+      // No role loading needed - onAuthStateChanged will handle it
     } catch (error: any) {
       console.error('Login failed:', error);
       
@@ -277,36 +263,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleLoginWithGoogle = async () => {
     try {
-      console.log('handleLoginWithGoogle: Starting Google login...');
+      // Use signInWithPopup - onAuthStateChanged will handle state update automatically
+      await loginWithGoogle();
       
-      // Use signInWithPopup - returns UserCredential | null
-      const credential = await loginWithGoogle();
-      
-      // CRITICAL: TypeScript safety check - signInWithPopup can return null if popup is closed
-      if (!credential || !credential.user) {
-        console.log('handleLoginWithGoogle: No credential returned (popup closed/blocked), waiting for auth state change...');
-        return; // Exit early - onAuthStateChanged will handle state update if user actually logged in
-      }
-      
-      console.log('handleLoginWithGoogle: Google login successful', { 
-        uid: credential.user.uid,
-        email: credential.user.email 
-      });
-      
-      // Wait a bit for auth state to update via onAuthStateChanged
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Get role to determine redirect path
-      const userRole = await loadUserRole(credential.user);
-      setRole(userRole);
-      
-      const targetPath = (userRole === 'admin' || userRole === 'super_admin') 
-        ? '/admin/overview' 
-        : '/dashboard';
-      
-      console.log('handleLoginWithGoogle: Redirecting to:', targetPath, { role: userRole });
-      
-      router.push(targetPath);
+      // No manual redirect needed - onAuthStateChanged will handle it
+      // No role loading needed - onAuthStateChanged will handle it
     } catch (error: any) {
       console.error('Google login failed:', error);
       
@@ -319,9 +280,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Show toast for popup blocked
-      if (error?.code === 'auth/popup-blocked' || errorMessage.toLowerCase().includes('popup bloqueado')) {
-        toast.error('Popup bloqueado', {
+      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
+        toast.error('Popup bloqueado ou fechado', {
           description: 'Por favor, permita popups para este site e tente novamente.',
+          duration: 5000
+        });
+      } else {
+        toast.error('Erro ao fazer login', {
+          description: errorMessage,
           duration: 5000
         });
       }

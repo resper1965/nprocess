@@ -206,6 +206,44 @@ function LoginPage() {
 
 ---
 
+## 🔌 Integração MCP (Model Context Protocol)
+
+O n.process oferece integração via MCP para ferramentas como **Claude Desktop** e **Cursor IDE**, permitindo que assistentes de IA acessem diretamente as funcionalidades da plataforma.
+
+### Servidores MCP Disponíveis
+
+1. **Context7** - Documentação atualizada de bibliotecas (FastAPI, Vertex AI, Firestore, Next.js, etc.)
+2. **n.process** - Ferramentas de compliance, modelagem BPMN e geração de documentos
+
+### Configuração Rápida
+
+**Claude Desktop:**
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "ctx7sk-1fb7a718-cf5c-4aa9-8ecd-dc6221cf68a0"]
+    },
+    "nprocess-b4b": {
+      "command": "",
+      "url": "https://nprocess-admin-api-prod-43006907338.us-central1.run.app/mcp/sse",
+      "transport": "sse",
+      "headers": {
+        "X-API-Key": "SUA_API_KEY_AQUI"
+      }
+    }
+  }
+}
+```
+
+**Cursor IDE:**
+Crie `.mcp/config.json` na raiz do projeto (veja `.mcp/config.json.example`)
+
+📖 **Documentação completa**: [`docs/manuals/MCP_SETUP_GUIDE.md`](docs/manuals/MCP_SETUP_GUIDE.md)
+
+---
+
 ## 🌐 Produção
 
 ### URLs

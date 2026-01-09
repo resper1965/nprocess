@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { PageHeader } from "@/components/page-header"
 import { Copy, Check, ExternalLink, Code, Terminal, Zap } from "lucide-react"
 import { adminApi } from "@/lib/api-client"
 import { toast } from "sonner"
@@ -121,13 +120,8 @@ export default function DeveloperHubPage() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
-      <PageHeader 
-        title="Developer Hub" 
-        description="Orchestration instructions for integrating ness. into your tools"
-      />
-
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-6xl mx-auto space-y-8">
+      <div className="flex-1 overflow-auto px-3 py-4">
+        <div className="space-y-8">
           {/* Section A: MCP Connection */}
           <div className="space-y-4">
             <div>

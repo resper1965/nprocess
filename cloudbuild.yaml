@@ -7,7 +7,7 @@ steps:
       - |
         pip install -r requirements.txt
         pip install pytest httpx
-        export PYTHONPATH=$PYTHONPATH:.
+        export PYTHONPATH=$$PYTHONPATH:.
         # Run unit tests (skip integration tests requiring real credentials)
         pytest tests/ --ignore=tests/integration || echo "Warning: Tests failed but continuing for demo..."
 
@@ -41,7 +41,6 @@ steps:
       - "--max-instances=10"
       - "--min-instances=0"
       - "--set-env-vars=GCP_PROJECT_ID=${PROJECT_ID},GOOGLE_CLOUD_PROJECT=${PROJECT_ID},APP_ENV=production,VERTEX_AI_LOCATION=us-central1,VERTEX_AI_MODEL=gemini-1.5-pro-002,FIRESTORE_DATABASE=(default),LOG_LEVEL=INFO,CORS_ORIGINS=https://nprocess.ness.com.br"
-      - "--update-secrets=GEMINI_API_KEY=nprocess-gemini-api-key:latest"
       - "--update-secrets=GEMINI_API_KEY=nprocess-gemini-api-key:latest"
 
   # 3. Build Frontend Container (nProcess UI)

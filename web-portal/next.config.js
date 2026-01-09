@@ -1,9 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Firebase Hosting requires static export
-  output: 'export',
+  // Standalone output required for Docker/Cloud Run
+  output: 'standalone',
   reactStrictMode: true,
-  swcMinify: true,
   trailingSlash: true,
   // Disable image optimization (Firebase Hosting doesn't support Next.js Image Optimization)
   images: {

@@ -24,7 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { PageHeader } from "@/components/page-header"
 import { Plus, Key, Copy, Check, RefreshCw, Loader2, Shield, Users, AlertTriangle } from "lucide-react"
 import { adminApi } from "@/lib/api-client"
 import { toast } from "sonner"
@@ -215,13 +214,8 @@ export default function NetworkAccessPage() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-950">
-      <PageHeader 
-        title="Network & Access" 
-        description="Manage clients and credentials"
-      />
-
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex-1 overflow-auto px-3 py-4">
+        <div className="space-y-6">
           <Tabs defaultValue="consumers" className="space-y-4">
             <TabsList className="bg-zinc-900 border-zinc-800">
               <TabsTrigger value="consumers" className="data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400">
