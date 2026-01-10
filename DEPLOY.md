@@ -4,39 +4,37 @@
 
 ## 1. Ativar Billing
 
-1. Acesse o [Google Cloud Console](https://console.cloud.google.com/billing)
-2. Selecione o projeto `nprocess-85f63`
-3. Vincule uma conta de faturamento
+[Passo a passo no Console GCP](https://console.cloud.google.com/billing)
 
 ## 2. Deploy do Backend (Cloud Run)
 
 ```bash
-cd backend
-
-# Deploy direto do código fonte
 gcloud run deploy nprocess-api \
-  --source . \
+  --source ./backend \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars "GCP_PROJECT_ID=nprocess-85f63,GCP_REGION=us-central1,DEBUG=false,CORS_ORIGINS=*"
+  --port 8000 \
+  --set-env-vars "GCP_PROJECT_ID=nprocess-85f63,GCP_REGION=us-central1,DEBUG=false,CORS_ORIGINS=https://nprocess.ness.com.br"
 ```
 
 ## 3. Deploy do Frontend (Cloud Run)
 
 ```bash
-cd frontend
-
-# Deploy direto
 gcloud run deploy nprocess-web \
-  --source . \
+  --source ./frontend \
   --region us-central1 \
   --allow-unauthenticated
 ```
 
-_Nota: Adicione a URL do backend (`nprocess-api`) nas variáveis de ambiente do frontend se necessário._
+## 4. Domínio Customizado
 
-## 4. Configuração Pós-Deploy
+Para mapear `nprocess.ness.com.br` para o Frontend:
 
-1. Pegue a URL do Backend (ex: `https://nprocess-api-xyz.a.run.app`)
-2. Atualize o Frontend com essa URL
-3. Adicione a URL do Frontend no `CORS_ORIGINS` do Backend
+```bash
+gcloud beta run domain-mappings create \
+  --service nprocess-web \
+  --domain nprocess.ness.com.br \
+  --region us-central1
+```
+
+Siga as instruções do terminal para adicionar os registros DNS (CNAME/TXT) no seu provedor de domínio.
