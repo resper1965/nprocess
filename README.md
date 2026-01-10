@@ -96,6 +96,11 @@ Os 6 documentos fundamentais do projeto estão em `docs/essential/`:
 Para iniciar o desenvolvimento com Spec Kit, use o prompt em:
 **[docs/essential/BOOT_PROMPT.md](docs/essential/BOOT_PROMPT.md)**
 
+### Framework RPI
+
+Documentação sobre o framework **Research, Plan, Implement**:
+**[docs/RPI_FRAMEWORK.md](docs/RPI_FRAMEWORK.md)**
+
 ---
 
 ## 📝 Notas
