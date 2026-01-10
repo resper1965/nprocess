@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     logger.info("n.process Backend shutting down...")
 
 
-# Create FastAPI application
+# Create FastAPI application with security scheme for Swagger UI
 app = FastAPI(
     title="n.process",
     description="Middleware de Inteligência - Control Plane. "
@@ -46,7 +46,49 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
+    swagger_ui_parameters={
+        "persistAuthorization": True,  # Keep auth between page refreshes
+    },
+    openapi_tags=[
+        {"name": "Health", "description": "Health check endpoints"},
+        {"name": "System", "description": "System administration"},
+        {"name": "Knowledge Store", "description": "Document ingestion and semantic search"},
+        {"name": "Process Engine", "description": "BPMN 2.0 diagram generation"},
+        {"name": "Compliance Guard", "description": "Legal compliance audit"},
+        {"name": "Document Factory", "description": "Professional document generation"},
+        {"name": "MCP Server", "description": "Model Context Protocol for agent integration"},
+    ],
 )
+
+# Add security scheme to OpenAPI
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        tags=app.openapi_tags,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Firebase ID Token. Get from frontend after login.",
+        }
+    }
+    # Apply security to all endpoints
+    for path in openapi_schema["paths"].values():
+        for operation in path.values():
+            operation["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 
 # Configure CORS
 app.add_middleware(
