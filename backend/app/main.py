@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.routers import health_router, system_router
 from app.routers.knowledge import router as knowledge_router
+from app.routers.process import router as process_router
 
 # Configure logging
 logging.basicConfig(
@@ -57,9 +58,9 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(system_router)
 app.include_router(knowledge_router)
+app.include_router(process_router)
 
 # Future routers (to be implemented)
-# app.include_router(process_router, prefix="/v1/process")
 # app.include_router(compliance_router, prefix="/v1/compliance")
 # app.include_router(documents_router, prefix="/v1/documents")
 # app.include_router(mcp_router, prefix="/mcp")
