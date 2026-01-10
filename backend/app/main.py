@@ -16,6 +16,7 @@ from app.routers import health_router, system_router
 from app.routers.knowledge import router as knowledge_router
 from app.routers.process import router as process_router
 from app.routers.compliance import router as compliance_router
+from app.routers.documents import router as documents_router
 
 # Configure logging
 logging.basicConfig(
@@ -61,9 +62,9 @@ app.include_router(system_router)
 app.include_router(knowledge_router)
 app.include_router(process_router)
 app.include_router(compliance_router)
+app.include_router(documents_router)
 
 # Future routers (to be implemented)
-# app.include_router(documents_router, prefix="/v1/documents")
 # app.include_router(mcp_router, prefix="/mcp")
 
 
