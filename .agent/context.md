@@ -85,12 +85,12 @@ Todas as decisões de auth são baseadas em claims no JWT:
 
 ## 🚀 Os 4 Motores
 
-| Motor            | Status          | Descrição                       |
-| ---------------- | --------------- | ------------------------------- |
-| Knowledge Store  | ✅ Implementado | RAG com Firestore Vector Search |
-| Process Engine   | ⏳ Pendente     | Gera BPMN 2.0 via Gemini        |
-| Compliance Guard | ⏳ Pendente     | Audita contra leis (RAG legal)  |
-| Document Factory | ⏳ Pendente     | Gera PDFs/Manuais               |
+| Motor            | Status          | API               |
+| ---------------- | --------------- | ----------------- |
+| Knowledge Store  | ✅ Implementado | `/v1/knowledge/`  |
+| Process Engine   | ✅ Implementado | `/v1/process/`    |
+| Compliance Guard | ✅ Implementado | `/v1/compliance/` |
+| Document Factory | ✅ Implementado | `/v1/documents/`  |
 
 ---
 
