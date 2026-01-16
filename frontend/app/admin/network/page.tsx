@@ -59,9 +59,6 @@ export default function NetworkPage() {
     fetchTenants();
   }, [fetchTenants]);
   
-  // Refresh helper
-  const refreshTenants = fetchTenants;
-
   const fetchKeys = useCallback(async (tenantId: string) => {
     try {
       const auth = getFirebaseAuth();
@@ -92,7 +89,10 @@ export default function NetworkPage() {
           setNewTenantName('');
           fetchTenants();
       }
-    } catch (e) { alert('Failed'); } finally { setCreatingTenant(false); }
+    } catch (error) {
+      console.error(error);
+      alert('Failed');
+    } finally { setCreatingTenant(false); }
   };
 
   const handleGenerateKey = async () => {
@@ -115,7 +115,10 @@ export default function NetworkPage() {
           setNewKey(data.key);
           fetchKeys(selectedTenant.id);
       }
-    } catch (e) { alert('Failed'); } finally { setGeneratingKey(false); }
+    } catch (error) {
+      console.error(error);
+      alert('Failed');
+    } finally { setGeneratingKey(false); }
   };
 
   if (!user) return null;

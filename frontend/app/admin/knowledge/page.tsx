@@ -21,7 +21,7 @@ export default function KnowledgePage() {
       <div className="flex justify-between items-end border-b border-neutral-800 pb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Knowledge Ops</h1>
-          <p className="text-neutral-400 mt-2">Manage your AI's brain and compliance drivers.</p>
+          <p className="text-neutral-400 mt-2">Manage your AI&apos;s brain and compliance drivers.</p>
         </div>
         <div className="text-right">
           <span className="text-xs text-neutral-500 uppercase tracking-widest">Environment</span>

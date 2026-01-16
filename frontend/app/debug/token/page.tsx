@@ -87,11 +87,11 @@ export default function TokenDebugPage() {
         <div className="bg-neutral-900 rounded-lg p-6">
           <h2 className="text-lg font-semibold mb-4">Como usar:</h2>
           <ol className="list-decimal list-inside space-y-2 text-neutral-300">
-            <li>Clique em "Copiar Token" acima</li>
+            <li>Clique em &quot;Copiar Token&quot; acima</li>
             <li>Vá para <a href="http://localhost:8000/docs" target="_blank" className="text-cyan-400 underline">http://localhost:8000/docs</a></li>
-            <li>Clique no botão "Authorize" 🔓</li>
-            <li>Cole o token no campo "Value"</li>
-            <li>Clique em "Authorize"</li>
+            <li>Clique no botão &quot;Authorize&quot; 🔓</li>
+            <li>Cole o token no campo &quot;Value&quot;</li>
+            <li>Clique em &quot;Authorize&quot;</li>
           </ol>
         </div>
       </div>

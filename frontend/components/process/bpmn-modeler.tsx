@@ -11,9 +11,13 @@ interface BpmnModelerProps {
   xml: string;
 }
 
+type BpmnCanvas = {
+  zoom: (scale: number | 'fit-viewport') => number | void;
+};
+
 export default function BpmnModeler({ xml }: BpmnModelerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const viewerRef = useRef<any>(null);
+  const viewerRef = useRef<BpmnViewer | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,11 +45,11 @@ export default function BpmnModeler({ xml }: BpmnModelerProps) {
         
         try {
             await viewerRef.current.importXML(xml);
-            const canvas = viewerRef.current.get('canvas');
+            const canvas = viewerRef.current.get('canvas') as BpmnCanvas;
             canvas.zoom('fit-viewport');
             setLoading(false);
-        } catch (err: any) {
-            console.error('BPMN Import Error', err);
+        } catch (error: unknown) {
+            console.error('BPMN Import Error', error);
             setError('Failed to render diagram. Invalid BPMN XML.');
             setLoading(false);
         }
@@ -56,13 +60,13 @@ export default function BpmnModeler({ xml }: BpmnModelerProps) {
 
   const handleZoom = (delta: number) => {
     if (!viewerRef.current) return;
-    const canvas = viewerRef.current.get('canvas');
+    const canvas = viewerRef.current.get('canvas') as BpmnCanvas;
     canvas.zoom(canvas.zoom() + delta);
   };
 
   const handleFit = () => {
     if (!viewerRef.current) return;
-    const canvas = viewerRef.current.get('canvas');
+    const canvas = viewerRef.current.get('canvas') as BpmnCanvas;
     canvas.zoom('fit-viewport');
   };
 

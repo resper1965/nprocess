@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     # GCP Configuration
     gcp_project_id: str = ""
     gcp_region: str = "us-central1"
+    cloud_tasks_queue: str = ""
+    cloud_tasks_location: str | None = None
+    cloud_tasks_service_url: str = ""
+    cloud_tasks_task_secret: str = ""
 
     # API Configuration
     api_host: str = "0.0.0.0"
@@ -31,6 +35,11 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
         return [origin.strip() for origin in self.cors_origins.replace(";", ",").split(",")]
+
+    @property
+    def cloud_tasks_location_resolved(self) -> str:
+        """Resolve Cloud Tasks location, defaulting to gcp_region."""
+        return self.cloud_tasks_location or self.gcp_region
 
 
 @lru_cache

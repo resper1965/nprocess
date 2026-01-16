@@ -9,12 +9,14 @@ interface Document {
   doc_id: string;
   source_doc_id?: string;
   chunk_count: number;
-  metadata?: {
-    title?: string;
-    filename?: string;
-    ingested_at?: string;
-    [key: string]: any;
-  };
+  metadata?: DocumentMetadata;
+}
+
+interface DocumentMetadata {
+  title?: string;
+  filename?: string;
+  ingested_at?: string;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export default function DocumentList() {

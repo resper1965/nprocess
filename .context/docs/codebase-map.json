@@ -1,0 +1,1281 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-16T19:16:37.674Z",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript",
+      "python"
+    ],
+    "frameworks": [],
+    "buildTools": [],
+    "testFrameworks": [],
+    "packageManager": null,
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": false
+  },
+  "structure": {
+    "totalFiles": 33248,
+    "topDirectories": [
+      {
+        "name": "backend",
+        "fileCount": 86
+      },
+      {
+        "name": "BACKUP_INFO.md",
+        "fileCount": 1
+      },
+      {
+        "name": "DEPLOY.md",
+        "fileCount": 1
+      },
+      {
+        "name": "docs",
+        "fileCount": 11
+      },
+      {
+        "name": "frontend",
+        "fileCount": 33146
+      },
+      {
+        "name": "LIMPEZA_COMPLETA.md",
+        "fileCount": 1
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "tools",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".js",
+        "count": 13832
+      },
+      {
+        "extension": ".ts",
+        "count": 10141
+      },
+      {
+        "extension": ".map",
+        "count": 5527
+      },
+      {
+        "extension": ".json",
+        "count": 1183
+      },
+      {
+        "extension": ".md",
+        "count": 812
+      },
+      {
+        "extension": ".mjs",
+        "count": 319
+      },
+      {
+        "extension": ".cjs",
+        "count": 271
+      },
+      {
+        "extension": ".cts",
+        "count": 146
+      },
+      {
+        "extension": ".mts",
+        "count": 117
+      },
+      {
+        "extension": ".py",
+        "count": 46
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Config",
+        "description": "Configuration and constants",
+        "directories": [
+          "frontend",
+          "backend/app/core"
+        ],
+        "symbolCount": 2,
+        "dependsOn": []
+      },
+      {
+        "name": "Utils",
+        "description": "Shared utilities and helpers",
+        "directories": [
+          "frontend/lib"
+        ],
+        "symbolCount": 9,
+        "dependsOn": []
+      },
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "frontend/app",
+          "frontend/components/ui",
+          "frontend/components/providers",
+          "frontend/components/knowledge",
+          "frontend/app/waiting-room",
+          "frontend/app/login",
+          "frontend/app/debug/token",
+          "frontend/app/admin/system",
+          "frontend/app/admin/process",
+          "frontend/app/admin/network",
+          "frontend/app/admin/knowledge",
+          "frontend/app/admin/developer"
+        ],
+        "symbolCount": 23,
+        "dependsOn": []
+      },
+      {
+        "name": "Models",
+        "description": "Data structures and domain objects",
+        "directories": [
+          "frontend/components/process",
+          "backend/app/schemas"
+        ],
+        "symbolCount": 27,
+        "dependsOn": []
+      },
+      {
+        "name": "Generators",
+        "description": "Content and object generation",
+        "directories": [
+          "frontend/components/developer"
+        ],
+        "symbolCount": 1,
+        "dependsOn": []
+      },
+      {
+        "name": "Controllers",
+        "description": "Request handling and routing",
+        "directories": [
+          "frontend/components/developer",
+          "backend/scripts",
+          "backend/app/routers"
+        ],
+        "symbolCount": 29,
+        "dependsOn": []
+      },
+      {
+        "name": "Repositories",
+        "description": "Data access and persistence",
+        "directories": [
+          "backend/scripts"
+        ],
+        "symbolCount": 1,
+        "dependsOn": []
+      },
+      {
+        "name": "Services",
+        "description": "Business logic and orchestration",
+        "directories": [
+          "backend/app/services",
+          "backend/app/services/process",
+          "backend/app/services/mcp",
+          "backend/app/services/knowledge",
+          "backend/app/services/ingestion",
+          "backend/app/services/documents",
+          "backend/app/services/compliance",
+          "backend/app/services/ai"
+        ],
+        "symbolCount": 17,
+        "dependsOn": []
+      }
+    ],
+    "patterns": [
+      {
+        "name": "Service Layer",
+        "confidence": 0.85,
+        "description": "Encapsulates business logic in service classes",
+        "occurrences": 7
+      }
+    ],
+    "entryPoints": []
+  },
+  "symbols": {
+    "classes": [
+      {
+        "name": "ApiKeyCreate",
+        "kind": "class",
+        "file": "backend/app/schemas/system.py",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "ApiKeyResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/system.py",
+        "line": 25,
+        "exported": true
+      },
+      {
+        "name": "ApproveUserRequest",
+        "kind": "class",
+        "file": "backend/app/schemas/auth.py",
+        "line": 43,
+        "exported": true
+      },
+      {
+        "name": "ApproveUserResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/auth.py",
+        "line": 64,
+        "exported": true
+      },
+      {
+        "name": "AuditRequest",
+        "kind": "class",
+        "file": "backend/app/schemas/compliance.py",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "AuditResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/compliance.py",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "BPMNService",
+        "kind": "class",
+        "file": "backend/app/services/process/bpmn.py",
+        "line": 44,
+        "exported": true
+      },
+      {
+        "name": "Chunk",
+        "kind": "class",
+        "file": "backend/app/services/ingestion/chunking.py",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "ChunkingStrategy",
+        "kind": "class",
+        "file": "backend/app/services/ingestion/chunking.py",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "ComplianceAuditService",
+        "kind": "class",
+        "file": "backend/app/services/compliance/audit.py",
+        "line": 48,
+        "exported": true
+      },
+      {
+        "name": "CurrentUser",
+        "kind": "class",
+        "file": "backend/app/schemas/auth.py",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "DeleteDocumentResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 88,
+        "exported": true
+      },
+      {
+        "name": "DocumentGeneratorService",
+        "kind": "class",
+        "file": "backend/app/services/documents/generator.py",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "DocumentSummary",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 71,
+        "exported": true
+      },
+      {
+        "name": "EmbeddingService",
+        "kind": "class",
+        "file": "backend/app/services/ai/embedding.py",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "Finding",
+        "kind": "class",
+        "file": "backend/app/schemas/compliance.py",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "GeminiService",
+        "kind": "class",
+        "file": "backend/app/services/ai/gemini.py",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "GenerateBPMNRequest",
+        "kind": "class",
+        "file": "backend/app/schemas/process.py",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "GenerateBPMNResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/process.py",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "GenerateDocumentRequest",
+        "kind": "class",
+        "file": "backend/app/schemas/documents.py",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "GenerateDocumentResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/documents.py",
+        "line": 41,
+        "exported": true
+      },
+      {
+        "name": "IngestionService",
+        "kind": "class",
+        "file": "backend/app/services/ingestion/service.py",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "IngestRequest",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "IngestResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "KnowledgeService",
+        "kind": "class",
+        "file": "backend/app/services/knowledge/service.py",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "LegalDocumentStrategy",
+        "kind": "class",
+        "file": "backend/app/services/ingestion/chunking.py",
+        "line": 115,
+        "exported": true
+      },
+      {
+        "name": "ListDocumentsResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 81,
+        "exported": true
+      },
+      {
+        "name": "MCPServer",
+        "kind": "class",
+        "file": "backend/app/services/mcp/server.py",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "ProcessJob",
+        "kind": "class",
+        "file": "backend/app/schemas/process.py",
+        "line": 37,
+        "exported": true
+      },
+      {
+        "name": "SearchRequest",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 42,
+        "exported": true
+      },
+      {
+        "name": "SearchResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 63,
+        "exported": true
+      },
+      {
+        "name": "SearchResult",
+        "kind": "class",
+        "file": "backend/app/schemas/knowledge.py",
+        "line": 53,
+        "exported": true
+      },
+      {
+        "name": "Settings",
+        "kind": "class",
+        "file": "backend/app/core/config.py",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "SlidingWindowStrategy",
+        "kind": "class",
+        "file": "backend/app/services/ingestion/chunking.py",
+        "line": 47,
+        "exported": true
+      },
+      {
+        "name": "SystemUserResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/system.py",
+        "line": 35,
+        "exported": true
+      },
+      {
+        "name": "TenantBase",
+        "kind": "class",
+        "file": "backend/app/schemas/system.py",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "TenantCreate",
+        "kind": "class",
+        "file": "backend/app/schemas/system.py",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "TenantResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/system.py",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "UserResponse",
+        "kind": "class",
+        "file": "backend/app/schemas/auth.py",
+        "line": 53,
+        "exported": true
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "AuthUser",
+        "kind": "interface",
+        "file": "frontend/lib/auth.ts",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "CustomClaims",
+        "kind": "interface",
+        "file": "frontend/lib/auth.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "ApiKey",
+        "kind": "interface",
+        "file": "frontend/app/admin/network/page.tsx",
+        "line": 15,
+        "exported": false
+      },
+      {
+        "name": "AuthContextType",
+        "kind": "interface",
+        "file": "frontend/components/providers/auth-provider.tsx",
+        "line": 17,
+        "exported": false
+      },
+      {
+        "name": "AuthProviderProps",
+        "kind": "interface",
+        "file": "frontend/components/providers/auth-provider.tsx",
+        "line": 40,
+        "exported": false
+      },
+      {
+        "name": "BpmnModelerProps",
+        "kind": "interface",
+        "file": "frontend/components/process/bpmn-modeler.tsx",
+        "line": 10,
+        "exported": false
+      },
+      {
+        "name": "Document",
+        "kind": "interface",
+        "file": "frontend/components/knowledge/document-list.tsx",
+        "line": 8,
+        "exported": false
+      },
+      {
+        "name": "Tenant",
+        "kind": "interface",
+        "file": "frontend/app/admin/system/page.tsx",
+        "line": 17,
+        "exported": false
+      },
+      {
+        "name": "Tenant",
+        "kind": "interface",
+        "file": "frontend/app/admin/network/page.tsx",
+        "line": 8,
+        "exported": false
+      },
+      {
+        "name": "User",
+        "kind": "interface",
+        "file": "frontend/app/admin/system/page.tsx",
+        "line": 8,
+        "exported": false
+      }
+    ],
+    "functions": [
+      {
+        "name": "ApiReferenceCard",
+        "kind": "function",
+        "file": "frontend/components/developer/api-reference-card.tsx",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "approve_user",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "audit_compliance",
+        "kind": "function",
+        "file": "backend/app/routers/compliance.py",
+        "line": 33,
+        "exported": true
+      },
+      {
+        "name": "AuthProvider",
+        "kind": "function",
+        "file": "frontend/components/providers/auth-provider.tsx",
+        "line": 44,
+        "exported": true
+      },
+      {
+        "name": "call_tool",
+        "kind": "function",
+        "file": "backend/app/routers/mcp.py",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "frontend/lib/utils.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "ConsolePage",
+        "kind": "function",
+        "file": "frontend/app/page.tsx",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "create_key",
+        "kind": "function",
+        "file": "backend/scripts/admin_tools.py",
+        "line": 64,
+        "exported": true
+      },
+      {
+        "name": "create_key",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 186,
+        "exported": true
+      },
+      {
+        "name": "create_tenant",
+        "kind": "function",
+        "file": "backend/scripts/admin_tools.py",
+        "line": 43,
+        "exported": true
+      },
+      {
+        "name": "create_tenant",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 137,
+        "exported": true
+      },
+      {
+        "name": "custom_openapi",
+        "kind": "function",
+        "file": "backend/app/main.py",
+        "line": 66,
+        "exported": true
+      },
+      {
+        "name": "delete_document",
+        "kind": "function",
+        "file": "backend/app/routers/knowledge.py",
+        "line": 255,
+        "exported": true
+      },
+      {
+        "name": "DeveloperPage",
+        "kind": "function",
+        "file": "frontend/app/admin/developer/page.tsx",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "generate_bpmn",
+        "kind": "function",
+        "file": "backend/app/routers/process.py",
+        "line": 33,
+        "exported": true
+      },
+      {
+        "name": "generate_document",
+        "kind": "function",
+        "file": "backend/app/routers/documents.py",
+        "line": 32,
+        "exported": true
+      },
+      {
+        "name": "get_bpmn_service",
+        "kind": "function",
+        "file": "backend/app/routers/process.py",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "get_chunking_strategy",
+        "kind": "function",
+        "file": "backend/app/services/ingestion/chunking.py",
+        "line": 278,
+        "exported": true
+      },
+      {
+        "name": "get_compliance_service",
+        "kind": "function",
+        "file": "backend/app/routers/compliance.py",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "get_current_user",
+        "kind": "function",
+        "file": "backend/app/core/deps.py",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "get_db",
+        "kind": "function",
+        "file": "backend/scripts/admin_tools.py",
+        "line": 25,
+        "exported": true
+      },
+      {
+        "name": "get_db",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "get_document_service",
+        "kind": "function",
+        "file": "backend/app/routers/documents.py",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "get_embedding_service",
+        "kind": "function",
+        "file": "backend/app/services/ai/embedding.py",
+        "line": 103,
+        "exported": true
+      },
+      {
+        "name": "get_firebase_app",
+        "kind": "function",
+        "file": "backend/app/core/security.py",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "get_gemini_service",
+        "kind": "function",
+        "file": "backend/app/services/ai/gemini.py",
+        "line": 140,
+        "exported": true
+      },
+      {
+        "name": "get_ingestion_service",
+        "kind": "function",
+        "file": "backend/app/routers/knowledge.py",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "get_knowledge_service",
+        "kind": "function",
+        "file": "backend/app/services/knowledge/service.py",
+        "line": 231,
+        "exported": true
+      },
+      {
+        "name": "get_mcp_server",
+        "kind": "function",
+        "file": "backend/app/services/mcp/server.py",
+        "line": 251,
+        "exported": true
+      },
+      {
+        "name": "get_settings",
+        "kind": "function",
+        "file": "backend/app/core/config.py",
+        "line": 37,
+        "exported": true
+      },
+      {
+        "name": "get_user",
+        "kind": "function",
+        "file": "backend/app/core/security.py",
+        "line": 64,
+        "exported": true
+      },
+      {
+        "name": "getCustomClaims",
+        "kind": "function",
+        "file": "frontend/lib/auth.ts",
+        "line": 57,
+        "exported": true
+      },
+      {
+        "name": "getIdToken",
+        "kind": "function",
+        "file": "frontend/lib/auth.ts",
+        "line": 69,
+        "exported": true
+      },
+      {
+        "name": "getToken",
+        "kind": "function",
+        "file": "frontend/app/debug/token/page.tsx",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "health_check",
+        "kind": "function",
+        "file": "backend/app/routers/health.py",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "ingest_document",
+        "kind": "function",
+        "file": "backend/app/routers/knowledge.py",
+        "line": 45,
+        "exported": true
+      },
+      {
+        "name": "ingest_document_file",
+        "kind": "function",
+        "file": "backend/app/routers/knowledge.py",
+        "line": 96,
+        "exported": true
+      },
+      {
+        "name": "ingest_file",
+        "kind": "function",
+        "file": "backend/scripts/ingest_kb.py",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "ingest_samples",
+        "kind": "function",
+        "file": "backend/scripts/ingest_sample_data.py",
+        "line": 56,
+        "exported": true
+      },
+      {
+        "name": "lifespan",
+        "kind": "function",
+        "file": "backend/app/main.py",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "list_documents",
+        "kind": "function",
+        "file": "backend/app/routers/knowledge.py",
+        "line": 216,
+        "exported": true
+      },
+      {
+        "name": "list_keys",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 156,
+        "exported": true
+      },
+      {
+        "name": "list_tenants",
+        "kind": "function",
+        "file": "backend/scripts/admin_tools.py",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "list_tenants",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 130,
+        "exported": true
+      },
+      {
+        "name": "list_tools",
+        "kind": "function",
+        "file": "backend/app/routers/mcp.py",
+        "line": 25,
+        "exported": true
+      },
+      {
+        "name": "list_users",
+        "kind": "function",
+        "file": "backend/scripts/admin_tools.py",
+        "line": 97,
+        "exported": true
+      },
+      {
+        "name": "list_users",
+        "kind": "function",
+        "file": "backend/app/routers/system.py",
+        "line": 86,
+        "exported": true
+      },
+      {
+        "name": "main",
+        "kind": "function",
+        "file": "backend/scripts/test_api.py",
+        "line": 60,
+        "exported": true
+      },
+      {
+        "name": "main",
+        "kind": "function",
+        "file": "backend/scripts/ingest_kb.py",
+        "line": 70,
+        "exported": true
+      },
+      {
+        "name": "main",
+        "kind": "function",
+        "file": "backend/scripts/admin_tools.py",
+        "line": 110,
+        "exported": true
+      }
+    ],
+    "types": [],
+    "enums": []
+  },
+  "publicAPI": [
+    {
+      "name": "ApiKeyCreate",
+      "kind": "class",
+      "file": "backend/app/schemas/system.py",
+      "line": 21,
+      "exported": true
+    },
+    {
+      "name": "ApiKeyResponse",
+      "kind": "class",
+      "file": "backend/app/schemas/system.py",
+      "line": 25,
+      "exported": true
+    },
+    {
+      "name": "ApiReferenceCard",
+      "kind": "function",
+      "file": "frontend/components/developer/api-reference-card.tsx",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "approve_user",
+      "kind": "function",
+      "file": "backend/app/routers/system.py",
+      "line": 36,
+      "exported": true
+    },
+    {
+      "name": "ApproveUserRequest",
+      "kind": "class",
+      "file": "backend/app/schemas/auth.py",
+      "line": 43,
+      "exported": true
+    },
+    {
+      "name": "ApproveUserResponse",
+      "kind": "class",
+      "file": "backend/app/schemas/auth.py",
+      "line": 64,
+      "exported": true
+    },
+    {
+      "name": "audit_compliance",
+      "kind": "function",
+      "file": "backend/app/routers/compliance.py",
+      "line": 33,
+      "exported": true
+    },
+    {
+      "name": "AuditRequest",
+      "kind": "class",
+      "file": "backend/app/schemas/compliance.py",
+      "line": 20,
+      "exported": true
+    },
+    {
+      "name": "AuditResponse",
+      "kind": "class",
+      "file": "backend/app/schemas/compliance.py",
+      "line": 36,
+      "exported": true
+    },
+    {
+      "name": "AuthProvider",
+      "kind": "function",
+      "file": "frontend/components/providers/auth-provider.tsx",
+      "line": 44,
+      "exported": true
+    },
+    {
+      "name": "AuthUser",
+      "kind": "interface",
+      "file": "frontend/lib/auth.ts",
+      "line": 28,
+      "exported": true
+    },
+    {
+      "name": "BPMNService",
+      "kind": "class",
+      "file": "backend/app/services/process/bpmn.py",
+      "line": 44,
+      "exported": true
+    },
+    {
+      "name": "call_tool",
+      "kind": "function",
+      "file": "backend/app/routers/mcp.py",
+      "line": 38,
+      "exported": true
+    },
+    {
+      "name": "Chunk",
+      "kind": "class",
+      "file": "backend/app/services/ingestion/chunking.py",
+      "line": 15,
+      "exported": true
+    },
+    {
+      "name": "ChunkingStrategy",
+      "kind": "class",
+      "file": "backend/app/services/ingestion/chunking.py",
+      "line": 23,
+      "exported": true
+    },
+    {
+      "name": "cn",
+      "kind": "function",
+      "file": "frontend/lib/utils.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "ComplianceAuditService",
+      "kind": "class",
+      "file": "backend/app/services/compliance/audit.py",
+      "line": 48,
+      "exported": true
+    },
+    {
+      "name": "ConsolePage",
+      "kind": "function",
+      "file": "frontend/app/page.tsx",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "create_key",
+      "kind": "function",
+      "file": "backend/scripts/admin_tools.py",
+      "line": 64,
+      "exported": true
+    },
+    {
+      "name": "create_key",
+      "kind": "function",
+      "file": "backend/app/routers/system.py",
+      "line": 186,
+      "exported": true
+    },
+    {
+      "name": "create_tenant",
+      "kind": "function",
+      "file": "backend/scripts/admin_tools.py",
+      "line": 43,
+      "exported": true
+    },
+    {
+      "name": "create_tenant",
+      "kind": "function",
+      "file": "backend/app/routers/system.py",
+      "line": 137,
+      "exported": true
+    },
+    {
+      "name": "CurrentUser",
+      "kind": "class",
+      "file": "backend/app/schemas/auth.py",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "custom_openapi",
+      "kind": "function",
+      "file": "backend/app/main.py",
+      "line": 66,
+      "exported": true
+    },
+    {
+      "name": "CustomClaims",
+      "kind": "interface",
+      "file": "frontend/lib/auth.ts",
+      "line": 19,
+      "exported": true
+    },
+    {
+      "name": "delete_document",
+      "kind": "function",
+      "file": "backend/app/routers/knowledge.py",
+      "line": 255,
+      "exported": true
+    },
+    {
+      "name": "DeleteDocumentResponse",
+      "kind": "class",
+      "file": "backend/app/schemas/knowledge.py",
+      "line": 88,
+      "exported": true
+    },
+    {
+      "name": "DeveloperPage",
+      "kind": "function",
+      "file": "frontend/app/admin/developer/page.tsx",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "DocumentGeneratorService",
+      "kind": "class",
+      "file": "backend/app/services/documents/generator.py",
+      "line": 38,
+      "exported": true
+    },
+    {
+      "name": "DocumentSummary",
+      "kind": "class",
+      "file": "backend/app/schemas/knowledge.py",
+      "line": 71,
+      "exported": true
+    },
+    {
+      "name": "EmbeddingService",
+      "kind": "class",
+      "file": "backend/app/services/ai/embedding.py",
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "Finding",
+      "kind": "class",
+      "file": "backend/app/schemas/compliance.py",
+      "line": 10,
+      "exported": true
+    },
+    {
+      "name": "GeminiService",
+      "kind": "class",
+      "file": "backend/app/services/ai/gemini.py",
+      "line": 20,
+      "exported": true
+    },
+    {
+      "name": "generate_bpmn",
+      "kind": "function",
+      "file": "backend/app/routers/process.py",
+      "line": 33,
+      "exported": true
+    },
+    {
+      "name": "generate_document",
+      "kind": "function",
+      "file": "backend/app/routers/documents.py",
+      "line": 32,
+      "exported": true
+    },
+    {
+      "name": "GenerateBPMNRequest",
+      "kind": "class",
+      "file": "backend/app/schemas/process.py",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "GenerateBPMNResponse",
+      "kind": "class",
+      "file": "backend/app/schemas/process.py",
+      "line": 27,
+      "exported": true
+    },
+    {
+      "name": "GenerateDocumentRequest",
+      "kind": "class",
+      "file": "backend/app/schemas/documents.py",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "GenerateDocumentResponse",
+      "kind": "class",
+      "file": "backend/app/schemas/documents.py",
+      "line": 41,
+      "exported": true
+    },
+    {
+      "name": "get_bpmn_service",
+      "kind": "function",
+      "file": "backend/app/routers/process.py",
+      "line": 27,
+      "exported": true
+    },
+    {
+      "name": "get_chunking_strategy",
+      "kind": "function",
+      "file": "backend/app/services/ingestion/chunking.py",
+      "line": 278,
+      "exported": true
+    },
+    {
+      "name": "get_compliance_service",
+      "kind": "function",
+      "file": "backend/app/routers/compliance.py",
+      "line": 27,
+      "exported": true
+    },
+    {
+      "name": "get_current_user",
+      "kind": "function",
+      "file": "backend/app/core/deps.py",
+      "line": 15,
+      "exported": true
+    },
+    {
+      "name": "get_db",
+      "kind": "function",
+      "file": "backend/scripts/admin_tools.py",
+      "line": 25,
+      "exported": true
+    },
+    {
+      "name": "get_db",
+      "kind": "function",
+      "file": "backend/app/routers/system.py",
+      "line": 26,
+      "exported": true
+    },
+    {
+      "name": "get_document_service",
+      "kind": "function",
+      "file": "backend/app/routers/documents.py",
+      "line": 26,
+      "exported": true
+    },
+    {
+      "name": "get_embedding_service",
+      "kind": "function",
+      "file": "backend/app/services/ai/embedding.py",
+      "line": 103,
+      "exported": true
+    },
+    {
+      "name": "get_firebase_app",
+      "kind": "function",
+      "file": "backend/app/core/security.py",
+      "line": 16,
+      "exported": true
+    },
+    {
+      "name": "get_gemini_service",
+      "kind": "function",
+      "file": "backend/app/services/ai/gemini.py",
+      "line": 140,
+      "exported": true
+    },
+    {
+      "name": "get_ingestion_service",
+      "kind": "function",
+      "file": "backend/app/routers/knowledge.py",
+      "line": 36,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "/home/resper/nProcess/frontend/.next/types/routes.d.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nProcess/frontend/lib/firebase.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/resper/nProcess/frontend/app/globals.css",
+        "importedBy": 1
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 130,
+    "exportedSymbols": 111,
+    "analysisTimeMs": 163
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { BookOpen, Shield, Code, Check } from 'lucide-react';
+import { BookOpen, Shield, Code } from 'lucide-react';
 
 const DRIVERS = [
   {

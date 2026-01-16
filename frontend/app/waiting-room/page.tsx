@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react';
 export default function WaitingRoom() {
   const { user, signOut, loading } = useAuth();
   const [checking, setChecking] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('Waiting for approval...');
 
   const checkStatus = async () => {
     setChecking(true);

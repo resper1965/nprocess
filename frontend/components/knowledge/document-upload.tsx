@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function DocumentUpload() {
   const { user } = useAuth();
@@ -54,10 +54,11 @@ export default function DocumentUpload() {
       setStatus('success');
       setMessage(`Successfully ingested ${data.chunk_count} chunks from ${file.name}`);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setStatus('error');
-      setMessage(error.message);
+      const messageText = error instanceof Error ? error.message : 'Upload failed';
+      setMessage(messageText);
     } finally {
       setUploading(false);
     }

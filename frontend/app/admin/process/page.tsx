@@ -54,9 +54,10 @@ export default function ProcessPage() {
       const data = await res.json();
       setXml(data.bpmn_xml);
 
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'Something went wrong');
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : 'Something went wrong';
+      setError(message);
     } finally {
       setGenerating(false);
     }

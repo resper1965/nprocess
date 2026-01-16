@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/components/providers/auth-provider';
 import { getFirebaseAuth } from '@/lib/firebase';
-import { Check, Loader2, RefreshCw, UserCheck, X } from 'lucide-react';
+import { Loader2, RefreshCw, UserCheck, X } from 'lucide-react';
 
 interface User {
   uid: string;
@@ -62,9 +62,6 @@ export default function SystemAdminPage() {
     fetchData();
   }, [fetchData]);
   
-  // Expose reload as alias if needed, or just use fetchData
-  const reloadData = fetchData;
-
   const handleApprove = async () => {
     if (!selectedUser || !selectedTenant) return;
     setProcessing(selectedUser.uid);
