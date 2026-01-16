@@ -12,7 +12,8 @@ interface BpmnModelerProps {
 }
 
 type BpmnCanvas = {
-  zoom: (scale: number | 'fit-viewport') => number | void;
+  zoom(): number;
+  zoom(scale: number | 'fit-viewport'): void;
 };
 
 export default function BpmnModeler({ xml }: BpmnModelerProps) {
