@@ -25,12 +25,12 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # CORS Configuration
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,https://nprocess-web-1040576944774.us-central1.run.app"
 
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
-        return [origin.strip() for origin in self.cors_origins.split(",")]
+        return [origin.strip() for origin in self.cors_origins.replace(";", ",").split(",")]
 
 
 @lru_cache

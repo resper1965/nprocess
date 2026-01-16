@@ -112,6 +112,80 @@ class IngestionService:
         logger.info(f"Ingestion complete for doc {doc_id}: {len(chunks)} chunks stored")
         return result
     
+    async def ingest_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        tenant_id: str,
+        strategy: str = "default",
+        doc_type: str = "private",
+        metadata: dict | None = None,
+    ) -> dict:
+        """
+        Ingest content from a file (PDF or Text).
+        
+        Args:
+            file_content: Raw bytes of the file
+            filename: Name of the file
+            tenant_id: ID of the tenant
+            strategy: Chunking strategy
+            doc_type: Type of document
+            metadata: Optional metadata
+            
+        Returns:
+            Dict with ingestion results
+        """
+        import io
+        from pypdf import PdfReader
+        
+        text_content = ""
+        
+        # Determine file type
+        if filename.lower().endswith(".pdf"):
+            try:
+                # Process PDF
+                logger.info(f"Processing PDF file: {filename}")
+                pdf_file = io.BytesIO(file_content)
+                reader = PdfReader(pdf_file)
+                
+                # Extract text from all pages
+                for page in reader.pages:
+                    text_content += page.extract_text() + "\n\n"
+                    
+                if not text_content.strip():
+                    logger.warning(f"No text extracted from PDF: {filename}")
+                    
+            except Exception as e:
+                logger.error(f"Failed to process PDF {filename}: {e}")
+                raise ValueError(f"Invalid or corrupted PDF file: {str(e)}")
+        else:
+            # Assume text
+            try:
+                text_content = file_content.decode("utf-8")
+            except UnicodeDecodeError:
+                # Try latin-1 fallback
+                text_content = file_content.decode("latin-1")
+        
+        # Enrich metadata
+        file_metadata = {
+            **(metadata or {}),
+            "filename": filename,
+            "original_size": len(file_content),
+            "content_type": "application/pdf" if filename.lower().endswith(".pdf") else "text/plain",
+        }
+        
+        # Helper to treat title if not present
+        if "title" not in file_metadata:
+            file_metadata["title"] = filename
+            
+        return await self.ingest_text(
+            content=text_content,
+            tenant_id=tenant_id,
+            strategy=strategy,
+            doc_type=doc_type,
+            metadata=file_metadata,
+        )
+
     async def ingest_url(
         self,
         url: str,

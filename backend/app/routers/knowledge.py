@@ -10,7 +10,7 @@ Provides REST API for knowledge base operations:
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, Form, UploadFile
 
 from app.core.deps import get_current_user
 from app.schemas.auth import CurrentUser
@@ -89,6 +89,77 @@ async def ingest_document(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to ingest document: {str(e)}",
+        )
+
+
+@router.post("/ingest/file", response_model=IngestResponse)
+async def ingest_document_file(
+    file: Annotated[UploadFile, File()],
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    doc_type: Annotated[str, Form()] = "private",
+    strategy: Annotated[str, Form()] = "default",
+    metadata: Annotated[str | None, Form()] = None,
+) -> IngestResponse:
+    """
+    Ingest a file (PDF/Text) into the knowledge base.
+    
+    Accepts multipart/form-data.
+    Metadata should be a JSON string.
+    """
+    import json
+    from fastapi import File, Form, UploadFile
+    
+    # Check permissions
+    if doc_type == "marketplace" and not current_user.is_super_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only super_admin can create marketplace documents",
+        )
+    
+    if doc_type == "private" and not current_user.org_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User must belong to an organization",
+        )
+    
+    tenant_id = current_user.org_id or "system"
+    
+    # Parse metadata
+    parsed_metadata = {}
+    if metadata:
+        try:
+            parsed_metadata = json.loads(metadata)
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid metadata JSON",
+            )
+            
+    ingestion_service = get_ingestion_service()
+    
+    try:
+        content = await file.read()
+        result = await ingestion_service.ingest_file(
+            file_content=content,
+            filename=file.filename or "unknown",
+            tenant_id=tenant_id,
+            strategy=strategy,
+            doc_type=doc_type,
+            metadata=parsed_metadata,
+        )
+        
+        return IngestResponse(**result)
+        
+    except ValueError as e:
+         raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        logger.error(f"File ingestion failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to ingest file: {str(e)}",
         )
 
 
